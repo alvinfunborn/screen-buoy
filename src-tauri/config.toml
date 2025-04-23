@@ -68,6 +68,37 @@ charsets = [
 # available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
 charset_extra = ['=', '-']
 
+[hint.styles]
+default = { background_color = "rgba(66, 133, 244, 1)", font_size = "11px", color = "black", border = "1px solid #fff", border_radius = "4px", box_shadow = "0 4px 8px rgba(0, 0, 0, 0.15)" }
+
+[[hint.styles.types]]
+type = 0
+background_color = "rgba(66, 133, 244, 1)"
+
+[[hint.styles.types]]
+type = 1
+background_color = "rgba(223, 8, 252, 1)"
+
+[[hint.styles.types]]
+type = 2
+background_color = "rgba(67, 7, 231, 1)"
+
+[[hint.styles.types]]
+type = 3
+background_color = "rgba(225, 240, 22, 1)"
+
+[[hint.styles.types]]
+type = 4
+background_color = "rgba(66, 133, 244, 1)"
+
+[[hint.styles.types]]
+type = 5
+background_color = "rgba(19, 148, 30, 1)"
+
+
+[keybinding]
+hotkey_buoy = "Alt+H"
+
 [keybinding.global]
 exit = ["Esc"]
 hold_at_hint = ["HintKey", "Space"]
@@ -115,29 +146,7 @@ translate = [{ x = 10, y = 10 }, { x = 50, y = 50, modifier = ["Tab", "\\"] }]
 scroll = [{ x = 120, y = -120 }, { x = 600, y = -600, modifier = ["Tab", "\\"] }]
 drag = [{ x = 10, y = 10 }, { x = 50, y = 50, modifier = ["Tab", "\\"] }]
 
-[hint.styles]
-default = { background_color = "rgba(66, 133, 244, 1)", font_size = "11px", color = "black", border = "1px solid #fff", border_radius = "4px", box_shadow = "0 4px 8px rgba(0, 0, 0, 0.15)" }
-
-[[hint.styles.types]]
-type = 0
-background_color = "rgba(66, 133, 244, 1)"
-
-[[hint.styles.types]]
-type = 1
-background_color = "rgba(223, 8, 252, 1)"
-
-[[hint.styles.types]]
-type = 2
-background_color = "rgba(67, 7, 231, 1)"
-
-[[hint.styles.types]]
-type = 3
-background_color = "rgba(225, 240, 22, 1)"
-
-[[hint.styles.types]]
-type = 4
-background_color = "rgba(66, 133, 244, 1)"
-
-[[hint.styles.types]]
-type = 5
-background_color = "rgba(19, 148, 30, 1)"
+[system]
+start_in_tray = true
+show_tray_icon = true
+start_at_login = true

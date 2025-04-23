@@ -6,6 +6,7 @@ use std::collections::{HashMap, HashSet};
 pub struct KeybindingConfig {
     pub global: GlobalKeybindingConfig,
     pub at_hint: AtHintKeybindingConfig,
+    pub hotkey_buoy: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]

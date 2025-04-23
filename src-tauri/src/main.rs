@@ -42,7 +42,7 @@ fn main() {
                 .level(log::LevelFilter::Info)
                 .build(),
         )
-        .manage(config)  // 管理Config状态
+        .manage(config.clone())  // 管理Config状态
         .setup(move |app| {
             info!("=== 应用程序启动 ===");
             info!("调试模式: {}", cfg!(debug_assertions));
@@ -80,11 +80,10 @@ fn main() {
             }
 
             let main_window_clone = main_window.clone();
-            // 注册 Alt+H 快捷键
+            let hotkey_buoy = config.keybinding.hotkey_buoy.clone();
             match app_handle
                 .global_shortcut_manager()
-                .register("Alt+H", move || {
-                    info!("触发快捷键: Alt+H");
+                .register(hotkey_buoy.as_str(), move || {
                     let main_window_clone = main_window_clone.clone();
                     tauri::async_runtime::spawn(async move {
                         if let Err(e) = show_hints(main_window_clone).await {
@@ -94,8 +93,8 @@ fn main() {
                         }
                     });
                 }) {
-                Ok(_) => info!("[✓] Alt+H快捷键注册成功"),
-                Err(e) => error!("[✗] Alt+H快捷键注册失败: {}", e),
+                Ok(_) => info!("[✓] 全局快捷键注册成功"),
+                Err(e) => error!("[✗] 全局快捷键注册失败: {}", e),
             }
 
             // 开发工具相关代码...
