@@ -16,6 +16,7 @@ use std::time::Duration;
 use tauri::{GlobalShortcutManager, Manager};
 use tauri_plugin_log::{Builder as LogBuilder, LogTarget};
 use windows::Win32::System::Com::*;
+use config::hint::get_hint_styles;
 
 fn main() {
     // 初始化配置
@@ -23,6 +24,9 @@ fn main() {
         eprintln!("配置初始化失败: {}", e);
         return;
     }
+
+    // 获取配置用于状态管理
+    let config = config::get_config().expect("配置已初始化");
 
     unsafe {
         let hr = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
@@ -38,6 +42,7 @@ fn main() {
                 .level(log::LevelFilter::Info)
                 .build(),
         )
+        .manage(config)  // 管理Config状态
         .setup(move |app| {
             info!("=== 应用程序启动 ===");
             info!("调试模式: {}", cfg!(debug_assertions));
@@ -109,7 +114,9 @@ fn main() {
 
     // 运行应用
     match builder
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![
+            get_hint_styles,
+        ])
         .run(tauri::generate_context!())
     {
         Ok(_) => info!("应用程序正常退出"),
