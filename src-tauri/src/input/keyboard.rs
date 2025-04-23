@@ -41,89 +41,6 @@ impl KeyboardState {
 pub static KEYBOARD_STATE: Lazy<Mutex<KeyboardState>> =
     Lazy::new(|| Mutex::new(KeyboardState::new()));
 
-// 键盘映射表
-static KEY_RIGHT_SIDE_MAP: Lazy<std::collections::HashMap<&str, &str>> = Lazy::new(|| {
-    let mut map = std::collections::HashMap::new();
-    map.insert("A", "S");
-    map.insert("B", "N");
-    map.insert("C", "V");
-    map.insert("D", "F");
-    map.insert("E", "R");
-    map.insert("F", "G");
-    map.insert("G", "H");
-    map.insert("H", "J");
-    map.insert("I", "O");
-    map.insert("J", "K");
-    map.insert("K", "L");
-    map.insert("L", ";");
-    map.insert("M", ",");
-    map.insert("N", "M");
-    map.insert("O", "P");
-    map.insert("P", "[");
-    map.insert("Q", "W");
-    map.insert("R", "T");
-    map.insert("S", "D");
-    map.insert("T", "Y");
-    map.insert("U", "I");
-    map.insert("V", "B");
-    map.insert("W", "E");
-    map.insert("X", "C");
-    map.insert("Y", "U");
-    map.insert("Z", "X");
-    map.insert("1", "2");
-    map.insert("2", "3");
-    map.insert("3", "4");
-    map.insert("4", "5");
-    map.insert("5", "6");
-    map.insert("6", "7");
-    map.insert("7", "8");
-    map.insert("8", "9");
-    map.insert("9", "0");
-    map.insert("0", "-");
-    map
-});
-
-static KEY_LEFT_SIDE_MAP: Lazy<std::collections::HashMap<&str, &str>> = Lazy::new(|| {
-    let mut map = std::collections::HashMap::new();
-    map.insert("W", "Q");
-    map.insert("E", "W");
-    map.insert("R", "E");
-    map.insert("T", "R");
-    map.insert("Y", "T");
-    map.insert("U", "Y");
-    map.insert("I", "U");
-    map.insert("O", "I");
-    map.insert("P", "O");
-    map.insert("[", "P");
-    map.insert("S", "A");
-    map.insert("D", "S");
-    map.insert("F", "D");
-    map.insert("G", "F");
-    map.insert("H", "G");
-    map.insert("J", "H");
-    map.insert("K", "J");
-    map.insert("L", "K");
-    map.insert(";", "L");
-    map.insert("X", "Z");
-    map.insert("C", "X");
-    map.insert("V", "C");
-    map.insert("B", "V");
-    map.insert("N", "M");
-    map.insert("M", ",");
-    map.insert("1", "`");
-    map.insert("2", "1");
-    map.insert("3", "2");
-    map.insert("4", "3");
-    map.insert("5", "4");
-    map.insert("6", "5");
-    map.insert("7", "6");
-    map.insert("8", "7");
-    map.insert("9", "8");
-    map.insert("0", "9");
-    map.insert("-", "0");
-    map
-});
-
 pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>) {
     println!("[键盘状态] 设置 keyboard_ctrl = {}", visible);
     if let Ok(mut state) = KEYBOARD_STATE.lock() {
@@ -165,16 +82,16 @@ fn key_in_keys(key: &str, keys: &Vec<String>) -> bool {
 
 // 检查是否是末尾hint键的右侧键
 fn is_right_key_of(key: &str, last_key: &str) -> bool {
-    KEY_RIGHT_SIDE_MAP
-        .get(last_key)
-        .map_or(false, |&right_key| right_key == key)
+    let configs = config::get_config().unwrap();
+    let keyboard = &configs.keyboard;
+    keyboard.get_right_key(last_key).map_or(false, |right_key| right_key == key)
 }
 
 // 检查是否是末尾hint键的左侧键
 fn is_left_key_of(key: &str, last_key: &str) -> bool {
-    KEY_LEFT_SIDE_MAP
-        .get(last_key)
-        .map_or(false, |&left_key| left_key == key)
+    let configs = config::get_config().unwrap();
+    let keyboard = &configs.keyboard;
+    keyboard.get_left_key(last_key).map_or(false, |left_key| left_key == key)
 }
 
 fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {

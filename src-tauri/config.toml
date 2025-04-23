@@ -55,6 +55,55 @@ LALT = { key = "LAlt", virtual_key = 0xA4 }
 RALT = { key = "RAlt", virtual_key = 0xA5 }
 [keyboard]
 propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin", "RWin",]
+[keyboard.map_left_right]
+"`" = { right = "1" }
+1 = { left = "`", right = "2" }
+2 = { left = "1", right = "3" }
+3 = { left = "2", right = "4" }
+4 = { left = "3", right = "5" }
+5 = { left = "4", right = "6" }
+6 = { left = "5", right = "7" }
+7 = { left = "6", right = "8" }
+8 = { left = "7", right = "9" }
+9 = { left = "8", right = "0" }
+0 = { left = "9", right = "-" }
+- = { left = "0", right = "=" }
+"=" = { left = "-" }
+Q = { right = "W" }
+W = { left = "Q", right = "E" }
+E = { left = "W", right = "R" }
+R = { left = "E", right = "T" }
+T = { left = "R", right = "Y" }
+Y = { left = "T", right = "U" }
+U = { left = "Y", right = "I" }
+I = { left = "U", right = "O" }
+O = { left = "I", right = "P" }
+P = { left = "O", right = "[" }
+"[" = { left = "P", right = "]" }
+"]" = { left = "[", right = "\\" }
+"\\" = { left = "]"}
+A = { right = "S" }
+S = { left = "A", right = "D" }
+D = { left = "S", right = "F" }
+F = { left = "D", right = "G" }
+G = { left = "F", right = "H" }
+H = { left = "G", right = "J" }
+J = { left = "H", right = "K" }
+K = { left = "J", right = "L" }
+L = { left = "K", right = ";" }
+";" = { left = "L", right = "'" }
+"'" = { left = ";", right = "/" }
+Z = { right = "X" }
+X = { left = "Z", right = "C" }
+C = { left = "X", right = "V" }
+V = { left = "C", right = "B" }
+B = { left = "V", right = "N" }
+N = { left = "B", right = "M" }
+M = { left = "N", right = "," }
+"," = { left = "M", right = "." }
+"." = { left = ",", right = "/" }
+"/" = { left = "." }
+
 
 [hint]
 # available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
