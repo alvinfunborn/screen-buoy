@@ -89,7 +89,7 @@ fn main() {
             std::thread::spawn(move || {
                 info!("[✓] UI元素收集线程已启动");
                 loop {
-                    std::thread::sleep(Duration::from_millis(1000));
+                    std::thread::sleep(Duration::from_millis(config.ui_automation.collect_interval));
                     collect_ui_elements();
                 }
             });

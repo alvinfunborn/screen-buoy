@@ -3,12 +3,14 @@ pub mod keybinding;
 pub mod keyboard;
 pub mod mouse;
 pub mod system;
+pub mod ui_automation;
 
 pub use hint::HintConfig;
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
 pub use mouse::MouseConfig;
 pub use system::SystemConfig;
+pub use ui_automation::UiAutomationConfig;
 
 use serde::Deserialize;
 use std::fs;
@@ -22,6 +24,7 @@ pub struct Config {
     pub mouse: MouseConfig,
     pub keyboard: KeyboardConfig,
     pub system: SystemConfig,
+    pub ui_automation: UiAutomationConfig,
 }
 
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
