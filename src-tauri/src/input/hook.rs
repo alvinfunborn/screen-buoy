@@ -5,10 +5,8 @@ use windows::Win32::{
     Foundation::{LPARAM, LRESULT, WPARAM},
     UI::{
         Input::KeyboardAndMouse::{
-            GetKeyboardState, ToUnicode, VK_BACK, VK_DELETE, VK_DOWN, VK_ESCAPE, VK_LCONTROL,
-            VK_LEFT, VK_LMENU, VK_LSHIFT, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6,
+            GetKeyboardState, ToUnicode, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6,
             VK_OEM_7, VK_OEM_8, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS,
-            VK_RCONTROL, VK_RETURN, VK_RIGHT, VK_RMENU, VK_RSHIFT, VK_SPACE, VK_TAB, VK_UP,
         },
         WindowsAndMessaging::{
             CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HHOOK, KBDLLHOOKSTRUCT,
@@ -17,7 +15,7 @@ use windows::Win32::{
     },
 };
 
-use crate::configs;
+use crate::config;
 
 use super::keyboard::handle_keyboard_event;
 
@@ -39,7 +37,7 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     let is_down = wparam.0 == WM_KEYDOWN as usize;
     let vk_code = key_info.vkCode as u16;
 
-    let config = configs::get_config().expect("配置未初始化");
+    let config = config::get_config().expect("配置未初始化");
     let keyboard_config = &config.keyboard;
     let key: String;
     if let Some(key_config) = keyboard_config.get_key_by_virtual_key(vk_code) {

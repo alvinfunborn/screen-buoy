@@ -1,9 +1,11 @@
+use crate::monitor::MONITORS_STORAGE;
 use serde::{Deserialize, Serialize};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    mouse_event, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL
+    mouse_event, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
+    MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_MOVE, MOUSEEVENTF_RIGHTDOWN,
+    MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL,
 };
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
-use crate::monitors::MONITORS_STORAGE;
 
 fn move_to(monitor: usize, x: i32, y: i32) -> windows::core::Result<()> {
     // 获取显示器信息
@@ -13,19 +15,27 @@ fn move_to(monitor: usize, x: i32, y: i32) -> windows::core::Result<()> {
             // 检查坐标是否在显示器范围内
             let mut x = x * monitor_info.scale_factor as i32;
             let mut y = y * monitor_info.scale_factor as i32;
-            if x < 0 { x = 0; } else if x > monitor_info.width { x = monitor_info.width; }
-            if y < 0 { y = 0; } else if y > monitor_info.height { y = monitor_info.height; }
+            if x < 0 {
+                x = 0;
+            } else if x > monitor_info.width {
+                x = monitor_info.width;
+            }
+            if y < 0 {
+                y = 0;
+            } else if y > monitor_info.height {
+                y = monitor_info.height;
+            }
 
             // 计算全局坐标
             let global_x = monitor_info.x + x;
             let global_y = monitor_info.y + y;
-            
-            println!("移动鼠标到显示器 {}: 局部({}, {}) -> 全局({}, {})", 
-                monitor, x, y, global_x, global_y);
-            
-            unsafe {
-                SetCursorPos(global_x, global_y)
-            }
+
+            println!(
+                "移动鼠标到显示器 {}: 局部({}, {}) -> 全局({}, {})",
+                monitor, x, y, global_x, global_y
+            );
+
+            unsafe { SetCursorPos(global_x, global_y) }
         } else {
             println!("未找到显示器 {}", monitor);
             Err(windows::core::Error::from_win32())
@@ -72,7 +82,7 @@ fn end_drag() -> windows::core::Result<()> {
         mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
         Ok(())
     }
-} 
+}
 
 fn wheel_move(delta_x: i32, delta_y: i32) -> windows::core::Result<()> {
     unsafe {
@@ -117,8 +127,7 @@ pub async fn mouse_double_click() -> Result<(), String> {
     Ok(())
 }
 
-
-pub async fn mouse_move(monitor: usize, x: i32, y:i32) -> Result<(), String> {
+pub async fn mouse_move(monitor: usize, x: i32, y: i32) -> Result<(), String> {
     move_to(monitor, x, y).map_err(|e| e.to_string())?;
     Ok(())
 }

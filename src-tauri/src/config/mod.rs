@@ -1,33 +1,28 @@
-pub mod hints;
-pub mod keybindings;
-pub mod mouse;
+pub mod hint;
+pub mod keybinding;
 pub mod keyboard;
+pub mod mouse;
 
-pub use hints::HintsConfig;
-pub use keybindings::KeybindingsConfig;
-pub use mouse::MouseConfig;
+pub use hint::HintConfig;
+pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
+pub use mouse::MouseConfig;
 
+use serde::Deserialize;
 use std::fs;
 use std::path::Path;
-use serde::Deserialize;
 use toml;
-
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Config {
-    pub hints: HintsConfig,
-    pub keybindings: KeybindingsConfig,
+    pub hint: HintConfig,
+    pub keybinding: KeybindingConfig,
     pub mouse: MouseConfig,
     pub keyboard: KeyboardConfig,
 }
 
 pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
-    let config_paths = vec![
-        "config.toml",
-        "src-tauri/config.toml",
-        "../config.toml",
-    ];
+    let config_paths = vec!["config.toml", "src-tauri/config.toml", "../config.toml"];
 
     for path in config_paths {
         if Path::new(path).exists() {
@@ -45,9 +40,7 @@ pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
-pub static CONFIG: Lazy<Mutex<Option<Config>>> = Lazy::new(|| {
-    Mutex::new(None)
-});
+pub static CONFIG: Lazy<Mutex<Option<Config>>> = Lazy::new(|| Mutex::new(None));
 
 // 初始化配置
 pub fn init_config() -> Result<(), Box<dyn std::error::Error>> {
@@ -61,5 +54,3 @@ pub fn init_config() -> Result<(), Box<dyn std::error::Error>> {
 pub fn get_config() -> Option<Config> {
     CONFIG.lock().unwrap().clone()
 }
-
-

@@ -57,11 +57,10 @@ fn get_sorted_monitors(window: &Window) -> Result<Vec<MonitorInfo>, String> {
 
 pub fn init_monitors(window: &Window) {
     // 获取显示器信息
-    let monitors = get_sorted_monitors(window)
-        .unwrap_or_else(|e| {
-            eprintln!("获取显示器信息失败: {}", e);
-            Vec::new()
-        });
+    let monitors = get_sorted_monitors(window).unwrap_or_else(|e| {
+        eprintln!("获取显示器信息失败: {}", e);
+        Vec::new()
+    });
     if let Ok(mut cached_monitors) = MONITORS_STORAGE.lock() {
         *cached_monitors = monitors;
     }

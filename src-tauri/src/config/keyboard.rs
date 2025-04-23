@@ -31,6 +31,4 @@ impl KeyboardConfig {
     pub fn get_key_by_name(&self, name: &str) -> Option<&str> {
         self.available_key.get(name).map(|key| key.key.as_str())
     }
-
 }
-

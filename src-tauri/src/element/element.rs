@@ -1,4 +1,4 @@
-use crate::app_windows::WindowElement;
+use crate::window::WindowElement;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -233,7 +233,7 @@ pub fn collect_ui_elements_for_window(
 }
 
 pub fn collect_ui_elements() {
-    let windows = crate::app_windows::windows::get_all_windows();
+    let windows = crate::window::window::get_all_windows();
     let (automation, condition) = init_ui_automation();
 
     for window in windows.iter() {

@@ -1,15 +1,15 @@
-use std::collections::{HashMap, HashSet};
 use once_cell::sync::Lazy;
 use serde::Deserialize;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct KeybindingsConfig {
-    pub global: GlobalKeybindingsConfig,
-    pub at_hint: AtHintKeybindingsConfig,
+pub struct KeybindingConfig {
+    pub global: GlobalKeybindingConfig,
+    pub at_hint: AtHintKeybindingConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct GlobalKeybindingsConfig {
+pub struct GlobalKeybindingConfig {
     pub move_to_hint: Vec<String>,
     pub move_to_hint_exit: Vec<String>,
     pub left_click_exit: Vec<String>,
@@ -19,7 +19,7 @@ pub struct GlobalKeybindingsConfig {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct AtHintKeybindingsConfig {
+pub struct AtHintKeybindingConfig {
     pub exit: Vec<String>,
     pub left_click: Vec<String>,
     pub left_click_exit: Vec<String>,
@@ -72,22 +72,23 @@ pub static MODIFIERS: Lazy<HashSet<String>> = Lazy::new(|| {
     mouse_config.get_modifiers()
 });
 
-pub static GLOBAL_KEY_DOWN_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> = Lazy::new(|| {
-    let keybindings = super::get_config().unwrap().keybindings;
-    keybindings.get_global_keybindings(true)
-});
+pub static GLOBAL_KEY_DOWN_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> =
+    Lazy::new(|| {
+        let keybindings = super::get_config().unwrap().keybinding;
+        keybindings.get_global_keybindings(true)
+    });
 
 pub static GLOBAL_KEY_UP_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> = Lazy::new(|| {
-    let keybindings = super::get_config().unwrap().keybindings;
+    let keybindings = super::get_config().unwrap().keybinding;
     keybindings.get_global_keybindings(false)
 });
 
 pub static AT_HINT_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> = Lazy::new(|| {
-    let keybindings = super::get_config().unwrap().keybindings;
+    let keybindings = super::get_config().unwrap().keybinding;
     keybindings.get_at_hint_keybindings()
 });
 
-impl KeybindingsConfig {
+impl KeybindingConfig {
     fn get_global_keybindings(&self, key_down: bool) -> HashMap<&'static str, Vec<String>> {
         let mut keybindings = HashMap::new();
         if !key_down {
@@ -113,11 +114,17 @@ impl KeybindingsConfig {
         keybindings.insert(LEFT_CLICK_CMD, self.at_hint.left_click.clone());
         keybindings.insert(LEFT_CLICK_EXIT_CMD, self.at_hint.left_click_exit.clone());
         keybindings.insert(DOUBLE_CLICK_CMD, self.at_hint.double_click.clone());
-        keybindings.insert(DOUBLE_CLICK_EXIT_CMD, self.at_hint.double_click_exit.clone());
+        keybindings.insert(
+            DOUBLE_CLICK_EXIT_CMD,
+            self.at_hint.double_click_exit.clone(),
+        );
         keybindings.insert(RIGHT_CLICK_CMD, self.at_hint.right_click.clone());
         keybindings.insert(RIGHT_CLICK_EXIT_CMD, self.at_hint.right_click_exit.clone());
         keybindings.insert(MIDDLE_CLICK_CMD, self.at_hint.middle_click.clone());
-        keybindings.insert(MIDDLE_CLICK_EXIT_CMD, self.at_hint.middle_click_exit.clone());
+        keybindings.insert(
+            MIDDLE_CLICK_EXIT_CMD,
+            self.at_hint.middle_click_exit.clone(),
+        );
         keybindings.insert(TRANSLATE_UP_CMD, self.at_hint.translate.up.clone());
         keybindings.insert(TRANSLATE_DOWN_CMD, self.at_hint.translate.down.clone());
         keybindings.insert(TRANSLATE_LEFT_CMD, self.at_hint.translate.left.clone());
@@ -134,32 +141,32 @@ impl KeybindingsConfig {
     }
 }
 
-impl GlobalKeybindingsConfig {
+impl GlobalKeybindingConfig {
     pub fn is_translate_key(&self, key: &str) -> bool {
-            self.translate.up.contains(&key.to_string())
+        self.translate.up.contains(&key.to_string())
             || self.translate.down.contains(&key.to_string())
             || self.translate.left.contains(&key.to_string())
             || self.translate.right.contains(&key.to_string())
     }
 }
 
-impl AtHintKeybindingsConfig {
+impl AtHintKeybindingConfig {
     pub fn is_translate_key(&self, key: &str) -> bool {
-            self.translate.up.contains(&key.to_string())
+        self.translate.up.contains(&key.to_string())
             || self.translate.down.contains(&key.to_string())
             || self.translate.left.contains(&key.to_string())
             || self.translate.right.contains(&key.to_string())
     }
 
     pub fn is_drag_key(&self, key: &str) -> bool {
-            self.drag.up.contains(&key.to_string())
+        self.drag.up.contains(&key.to_string())
             || self.drag.down.contains(&key.to_string())
             || self.drag.left.contains(&key.to_string())
             || self.drag.right.contains(&key.to_string())
     }
 
     pub fn is_scroll_key(&self, key: &str) -> bool {
-            self.scroll.up.contains(&key.to_string())
+        self.scroll.up.contains(&key.to_string())
             || self.scroll.down.contains(&key.to_string())
             || self.scroll.left.contains(&key.to_string())
             || self.scroll.right.contains(&key.to_string())

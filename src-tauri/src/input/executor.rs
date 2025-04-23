@@ -1,130 +1,113 @@
-use crate::{configs, hints::{filter_hints, hide_hints, move_hints, storage::get_hint_position_by_text}};
+use crate::{
+    config,
+    hint::{filter_hints, hide_hints, move_hints, storage::get_hint_position_by_text},
+};
 
 use super::{keyboard::KeyboardState, mouse};
 
 pub struct Executor<'a> {
     app_handle: &'a tauri::AppHandle,
     state: &'a mut KeyboardState,
-    config: &'a configs::Config,
+    config: &'a config::Config,
 }
 
 impl<'a> Executor<'a> {
-    pub fn new(app_handle: &'a tauri::AppHandle, config: &'a configs::Config, state: &'a mut KeyboardState) -> Self {
-        Self { app_handle, config, state }
+    pub fn new(
+        app_handle: &'a tauri::AppHandle,
+        config: &'a config::Config,
+        state: &'a mut KeyboardState,
+    ) -> Self {
+        Self {
+            app_handle,
+            config,
+            state,
+        }
     }
 
     pub fn execute(&mut self, cmd: Option<&str>) -> bool {
         match cmd {
-            Some(configs::keybindings::MOVE_TO_HINT_CMD) => {
-                self.execute_move_to_hint(false)
+            Some(config::keybinding::MOVE_TO_HINT_CMD) => self.execute_move_to_hint(false),
+            Some(config::keybinding::MOVE_TO_HINT_EXIT_CMD) => self.execute_move_to_hint(true),
+            Some(config::keybinding::LEFT_CLICK_CMD) => self.execute_quick_click(false),
+            Some(config::keybinding::LEFT_CLICK_EXIT_CMD) => self.execute_quick_click(true),
+            Some(config::keybinding::HOLD_AT_HINT_CMD) => self.execute_hold_at_hint(),
+            Some(config::keybinding::EXIT_CMD) => self.execute_exit(),
+            Some(config::keybinding::TRANSLATE_UP_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.global.translate)
             }
-            Some(configs::keybindings::MOVE_TO_HINT_EXIT_CMD) => {
-                self.execute_move_to_hint(true)
+            Some(config::keybinding::TRANSLATE_DOWN_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.global.translate)
             }
-            Some(configs::keybindings::LEFT_CLICK_CMD) => {
-                self.execute_quick_click(false)
+            Some(config::keybinding::TRANSLATE_LEFT_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.global.translate)
             }
-            Some(configs::keybindings::LEFT_CLICK_EXIT_CMD) => {
-                self.execute_quick_click(true)
+            Some(config::keybinding::TRANSLATE_RIGHT_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.global.translate)
             }
-            Some(configs::keybindings::HOLD_AT_HINT_CMD) => {
-                self.execute_hold_at_hint()
-            }
-            Some(configs::keybindings::EXIT_CMD) => {
-                self.execute_exit()
-            }
-            Some(configs::keybindings::TRANSLATE_UP_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.global.translate)
-            }
-            Some(configs::keybindings::TRANSLATE_DOWN_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.global.translate)
-            }
-            Some(configs::keybindings::TRANSLATE_LEFT_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.global.translate)
-            }
-            Some(configs::keybindings::TRANSLATE_RIGHT_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.global.translate)
-            }
-            _ => false
+            _ => false,
         }
     }
-    
+
     pub fn execute_at_hint(&mut self, cmd: Option<&str>) -> bool {
         match cmd {
-            Some(configs::keybindings::HOLD_AT_HINT_CMD) => {
+            Some(config::keybinding::HOLD_AT_HINT_CMD) => {
                 // 拦截hint_key, 保持按住final_hint_key, 不传播按键
                 true
             }
-            Some(configs::keybindings::RIGHT_CLICK_CMD) => {
-                self.execute_right_click(false)
+            Some(config::keybinding::RIGHT_CLICK_CMD) => self.execute_right_click(false),
+            Some(config::keybinding::RIGHT_CLICK_EXIT_CMD) => self.execute_right_click(true),
+            Some(config::keybinding::DOUBLE_CLICK_CMD) => self.execute_double_click(false),
+            Some(config::keybinding::DOUBLE_CLICK_EXIT_CMD) => self.execute_double_click(true),
+            Some(config::keybinding::LEFT_CLICK_CMD) => self.execute_left_click(false),
+            Some(config::keybinding::LEFT_CLICK_EXIT_CMD) => self.execute_left_click(true),
+            Some(config::keybinding::MIDDLE_CLICK_CMD) => self.execute_middle_click(false),
+            Some(config::keybinding::MIDDLE_CLICK_EXIT_CMD) => self.execute_middle_click(true),
+            Some(config::keybinding::EXIT_CMD) => self.execute_exit(),
+            Some(config::keybinding::TRANSLATE_UP_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.at_hint.translate)
             }
-            Some(configs::keybindings::RIGHT_CLICK_EXIT_CMD) => {
-                self.execute_right_click(true)
+            Some(config::keybinding::TRANSLATE_DOWN_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.at_hint.translate)
             }
-            Some(configs::keybindings::DOUBLE_CLICK_CMD) => {
-                self.execute_double_click(false)
+            Some(config::keybinding::TRANSLATE_LEFT_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.at_hint.translate)
             }
-            Some(configs::keybindings::DOUBLE_CLICK_EXIT_CMD) => {
-                self.execute_double_click(true)
+            Some(config::keybinding::TRANSLATE_RIGHT_CMD) => {
+                self.execute_move_hints(&self.config.keybinding.at_hint.translate)
             }
-            Some(configs::keybindings::LEFT_CLICK_CMD) => {
-                self.execute_left_click(false)
+            Some(config::keybinding::SCROLL_UP_CMD) => {
+                self.execute_scroll_hints(&self.config.keybinding.at_hint.scroll)
             }
-            Some(configs::keybindings::LEFT_CLICK_EXIT_CMD) => {
-                self.execute_left_click(true)
+            Some(config::keybinding::SCROLL_DOWN_CMD) => {
+                self.execute_scroll_hints(&self.config.keybinding.at_hint.scroll)
             }
-            Some(configs::keybindings::MIDDLE_CLICK_CMD) => {
-                self.execute_middle_click(false)
+            Some(config::keybinding::SCROLL_LEFT_CMD) => {
+                self.execute_scroll_hints(&self.config.keybinding.at_hint.scroll)
             }
-            Some(configs::keybindings::MIDDLE_CLICK_EXIT_CMD) => {
-                self.execute_middle_click(true)
+            Some(config::keybinding::SCROLL_RIGHT_CMD) => {
+                self.execute_scroll_hints(&self.config.keybinding.at_hint.scroll)
             }
-            Some(configs::keybindings::EXIT_CMD) => {
-                self.execute_exit()
+            Some(config::keybinding::DRAG_UP_CMD) => {
+                self.execute_drag_hints(&self.config.keybinding.at_hint.drag)
             }
-            Some(configs::keybindings::TRANSLATE_UP_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.at_hint.translate)
+            Some(config::keybinding::DRAG_DOWN_CMD) => {
+                self.execute_drag_hints(&self.config.keybinding.at_hint.drag)
             }
-            Some(configs::keybindings::TRANSLATE_DOWN_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.at_hint.translate)
+            Some(config::keybinding::DRAG_LEFT_CMD) => {
+                self.execute_drag_hints(&self.config.keybinding.at_hint.drag)
             }
-            Some(configs::keybindings::TRANSLATE_LEFT_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.at_hint.translate)
+            Some(config::keybinding::DRAG_RIGHT_CMD) => {
+                self.execute_drag_hints(&self.config.keybinding.at_hint.drag)
             }
-            Some(configs::keybindings::TRANSLATE_RIGHT_CMD) => {
-                self.execute_move_hints(&self.config.keybindings.at_hint.translate)
-            }
-            Some(configs::keybindings::SCROLL_UP_CMD) => {
-                self.execute_scroll_hints(&self.config.keybindings.at_hint.scroll)
-            }
-            Some(configs::keybindings::SCROLL_DOWN_CMD) => {
-                self.execute_scroll_hints(&self.config.keybindings.at_hint.scroll)
-            }
-            Some(configs::keybindings::SCROLL_LEFT_CMD) => {
-                self.execute_scroll_hints(&self.config.keybindings.at_hint.scroll)
-            }
-            Some(configs::keybindings::SCROLL_RIGHT_CMD) => {
-                self.execute_scroll_hints(&self.config.keybindings.at_hint.scroll)
-            }
-            Some(configs::keybindings::DRAG_UP_CMD) => {
-                self.execute_drag_hints(&self.config.keybindings.at_hint.drag)
-            }
-            Some(configs::keybindings::DRAG_DOWN_CMD) => {
-                self.execute_drag_hints(&self.config.keybindings.at_hint.drag)
-            }
-            Some(configs::keybindings::DRAG_LEFT_CMD) => {
-                self.execute_drag_hints(&self.config.keybindings.at_hint.drag)
-            }
-            Some(configs::keybindings::DRAG_RIGHT_CMD) => {
-                self.execute_drag_hints(&self.config.keybindings.at_hint.drag)
-            }
-            _ => false
+            _ => false,
         }
     }
 
     fn execute_move_to_hint(&self, exit: bool) -> bool {
         let app_handle_clone = self.app_handle.clone();
-        if let Some((monitor_id, x, y)) = get_hint_position_by_text(&self.state.pressed_hint_keys.clone().unwrap()) {
+        if let Some((monitor_id, x, y)) =
+            get_hint_position_by_text(&self.state.pressed_hint_keys.clone().unwrap())
+        {
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
                     eprintln!("[键盘事件] mouse_move失败: {}", e);
@@ -175,7 +158,9 @@ impl<'a> Executor<'a> {
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
                 tauri::async_runtime::spawn(async move {
-                    if let Err(e) = filter_hints(app_handle_clone, "removeAllHints".to_string()).await {
+                    if let Err(e) =
+                        filter_hints(app_handle_clone, "removeAllHints".to_string()).await
+                    {
                         eprintln!("[键盘事件] filter_hints失败: {}", e);
                     }
                 });
@@ -319,8 +304,11 @@ impl<'a> Executor<'a> {
         });
         true
     }
-    
-    fn execute_move_hints(&self, key_binddings: &configs::keybindings::DirectionKeybindingsConfig) -> bool {
+
+    fn execute_move_hints(
+        &self,
+        key_binddings: &config::keybinding::DirectionKeybindingsConfig,
+    ) -> bool {
         let hold_keys_map = &self.state.hold_keys;
         let mut hold_keys: Vec<String> = Vec::new();
         if hold_keys_map.len() > 0 {
@@ -331,7 +319,8 @@ impl<'a> Executor<'a> {
             }
         }
         let mouse_step = self.config.mouse.get_translate_step(&hold_keys);
-        let (dx, dy) = calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
+        let (dx, dy) =
+            calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             let app_handle_clone = self.app_handle.clone();
             // 发送事件到前端更新显示
@@ -345,7 +334,10 @@ impl<'a> Executor<'a> {
         false
     }
 
-    fn execute_scroll_hints(&self, key_binddings: &configs::keybindings::DirectionKeybindingsConfig) -> bool {
+    fn execute_scroll_hints(
+        &self,
+        key_binddings: &config::keybinding::DirectionKeybindingsConfig,
+    ) -> bool {
         let hold_keys_map = &self.state.hold_keys;
         let mut hold_keys: Vec<String> = Vec::new();
         if hold_keys_map.len() > 0 {
@@ -356,8 +348,12 @@ impl<'a> Executor<'a> {
             }
         }
         let mouse_step = self.config.mouse.get_scroll_step(&hold_keys);
-        println!("[键盘事件] 修饰键: {:?}, 滚动步长: {:?}", hold_keys, mouse_step);
-        let (dx, dy) = calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
+        println!(
+            "[键盘事件] 修饰键: {:?}, 滚动步长: {:?}",
+            hold_keys, mouse_step
+        );
+        let (dx, dy) =
+            calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             tauri::async_runtime::spawn(async move {
                 if let Err(e) = mouse::mouse_wheel_move(dx, dy).await {
@@ -368,8 +364,11 @@ impl<'a> Executor<'a> {
         }
         false
     }
-    
-    fn execute_drag_hints(&mut self, key_binddings: &configs::keybindings::DirectionKeybindingsConfig) -> bool {
+
+    fn execute_drag_hints(
+        &mut self,
+        key_binddings: &config::keybinding::DirectionKeybindingsConfig,
+    ) -> bool {
         let hold_keys_map = &self.state.hold_keys;
         let mut hold_keys: Vec<String> = Vec::new();
         if hold_keys_map.len() > 0 {
@@ -380,7 +379,8 @@ impl<'a> Executor<'a> {
             }
         }
         let mouse_step = self.config.mouse.get_drag_step(&hold_keys);
-        let (dx, dy) = calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
+        let (dx, dy) =
+            calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             let prefix_keys = self.state.pressed_hint_keys.clone().unwrap();
             let is_dragging: bool = self.state.is_dragging;
@@ -409,7 +409,12 @@ impl<'a> Executor<'a> {
     }
 }
 
-pub fn calculate_direction_delta(key_binddings: &configs::keybindings::DirectionKeybindingsConfig, state: &KeyboardState, step_x: i32, step_y: i32) -> (i32, i32) {
+pub fn calculate_direction_delta(
+    key_binddings: &config::keybinding::DirectionKeybindingsConfig,
+    state: &KeyboardState,
+    step_x: i32,
+    step_y: i32,
+) -> (i32, i32) {
     let mut dx = 0;
     let mut dy = 0;
     key_binddings.up.iter().for_each(|key| {
@@ -442,4 +447,3 @@ pub fn calculate_direction_delta(key_binddings: &configs::keybindings::Direction
     });
     (dx, dy)
 }
-

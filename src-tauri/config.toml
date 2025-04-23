@@ -56,7 +56,7 @@ RALT = { key = "RAlt", virtual_key = 0xA5 }
 [keyboard]
 propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin", "RWin",]
 
-[hints]
+[hint]
 # available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
 charsets = [
     ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R',
@@ -68,20 +68,20 @@ charsets = [
 # available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
 charset_extra = ['=', '-']
 
-[keybindings.global]
+[keybinding.global]
 exit = ["Esc"]
 hold_at_hint = ["HintKey", "Space"]
 left_click_exit = ["HintKey", "Space"]
 move_to_hint = ["HintKey"]
 # only HintKey works here. there for it is an option for move or move&exit
 move_to_hint_exit = []
-[keybindings.global.translate]
+[keybinding.global.translate]
 up = ["Up"]
 down = ["Down"]
 left = ["Left"]
 right = ["Right"]
 
-[keybindings.at_hint]
+[keybinding.at_hint]
 exit = ["Esc"]
 double_click = ["Enter"]
 double_click_exit = []
@@ -91,17 +91,17 @@ right_click = ["RShift"]
 right_click_exit = ["HintRightKey"]
 middle_click = []
 middle_click_exit = ["`"]
-[keybindings.at_hint.translate]
+[keybinding.at_hint.translate]
 up = []
 down = []
 left = []
 right = []
-[keybindings.at_hint.drag]
+[keybinding.at_hint.drag]
 up = ["Up"]
 down = ["Down"]
 left = ["Left"]
 right = ["Right"]
-[keybindings.at_hint.scroll]
+[keybinding.at_hint.scroll]
 up = ["I","E"]
 down = ["K","D"]
 left = ["J","S"]

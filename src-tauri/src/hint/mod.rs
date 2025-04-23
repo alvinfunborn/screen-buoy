@@ -2,21 +2,19 @@ pub mod generator;
 pub mod overlay;
 pub mod storage;
 
-use crate::hints::generator::HintsGenerator;
-use std::collections::HashSet;
+use crate::hint::generator::HintsGenerator;
+use crate::input;
 use overlay::ensure_all_overlays_topmost;
 use serde_json::json;
+use std::collections::HashSet;
 use storage::clear_hints;
 use storage::save_hints;
 use storage::update_hints_offset;
 use tauri::{Manager, Window};
 
+pub use generator::init_hint_text_list_storage;
 pub use overlay::create_overlay_windows;
 pub use overlay::OVERLAY_WINDOW_PREFIX;
-pub use generator::init_hint_text_list_storage;
-
-// 导入键盘模块
-use crate::inputs;
 
 pub async fn show_hints(window: Window) -> Result<(), String> {
     // 清空之前的 hints 数据
@@ -29,7 +27,7 @@ pub async fn show_hints(window: Window) -> Result<(), String> {
     let mut hints_count = 0;
 
     // 设置键盘状态为可见
-    inputs::keyboard::switch_keyboard_ctrl(true, Some(&app_handle));
+    input::keyboard::switch_keyboard_ctrl(true, Some(&app_handle));
 
     let monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
@@ -71,14 +69,17 @@ pub async fn hide_hints(app_handle: tauri::AppHandle) -> Result<(), String> {
     }
 
     // 设置键盘状态为不可见
-    inputs::keyboard::switch_keyboard_ctrl(false, Some(&app_handle));
+    input::keyboard::switch_keyboard_ctrl(false, Some(&app_handle));
 
     // 清空 hints 数据
     clear_hints();
     Ok(())
 }
 
-pub async fn move_hints(app_handle: tauri::AppHandle, move_direction: (i32, i32)) -> Result<(), String> {
+pub async fn move_hints(
+    app_handle: tauri::AppHandle,
+    move_direction: (i32, i32),
+) -> Result<(), String> {
     update_hints_offset(move_direction.0, move_direction.1);
     let windows = app_handle.windows();
     for (label, window) in windows {
@@ -91,7 +92,7 @@ pub async fn move_hints(app_handle: tauri::AppHandle, move_direction: (i32, i32)
             window.emit("move-hints", json).map_err(|e| e.to_string())?;
         }
     }
-    Ok(())   
+    Ok(())
 }
 
 pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) -> Result<(), String> {
@@ -99,7 +100,9 @@ pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) -> Resu
     for (label, window) in windows {
         if label.starts_with(OVERLAY_WINDOW_PREFIX) {
             println!("发送filter-hints事件到窗口: {}", label);
-            window.emit("filter-hints", letters.clone()).map_err(|e| e.to_string())?;
+            window
+                .emit("filter-hints", letters.clone())
+                .map_err(|e| e.to_string())?;
         }
     }
     Ok(())

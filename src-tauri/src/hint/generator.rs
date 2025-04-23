@@ -1,5 +1,9 @@
 use crate::{
-    app_windows::{windows::calculate_covered_areas, WindowElement}, configs, elements::{UIElement, WINDOWS_UI_ELEMENTS_MAP_STORAGE}, monitors::{MonitorInfo, MONITORS_STORAGE}, utils::Rect
+    config,
+    element::{UIElement, WINDOWS_UI_ELEMENTS_MAP_STORAGE},
+    monitor::{MonitorInfo, MONITORS_STORAGE},
+    utils::Rect,
+    window::{window::calculate_covered_areas, WindowElement},
 };
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
@@ -23,12 +27,12 @@ pub struct Hint {
 static HINT_TEXT_LIST_STORAGE: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 pub fn init_hint_text_list_storage() {
-    let config = configs::get_config().expect("配置未初始化");
-    let hint_config = &config.hints;
+    let configs = config::get_config().expect("配置未初始化");
+    let hint_config = &configs.hint;
     let mut list = Vec::new();
     generate_n_digit_hints(&hint_config.charsets, String::new(), 0, &mut list);
     // 如果有额外字符集，生成n+1位hints
-    if *configs::hints::HAS_EXTRA_CHARSET {
+    if *config::hint::HAS_EXTRA_CHARSET {
         for &extra_char in hint_config.charset_extra.iter() {
             let mut prefix = String::new();
             prefix.push(extra_char);
@@ -40,16 +44,16 @@ pub fn init_hint_text_list_storage() {
 
 // 生成n位hints
 fn generate_n_digit_hints(
-    charsets: &[Vec<char>], 
-    current: String, 
-    depth: usize, 
-    result: &mut Vec<String>
+    charsets: &[Vec<char>],
+    current: String,
+    depth: usize,
+    result: &mut Vec<String>,
 ) {
     if depth == charsets.len() {
         result.push(current);
         return;
     }
-    
+
     for &c in charsets[depth].iter() {
         let mut new_current = current.clone();
         new_current.push(c);
@@ -165,14 +169,15 @@ impl HintsGenerator {
                     if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
                         return;
                     }
-                    
+
                     // 转换为相对于显示器的坐标
                     let mut hint = hint.clone();
                     hint.x -= monitor.x;
                     hint.y -= monitor.y;
                     hint.x = (hint.x as f64 / monitor.scale_factor) as i32;
                     hint.y = (hint.y as f64 / monitor.scale_factor) as i32;
-                    let hint_letter = HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
+                    let hint_letter =
+                        HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
                     let hint_type = hint.element_type;
                     // println!("window:{}, NO.{}hint:{},type:{},ctrl_type:{},pos:({},{}):{} 在显示器{}内，添加到hints",
                     //     window_element.title, *hints_count, hint_letter, hint_type, hint.control_type, hint.x, hint.y, hint.text, monitor.id);
@@ -196,4 +201,3 @@ impl HintsGenerator {
         }
     }
 }
-

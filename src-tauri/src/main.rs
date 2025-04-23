@@ -1,25 +1,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod app_windows;
-mod elements;
-mod hints;
-mod monitors;
+mod config;
+mod element;
+mod hint;
+mod input;
+mod monitor;
 mod utils;
-mod inputs;
-mod configs;
+mod window;
 
-use elements::collect_ui_elements;
-use hints::{create_overlay_windows, show_hints};
-use monitors::monitor::init_monitors;
+use element::element::collect_ui_elements;
+use hint::{create_overlay_windows, show_hints};
+use log::{error, info};
+use monitor::monitor::init_monitors;
 use std::time::Duration;
 use tauri::{GlobalShortcutManager, Manager};
+use tauri_plugin_log::{Builder as LogBuilder, LogTarget};
 use windows::Win32::System::Com::*;
-use tauri_plugin_log::{LogTarget, Builder as LogBuilder}; 
-use log::{error, info};
 
 fn main() {
     // 初始化配置
-    if let Err(e) = configs::init_config() {
+    if let Err(e) = config::init_config() {
         eprintln!("配置初始化失败: {}", e);
         return;
     }
@@ -32,26 +32,24 @@ fn main() {
     }
 
     let builder = tauri::Builder::default()
-        .plugin(LogBuilder::default()
-            .targets([
-                LogTarget::Stdout,
-                LogTarget::Webview,
-                LogTarget::LogDir,
-            ])
-            .level(log::LevelFilter::Info)
-            .build())
+        .plugin(
+            LogBuilder::default()
+                .targets([LogTarget::Stdout, LogTarget::Webview, LogTarget::LogDir])
+                .level(log::LevelFilter::Info)
+                .build(),
+        )
         .setup(move |app| {
             info!("=== 应用程序启动 ===");
             info!("调试模式: {}", cfg!(debug_assertions));
-            
+
             let app_handle = app.handle();
 
             // 初始化键盘钩子
-            inputs::hook::init(app_handle.clone());
+            input::hook::init(app_handle.clone());
             info!("[✓] 键盘钩子初始化成功");
 
             // 初始化hints
-            hints::init_hint_text_list_storage();
+            hint::init_hint_text_list_storage();
             info!("[✓] hints初始化成功");
 
             // 初始化显示器信息
@@ -78,17 +76,19 @@ fn main() {
 
             let main_window_clone = main_window.clone();
             // 注册 Alt+H 快捷键
-            match app_handle.global_shortcut_manager().register("Alt+H", move || {
-                info!("触发快捷键: Alt+H");
-                let main_window_clone = main_window_clone.clone();
-                tauri::async_runtime::spawn(async move {
-                    if let Err(e) = show_hints(main_window_clone).await {
-                        error!("[✗] 显示hints失败: {}", e);
-                    } else {
-                        info!("[✓] 显示hints成功");
-                    }
-                });
-            }) {
+            match app_handle
+                .global_shortcut_manager()
+                .register("Alt+H", move || {
+                    info!("触发快捷键: Alt+H");
+                    let main_window_clone = main_window_clone.clone();
+                    tauri::async_runtime::spawn(async move {
+                        if let Err(e) = show_hints(main_window_clone).await {
+                            error!("[✗] 显示hints失败: {}", e);
+                        } else {
+                            info!("[✓] 显示hints成功");
+                        }
+                    });
+                }) {
                 Ok(_) => info!("[✓] Alt+H快捷键注册成功"),
                 Err(e) => error!("[✗] Alt+H快捷键注册失败: {}", e),
             }
@@ -110,13 +110,14 @@ fn main() {
     // 运行应用
     match builder
         .invoke_handler(tauri::generate_handler![])
-        .run(tauri::generate_context!()) {
-            Ok(_) => info!("应用程序正常退出"),
-            Err(e) => error!("应用程序异常退出: {}", e),
-        }
+        .run(tauri::generate_context!())
+    {
+        Ok(_) => info!("应用程序正常退出"),
+        Err(e) => error!("应用程序异常退出: {}", e),
+    }
 
     // 清理键盘钩子
-    inputs::hook::cleanup();
+    input::hook::cleanup();
     info!("[✓] 键盘钩子已清理");
 
     unsafe {

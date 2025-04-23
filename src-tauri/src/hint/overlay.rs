@@ -1,4 +1,4 @@
-use crate::monitors::MONITORS_STORAGE;
+use crate::monitor::MONITORS_STORAGE;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -19,7 +19,10 @@ pub fn get_overlay_window_label(monitor_index: usize) -> String {
 }
 
 pub fn get_overlay_monitor_id(window_label: &str) -> usize {
-    window_label.replace(OVERLAY_WINDOW_PREFIX, "").parse::<usize>().unwrap()
+    window_label
+        .replace(OVERLAY_WINDOW_PREFIX, "")
+        .parse::<usize>()
+        .unwrap()
 }
 
 pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), String> {
