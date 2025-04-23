@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Overlay</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+            pointer-events: auto;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .hint-container.hidden {
+            display:none;
+        }
+
+        .hint {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 2px;
+            font-size: 11px;
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            border: 1px solid #fff;
+            border-radius: 4px;
+            -webkit-user-select: none;
+            user-select: none;
+            transform: translate(-50%, 0);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            z-index: 2147483646;
+        }
+        /* 默认 */
+        .hint-style0 {
+            background-color: rgba(66, 133, 244, 1);
+            color: black;
+        }
+        /* 窗口 */
+        .hint-style1 {
+            background-color: rgba(223, 8, 252, 1);
+            color: black;
+        }
+        /* 区域 */
+        .hint-style2 {
+            background-color: rgba(67, 7, 231, 1);
+            color: black;
+        }
+        /* 聚焦 */
+        .hint-style3 {
+            background-color: rgba(225, 240, 22, 1);
+            color: black;
+        }
+        /* 修改 */
+        .hint-style4 {
+            background-color: rgba(66, 133, 244, 1);
+            color: black;
+        }
+        /* 按住 */
+        .hint-style5 {
+            background-color: rgba(19, 148, 30, 1);
+            color: black;
+        }
+        .hints-container {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            transform: translate(0px, 0px);
+            transition: transform 0.1s ease-out;
+        }
+        .hint {
+            position: absolute;
+            display: none; /* 默认隐藏 */
+            opacity: 0;
+            transition: opacity 0.15s ease-out;
+        }
+        .hint.visible {
+            display: block;
+            opacity: 1;
+        }
+        .hint.filtered {
+            display: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="hints-container" id="hintsContainer">
+        <!-- hints will be added here -->
+    </div>
+    <script type="module">
+        import { invoke } from "@tauri-apps/api/tauri";
+        import { listen, emit } from "@tauri-apps/api/event";
+        import { appWindow, WebviewWindow, getCurrent } from "@tauri-apps/api/window";
+        import { attachConsole, info, error, warn } from "tauri-plugin-log-api";
+        attachConsole();
+
+        // 创建提示元素
+        function createHintElement(hint) {
+            try {
+                if (!hint || typeof hint !== 'object') {
+                    throw new Error('Invalid hint data');
+                }
+
+                const {x, y, z, scale, text, hint_type} = hint;
+
+                const hintElement = document.createElement('div');
+                hintElement.className = 'hint visible hint-style' + hint.hint_type;
+                hintElement.textContent = text;
+                
+                // 直接使用相对坐标
+                hintElement.style.left = x + 'px';
+                hintElement.style.top = y + 'px';
+                hintElement.style.zIndex = z;
+                return hintElement;
+            } catch (error) {
+                error(`[${document.title}] Error creating hint element: ${error.message}`);
+                return null;
+            }
+        }
+
+        // 清除提示
+        function clearHints() {
+            const container = document.getElementById('hintsContainer');
+            container.innerHTML = '';
+            container.style.transform = 'translate(0px, 0px)';
+        }
+
+        // 移动提示
+        function moveHints(x, y) {
+            const container = document.getElementById('hintsContainer');
+            const currentTransform = container.style.transform || 'translate(0px, 0px)';
+            const [currentX, currentY] = currentTransform
+                .match(/translate\((-?\d+)px,\s*(-?\d+)px\)/)
+                ?.slice(1)
+                .map(Number) || [0, 0];
+            
+            container.style.transform = `translate(${currentX + x}px, ${currentY + y}px)`;
+        }
+
+        // 过滤提示
+        function filterHints(letters) {
+            const hints = document.querySelectorAll('.hint.visible');
+            requestAnimationFrame(() => {
+                hints.forEach(hint => {
+                    if (!hint.textContent.startsWith(letters)) {
+                        hint.classList.add('filtered');
+                    }
+                });
+            });
+        }
+
+        // 主初始化函数
+        async function initialize() {
+
+            try {
+                // 使用导入的 API 直接获取当前窗口
+                info('正在获取当前窗口...');
+                const currentWindow = await getCurrent();
+                
+                if (!currentWindow) {
+                    throw new Error('无法获取当前窗口对象');
+                }
+                
+                info('当前窗口获取成功:', {
+                    title: document.title,
+                    label: currentWindow.label
+                });
+
+                // 设置 show-hints 事件监听
+                info('开始设置 show-hints 事件监听...');
+                const unlistenShow = await currentWindow.listen('show-hints', (event) => {
+                    const hints = event.payload;
+                    if (!Array.isArray(hints)) {
+                        info('警告: hints 不是数组:', hints);
+                        return;
+                    }
+                    info(`准备显示 ${hints.length} 个hints`);
+
+                    // 清除现有的 hints
+                    const container = document.getElementById('hintsContainer');
+                    container.innerHTML = '';
+
+                    // 创建新的 hints
+                    hints.forEach((hint, index) => {
+                        const hintElement = createHintElement(hint);
+                        if (hintElement) {
+                            container.appendChild(hintElement);
+                        }
+                    });
+                });
+                info('show-hints 事件监听器设置成功');
+
+                
+                // 设置 show-hints2 事件监听
+                info('开始设置 show-hints2 事件监听...');
+                const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
+                    const hints = event.payload;
+                    if (!Array.isArray(hints)) {
+                        info('警告: hints 不是数组:', hints);
+                        return;
+                    }
+                    info(`准备显示 ${hints.length} 个hints`);
+
+                    // 获取容器
+                    const container = document.getElementById('hintsContainer');
+                    // 创建新的 hints
+                    hints.forEach((hint, index) => {
+                        const hintElement = createHintElement(hint);
+                        if (hintElement) {
+                            container.appendChild(hintElement);
+                        }
+                    });
+                });
+                info('show-hints2 事件监听器设置成功');
+
+                // 设置 hide-hints 事件监听
+                info('开始设置 hide-hints 事件监听...');
+                const unlistenHide = await currentWindow.listen('hide-hints', () => {
+                    info('收到hide-hints事件');
+                    clearHints();
+                });
+                info('hide-hints 事件监听器设置成功');
+
+                // 设置 hints-move 事件监听
+                info('开始设置 move-hints 事件监听...');
+                const unlistenMove = await currentWindow.listen('move-hints', (event) => {
+                    info('收到move-hints事件:', event.payload);
+                    const {x, y} = event.payload;
+                    moveHints(x, y);
+                });
+                info('move-hints 事件监听器设置成功');
+
+                // 设置 hints-filter 事件监听
+                info('开始设置 filter-hints 事件监听...');
+                const unlistenFilter = await currentWindow.listen('filter-hints', (event) => {
+                    info('收到filter-hints事件');
+                    const letters = event.payload;
+                    filterHints(letters);
+                });
+                info('filter-hints 事件监听器设置成功');
+
+                // 设置清理函数
+                window.addEventListener('unload', () => {
+                    try {
+                        unlistenShow();
+                        unlistenShow2();
+                        unlistenHide();
+                        unlistenMove();
+                        unlistenFilter();
+                        info('事件监听器已清理');
+                    } catch (error) {
+                        info('清理事件监听器时出错:', error);
+                    }
+                });
+                info('清理函数设置成功');
+
+            } catch (error) {
+                info('设置事件监听器时出错 - 详细信息:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                info('详细错误信息:', error);
+            }
+
+            // 错误处理
+            window.addEventListener('error', (event) => {
+                info('捕获到全局错误:', event.error);
+            });
+
+            window.addEventListener('unhandledrejection', (event) => {
+                info('捕获到未处理的Promise拒绝:', event.reason);
+            });
+        }
+
+        // 等待 DOM 加载完成后再初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initialize().catch(error => {
+                info('初始化失败:', error);
+            });
+        });
+    </script>
+</body>
+</html>

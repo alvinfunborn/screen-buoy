@@ -1,0 +1,116 @@
+[keyboard.available_key]
+HINT_KEY = { key = "HintKey" }
+HINT_RIGHT_KEY = { key = "HintRightKey" }
+HINT_LEFT_KEY = { key = "HintLeftKey" }
+BACK = { key = "Back", virtual_key = 0x08 }
+TAB = { key = "Tab", virtual_key = 0x09 }
+CAPS_LOCK = { key = "CapsLock", virtual_key = 0x14 }
+ENTER = {key = "Enter", virtual_key = 0x0D }
+ESC = { key = "Esc", virtual_key = 0x1B }
+SPACE = { key = "Space", virtual_key = 0x20 }
+PAGE_UP = { key = "PageUp", virtual_key = 0x21 }
+PAGE_DOWN = { key = "PageDown", virtual_key = 0x22 }
+END = { key = "End", virtual_key = 0x23 }
+HOME = { key = "Home", virtual_key = 0x24 }
+LEFT = { key = "Left", virtual_key = 0x25 }
+UP = { key = "Up", virtual_key = 0x26 }
+RIGHT = { key = "Right", virtual_key = 0x27 }
+DOWN = { key = "Down", virtual_key = 0x28 }
+INSERT = { key = "Insert", virtual_key = 0x2D }
+DELETE = { key = "Delete", virtual_key = 0x2E }
+LWIN = { key = "LWin", virtual_key = 0x5B }
+RWIN = { key = "RWin", virtual_key = 0x5C }
+NUM_0 = { key = "Num0", virtual_key = 0x60 }
+NUM_1 = { key = "Num1", virtual_key = 0x61 }
+NUM_2 = { key = "Num2", virtual_key = 0x62 }
+NUM_3 = { key = "Num3", virtual_key = 0x63 }
+NUM_4 = { key = "Num4", virtual_key = 0x64 }
+NUM_5 = { key = "Num5", virtual_key = 0x65 }
+NUM_6 = { key = "Num6", virtual_key = 0x66 }
+NUM_7 = { key = "Num7", virtual_key = 0x67 }
+NUM_8 = { key = "Num8", virtual_key = 0x68 }
+NUM_9 = { key = "Num9", virtual_key = 0x69 }
+NUM_MULTIPLY = { key = "NumMultiply", virtual_key = 0x6A }
+NUM_ADD = { key = "NumAdd", virtual_key = 0x6B }
+NUM_SUBTRACT = { key = "NumSubtract", virtual_key = 0x6D }
+NUM_DECIMAL = { key = "NumDecimal", virtual_key = 0x6E }
+NUM_DIVIDE = { key = "NumDivide", virtual_key = 0x6F }
+F1 = { key = "F1", virtual_key = 0x70 }
+F2 = { key = "F2", virtual_key = 0x71 }
+F3 = { key = "F3", virtual_key = 0x72 }
+F4 = { key = "F4", virtual_key = 0x73 }
+F5 = { key = "F5", virtual_key = 0x74 }
+F6 = { key = "F6", virtual_key = 0x75 }
+F7 = { key = "F7", virtual_key = 0x76 }
+F8 = { key = "F8", virtual_key = 0x77 }
+F9 = { key = "F9", virtual_key = 0x78 }
+F10 = { key = "F10", virtual_key = 0x79 }
+F11 = { key = "F11", virtual_key = 0x7A }
+F12 = { key = "F12", virtual_key = 0x7B }
+LSHIFT = { key = "LShift", virtual_key = 0xA0 }
+RSHIFT = { key = "RShift", virtual_key = 0xA1 }
+LCTRL = { key = "LCtrl", virtual_key = 0xA2 }
+RCTRL = { key = "RCtrl", virtual_key = 0xA3 }
+LALT = { key = "LAlt", virtual_key = 0xA4 }
+RALT = { key = "RAlt", virtual_key = 0xA5 }
+[keyboard]
+propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin", "RWin",]
+
+[hints]
+# available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
+charsets = [
+    ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R',
+    'S', 'T', 'U', 'V', 'W', 'X', 'Y', '2', '3', '4', '6', '7', '8', '9'],
+    ['B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'R',
+    'S', 'T', 'U', 'V', 'W', 'X', 'Y', '2', '3', '4', '6', '7', '8', '9']
+]
+# make sure charset_extra is not in hints.charsets
+# available charset: A-Z, 0-9, '-', '=', '[', ']', '\', ';', '\'', ',', '.', '/', '`'
+charset_extra = ['=', '-']
+
+[keybindings.global]
+exit = ["Esc"]
+hold_at_hint = ["HintKey", "Space"]
+left_click_exit = ["HintKey", "Space"]
+move_to_hint = ["HintKey"]
+# only HintKey works here. there for it is an option for move or move&exit
+move_to_hint_exit = []
+[keybindings.global.translate]
+up = ["Up"]
+down = ["Down"]
+left = ["Left"]
+right = ["Right"]
+
+[keybindings.at_hint]
+exit = ["Esc"]
+double_click = ["Enter"]
+double_click_exit = []
+left_click = ["LShift"]
+left_click_exit = ["HintLeftKey"]
+right_click = ["RShift"]
+right_click_exit = ["HintRightKey"]
+middle_click = []
+middle_click_exit = ["`"]
+[keybindings.at_hint.translate]
+up = []
+down = []
+left = []
+right = []
+[keybindings.at_hint.drag]
+up = ["Up"]
+down = ["Down"]
+left = ["Left"]
+right = ["Right"]
+[keybindings.at_hint.scroll]
+up = ["I","E"]
+down = ["K","D"]
+left = ["J","S"]
+right = ["L","F"]
+
+[mouse.step]
+# make sure modifier is not in keybindings.global.propagation_modifier
+# available modifiers: LShift, RShift, LCtrl, RCtrl, LAlt, RAlt, LWin, RWin, CapsLock, Tab
+translate = [{ x = 10, y = 10 }, { x = 50, y = 50, modifier = ["Tab", "\\"] }]
+# do not use Shift as modifier, the scroll will function by switch direction between vertical and horizontal
+scroll = [{ x = 120, y = -120 }, { x = 600, y = -600, modifier = ["Tab", "\\"] }]
+drag = [{ x = 10, y = 10 }, { x = 50, y = 50, modifier = ["Tab", "\\"] }]
