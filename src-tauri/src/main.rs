@@ -13,7 +13,10 @@ use hint::{create_overlay_windows, show_hints};
 use log::{error, info};
 use monitor::monitor::init_monitors;
 use std::time::Duration;
-use tauri::{GlobalShortcutManager, Manager};
+use tauri::{
+    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowEvent,
+    GlobalShortcutManager,
+};
 use tauri_plugin_log::{Builder as LogBuilder, LogTarget};
 use windows::Win32::System::Com::*;
 use config::hint::get_hint_styles;
@@ -35,6 +38,14 @@ fn main() {
         }
     }
 
+    // 创建系统托盘菜单
+    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let show = CustomMenuItem::new("show".to_string(), "Settings");
+    let tray_menu = SystemTrayMenu::new()
+        .add_item(show)
+        .add_item(quit);
+    let tray = SystemTray::new().with_menu(tray_menu);
+
     let builder = tauri::Builder::default()
         .plugin(
             LogBuilder::default()
@@ -42,12 +53,17 @@ fn main() {
                 .level(log::LevelFilter::Info)
                 .build(),
         )
-        .manage(config.clone())  // 管理Config状态
+        .manage(config.clone())
         .setup(move |app| {
             info!("=== 应用程序启动 ===");
             info!("调试模式: {}", cfg!(debug_assertions));
 
             let app_handle = app.handle();
+            
+            // 设置开机自启动
+            if config.system.start_at_login {
+                info!("[i] 开机自启动功能需要系统权限支持");
+            }
 
             // 初始化键盘钩子
             input::hook::init(app_handle.clone());
@@ -62,6 +78,12 @@ fn main() {
             let main_window_clone = main_window.clone();
             init_monitors(&main_window_clone);
             info!("[✓] 显示器信息初始化成功");
+
+            // 根据配置决定是否启动时最小化到托盘
+            if config.system.start_in_tray {
+                main_window.hide().unwrap();
+                info!("[✓] 已最小化到托盘");
+            }
 
             // 启动后台线程更新 UI 元素
             std::thread::spawn(move || {
@@ -97,19 +119,40 @@ fn main() {
                 Err(e) => error!("[✗] 全局快捷键注册失败: {}", e),
             }
 
-            // 开发工具相关代码...
-            #[cfg(debug_assertions)]
-            {
-                let main_window_clone = main_window.clone();
-                tauri::async_runtime::spawn(async move {
-                    main_window_clone.open_devtools();
-                    info!("[✓] 主窗口开发工具已打开");
-                });
-            }
-
             info!("=== 应用程序初始化完成 ===");
             Ok(())
+        })
+        // 处理窗口事件
+        .on_window_event(|event| {
+            if let WindowEvent::CloseRequested { api, .. } = event.event() {
+                event.window().hide().unwrap();
+                api.prevent_close();
+            }
+        })
+        // 处理系统托盘事件
+        .on_system_tray_event(|app, event| match event {
+            SystemTrayEvent::MenuItemClick { id, .. } => {
+                match id.as_str() {
+                    "quit" => {
+                        app.exit(0);
+                    }
+                    "show" => {
+                        let window = app.get_window("main").unwrap();
+                        window.show().unwrap();
+                        window.set_focus().unwrap();
+                    }
+                    _ => {}
+                }
+            }
+            _ => {}
         });
+
+    // 根据配置决定是否显示托盘图标
+    let builder = if config.system.show_tray_icon {
+        builder.system_tray(tray)
+    } else {
+        builder
+    };
 
     // 运行应用
     match builder

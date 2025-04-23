@@ -150,3 +150,6 @@ drag = [{ x = 10, y = 10 }, { x = 50, y = 50, modifier = ["Tab", "\\"] }]
 start_in_tray = true
 show_tray_icon = true
 start_at_login = true
+
+[ui_automation]
+collect_interval = 1000

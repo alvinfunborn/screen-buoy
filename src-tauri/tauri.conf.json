@@ -11,7 +11,22 @@
   },
   "tauri": {
     "allowlist": {
-      "all": true
+      "all": false,
+      "app": {
+        "all": false,
+        "show": true,
+        "hide": true
+      },
+      "window": {
+        "all": false,
+        "show": true,
+        "hide": true,
+        "close": true,
+        "setFocus": true
+      },
+      "globalShortcut": {
+        "all": true
+      }
     },
     "systemTray": {
       "iconPath": "icons/icon.ico",

@@ -58,6 +58,7 @@ pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), 
         .title(window_label.clone())
         .transparent(true)
         .decorations(false)
+        .skip_taskbar(true)
         .always_on_top(true)
         .position(monitor.x as f64, monitor.y as f64)
         .inner_size(monitor.width as f64, monitor.height as f64)
@@ -86,10 +87,6 @@ pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), 
                 }
             }
         }
-
-        // 在开发环境下打开devtools
-        #[cfg(debug_assertions)]
-        window.open_devtools();
     }
 
     println!("所有overlay窗口创建完成");
