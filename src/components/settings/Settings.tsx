@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, Form, message } from 'antd';
+import { Tabs, Form, message, Spin } from 'antd';
 import { invoke } from '@tauri-apps/api/tauri';
 import type { Config } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
@@ -11,8 +11,9 @@ import { UiAutomationSettings } from './sections/UiAutomationSettings';
 import { debounce } from 'lodash';
 
 const Settings: React.FC = () => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<Config>();
   const [loading, setLoading] = useState(true);
+  const [initialConfig, setInitialConfig] = useState<Config | null>(null);
 
   useEffect(() => {
     loadConfig();
@@ -22,7 +23,8 @@ const Settings: React.FC = () => {
     try {
       setLoading(true);
       const config = await invoke<Config>('get_config_for_frontend');
-      form.setFieldsValue(config);
+      console.log("Config loaded from backend:", JSON.stringify(config, null, 2));
+      setInitialConfig(config);
     } catch (err) {
       message.error('加载配置失败');
       console.error('加载配置失败:', err);
@@ -31,7 +33,6 @@ const Settings: React.FC = () => {
     }
   };
 
-  // 使用 debounce 防止频繁保存
   const debouncedSave = debounce(async (values: Config) => {
     try {
       await invoke('save_config_for_frontend', { config: values });
@@ -42,14 +43,20 @@ const Settings: React.FC = () => {
     }
   }, 500);
 
-  const handleValuesChange = async (_: any, allValues: Config) => {
+  const handleValuesChange = (_: any, allValues: Config) => {
     debouncedSave(allValues);
   };
 
+  if (loading || !initialConfig) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Spin size="large" /></div>;
+  }
+
+  console.log("Rendering Form with initialConfig:", JSON.stringify(initialConfig, null, 2));
   return (
     <Form
       form={form}
       layout="vertical"
+      initialValues={initialConfig}
       onValuesChange={handleValuesChange}
       style={{ padding: '24px' }}
     >
@@ -59,32 +66,32 @@ const Settings: React.FC = () => {
           {
             key: 'keybinding',
             label: 'Keybinding',
-            children: <KeybindingSettings loading={loading} />,
+            children: <KeybindingSettings loading={false} />,
           },
           {
             key: 'mouse',
             label: 'Mouse',
-            children: <MouseSettings loading={loading} />,
+            children: <MouseSettings loading={false} />,
           },
           {
             key: 'hint',
             label: 'Hint',
-            children: <HintSettings loading={loading} />,
+            children: <HintSettings loading={false} />,
           },
           {
             key: 'ui_automation',
             label: 'UI Automation',
-            children: <UiAutomationSettings loading={loading} />,
+            children: <UiAutomationSettings loading={false} />,
           },
           {
             key: 'keyboard',
             label: 'Keyboard',
-            children: <KeyboardSettings loading={loading} />,
+            children: <KeyboardSettings loading={false} />,
           },
           {
             key: 'system',
             label: 'System',
-            children: <SystemSettings loading={loading} />,
+            children: <SystemSettings loading={false} />,
           },
         ]}
       />

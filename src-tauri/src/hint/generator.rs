@@ -20,8 +20,8 @@ pub struct Hint {
     pub y: i32,
     pub z: i32,
     pub scale: f64,
-    // hint_type: 0-default, 1-window, 2-click2focus, 3-click2modify, 4-click2hold
-    pub hint_type: i32,
+    // hint_type: 0-default, 1-window, 2-pane, 3-tab, 4-button, 5-scrollbar
+    pub hint_type: usize,
 }
 
 static HINT_TEXT_LIST_STORAGE: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));

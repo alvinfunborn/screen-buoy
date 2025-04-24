@@ -2,7 +2,7 @@ import React from 'react';
 import { Form, InputNumber, List, Space, Spin, Typography, Select, Button } from 'antd';
 import { Config, MouseStep } from '@/types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-
+import { useKeyOptions } from '../../../hooks/useKeyOptions';
 const { Title } = Typography;
 
 interface MouseSettingsProps {
@@ -16,23 +16,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading }) => {
   
   const form = Form.useFormInstance<Config>();
   const values = form.getFieldsValue(true) as Config;
-  const keyOptions = values?.keyboard?.available_key ? 
-    Object.entries(values.keyboard.available_key).sort((a, b) => a[1] - b[1]).map(([key, _]) => ({
-      label: key,
-      value: key
-    })) : [];
-  keyOptions.push({
-    label: "HintKey",
-    value: "HintKey"
-  });
-  keyOptions.push({
-    label: "HintRightKey",
-    value: "HintRightKey"
-  });
-  keyOptions.push({
-    label: "HintLeftKey",
-    value: "HintLeftKey"
-  });
+  const keyOptions = useKeyOptions(form);
 
   const updateStepConfig = (type: 'translate' | 'scroll' | 'drag', index: number, field: keyof MouseStep, value: any) => {
     const currentValues = form.getFieldsValue(true) as Config;

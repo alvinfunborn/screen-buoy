@@ -1,25 +1,14 @@
-export interface HintStyle {
-  background_color: string;
-  font_size?: string;
-  color?: string;
-}
+export type JSONObject = Record<string, any>;
 
-export interface HintTypeStyle {
-  type: number;
-  background_color: string;
-  font_size?: string;
-  color?: string;
-}
-
-export interface HintStyles {
-  default: Record<string, string>;
-  types: HintTypeStyle[];
+export interface HintType {
+  z_index: number;
+  style: JSONObject;
 }
 
 export interface HintConfig {
   charsets: string[][];
   charset_extra: string[];
-  styles: HintStyles;
+  types: Record<string, HintType>;
 }
 
 export interface LeftRightConfig {

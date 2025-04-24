@@ -132,8 +132,7 @@
 
         // 生成CSS样式
         function generateHintStyles(styles) {
-            const { default: defaultStyle, types } = styles;
-            
+            const { default: defaultStyle, text, window, pane, tab, button, scrollbar } = styles;
             let css = `
                 .hint {
                     position: fixed;
@@ -146,22 +145,16 @@
                     -webkit-user-select: none;
                     user-select: none;
                     transform: translate(-50%, 0);
-                    z-index: 2147483646;
-                    ${Object.entries(defaultStyle).map(([key, value]) => 
+                    z-index: -2147483646;
+                }`;
+            for (let i = 0; i < styles.length; i++) {
+                css += `
+                .hint-style${i} {
+                    ${Object.entries(styles[i]).map(([key, value]) => 
                         `${key.replace(/_/g, '-')}: ${value};`
                     ).join('\n                    ')}
-                }
-            `;
-
-            // 添加每种类型的样式
-            types.forEach(type => {
-                css += `
-                .hint-style${type.type} {
-                    background-color: ${type.background_color};
-                    ${type.font_size ? `font-size: ${type.font_size};` : ''}
-                    ${type.color ? `color: ${type.color};` : ''}
                 }`;
-            });
+            }
 
             return css;
         }

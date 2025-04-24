@@ -1,4 +1,4 @@
-use crate::window::WindowElement;
+use crate::{window::WindowElement, config};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -20,8 +20,8 @@ pub struct UIElement {
     pub height: i32,
     pub window_handle: i64,
     pub control_type: i32,
-    // element_type: 0-default, 1-window, 2-region, 3-click2focus, 4-click2modify, 5-click2hold
-    pub element_type: i32,
+    // element_type: 0-default, 1-window, 2-pane, 3-tab, 4-button, 5-scrollbar
+    pub element_type: usize,
 }
 
 pub static WINDOWS_UI_ELEMENTS_MAP_STORAGE: Lazy<Mutex<HashMap<WindowElement, Vec<UIElement>>>> =
@@ -47,6 +47,36 @@ fn init_ui_automation() -> (IUIAutomation, IUIAutomationCondition) {
     };
 
     (automation, condition)
+}
+
+fn get_element_type_and_z_index(
+    is_window: bool,
+    is_region: bool,
+    is_click2focus: bool,
+    is_click2modify: bool,
+    is_click2hold: bool,
+) -> (usize, i32) {
+    let element_type = if is_window {
+        config::hint::HINT_TYPE_WINDOW_NAME
+    } else if is_region {
+        config::hint::HINT_TYPE_PANE_NAME
+    } else if is_click2focus {
+        config::hint::HINT_TYPE_TAB_NAME
+    } else if is_click2modify {
+        config::hint::HINT_TYPE_BUTTON_NAME
+    } else if is_click2hold {
+        config::hint::HINT_TYPE_SCROLLBAR_NAME
+    } else {
+        config::hint::HINT_TYPE_DEFAULT_NAME
+    };
+
+    let z_index = if let Some(config) = config::get_config() {
+        config.hint.types.get(element_type).unwrap_or(&config::hint::HintType { z_index: 0, style: serde_json::Value::Null }).z_index
+    } else {
+        i32::MIN
+    };
+
+    (config::hint::get_hint_type_index(element_type), z_index)
 }
 
 pub fn collect_ui_elements_for_window(
@@ -166,39 +196,20 @@ pub fn collect_ui_elements_for_window(
                 _ => false,
             };
 
-            let element_type = if is_window {
-                1
-            } else if is_region {
-                2
-            } else if is_click2focus {
-                3
-            } else if is_click2modify {
-                4
-            } else if is_click2hold {
-                5
-            } else {
-                0
-            };
-            let z = if is_window {
-                5
-            } else if is_region {
-                1
-            } else if is_click2focus {
-                2
-            } else if is_click2modify {
-                4
-            } else if is_click2hold {
-                3
-            } else {
-                0
-            };
+            let (element_type, z_index) = get_element_type_and_z_index(
+                is_window,
+                is_region,
+                is_click2focus,
+                is_click2modify,
+                is_click2hold,
+            );
 
             let ui_element = UIElement {
                 text: name.to_string(),
                 is_enabled: true,
                 x: (rect.right + rect.left) / 2,
                 y: (rect.bottom + rect.top) / 2,
-                z,
+                z: z_index as i32,
                 width: rect.right - rect.left,
                 height: rect.bottom - rect.top,
                 window_handle: window.window_handle,
@@ -209,15 +220,11 @@ pub fn collect_ui_elements_for_window(
             let position = (rect.left, rect.top);
             match position_map.get(&position) {
                 Some(old_element) => {
-                    if old_element.z < z {
-                        // println!("collect_ui_elements_for_window:{} 更新元素:{}:({},{})",
-                        //     window.title, ui_element.text, ui_element.x, ui_element.y);
+                    if old_element.z < z_index as i32 {
                         position_map.insert(position, ui_element);
                     }
                 }
                 None => {
-                    // println!("collect_ui_elements_for_window:{} 添加元素:{}:({},{})",
-                    //     window.title, ui_element.text, ui_element.x, ui_element.y);
                     position_map.insert(position, ui_element);
                 }
             }

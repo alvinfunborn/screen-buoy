@@ -11,6 +11,7 @@ pub use keyboard::KeyboardConfig;
 pub use mouse::MouseConfig;
 pub use system::SystemConfig;
 pub use ui_automation::UiAutomationConfig;
+pub use hint::{HINT_TYPE_DEFAULT_NAME, HINT_TYPE_TEXT_NAME, HINT_TYPE_WINDOW_NAME, HINT_TYPE_PANE_NAME, HINT_TYPE_TAB_NAME, HINT_TYPE_BUTTON_NAME, HINT_TYPE_SCROLLBAR_NAME};
 
 use serde::{Deserialize, Serialize};
 use std::fs;

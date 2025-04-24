@@ -1,38 +1,21 @@
 import React from 'react';
-import { Form, Space, Typography, Collapse, Select, Spin, Input } from 'antd';
+import { Form, Space, Typography, Spin, Input, Select } from 'antd';
 import type { Config } from '../../../types/config';
+import { useKeyOptions } from '../../../hooks/useKeyOptions';
 
-const { Title } = Typography;
-const { Panel } = Collapse;
+const { Title, Text } = Typography;
 
 interface KeybindingSettingsProps {
   loading?: boolean;
 }
 
 export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading }) => {
+  const [form] = Form.useForm<Config>();
+  const keyOptions = useKeyOptions(form);
+
   if (loading) {
     return <Spin />;
   }
-
-  const form = Form.useFormInstance<Config>();
-  const values = form.getFieldsValue();
-  const keyOptions = values?.keyboard?.available_key ? 
-    Object.entries(values.keyboard.available_key).sort((a, b) => a[1] - b[1]).map(([key, _]) => ({
-      label: key,
-      value: key
-    })) : [];
-  keyOptions.push({
-    label: "HintKey",
-    value: "HintKey"
-  });
-  keyOptions.push({
-    label: "HintRightKey",
-    value: "HintRightKey"
-  });
-  keyOptions.push({
-    label: "HintLeftKey",
-    value: "HintLeftKey"
-  });
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -42,182 +25,194 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading 
         label="Main Hotkey"
         name={['keybinding', 'hotkey_buoy']}
       >
-        <Input/>
+        <Input />
       </Form.Item>
 
-      <Collapse>
-        <Panel header="Global Shortcuts" key="global">
-          <Form.Item
-            label="Move to Hint"
-            name={['keybinding', 'global', 'move_to_hint']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      {/* Global Shortcuts Section */}
+      <Title level={5}>Global Keybindings</Title>
+      <Form.Item
+        layout="horizontal"
+        label="Move to Hint"
+        name={['keybinding', 'global', 'move_to_hint']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Move and Exit"
-            name={['keybinding', 'global', 'move_to_hint_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Move and Exit"
+        name={['keybinding', 'global', 'move_to_hint_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Click and Exit"
-            name={['keybinding', 'global', 'left_click_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Click and Exit"
+        name={['keybinding', 'global', 'left_click_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Hold at Hint"
-            name={['keybinding', 'global', 'hold_at_hint']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Hold at Hint"
+        name={['keybinding', 'global', 'hold_at_hint']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Exit"
-            name={['keybinding', 'global', 'exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
-        </Panel>
+      <Form.Item
+        layout="horizontal"
+        label="Exit"
+        name={['keybinding', 'global', 'exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-        <Panel header="At Hint Shortcuts" key="at_hint">
-          <Form.Item
-            label="Exit"
-            name={['keybinding', 'at_hint', 'exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      {/* At Hint Shortcuts Section */}
+      <Title level={5}>At Hint Keybindings</Title>
+      <Form.Item
+        layout="horizontal"
+        label="Exit"
+        name={['keybinding', 'at_hint', 'exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Left Click"
-            name={['keybinding', 'at_hint', 'left_click']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Left Click"
+        name={['keybinding', 'at_hint', 'left_click']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Left Click and Exit"
-            name={['keybinding', 'at_hint', 'left_click_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Left Click and Exit"
+        name={['keybinding', 'at_hint', 'left_click_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Double Click"
-            name={['keybinding', 'at_hint', 'double_click']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Double Click"
+        name={['keybinding', 'at_hint', 'double_click']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Double Click and Exit"
-            name={['keybinding', 'at_hint', 'double_click_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Double Click and Exit"
+        name={['keybinding', 'at_hint', 'double_click_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Right Click"
-            name={['keybinding', 'at_hint', 'right_click']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Right Click"
+        name={['keybinding', 'at_hint', 'right_click']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Right Click and Exit"
-            name={['keybinding', 'at_hint', 'right_click_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Right Click and Exit"
+        name={['keybinding', 'at_hint', 'right_click_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Middle Click"
-            name={['keybinding', 'at_hint', 'middle_click']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Middle Click"
+        name={['keybinding', 'at_hint', 'middle_click']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
 
-          <Form.Item
-            label="Middle Click and Exit"
-            name={['keybinding', 'at_hint', 'middle_click_exit']}
-          >
-            <Select
-              mode="tags"
-              style={{ width: '100%' }}
-              options={keyOptions}
-              placeholder="Select keys"
-            />
-          </Form.Item>
-        </Panel>
-      </Collapse>
+      <Form.Item
+        layout="horizontal"
+        label="Middle Click and Exit"
+        name={['keybinding', 'at_hint', 'middle_click_exit']}
+      >
+        <Select
+          mode="tags"
+          style={{ width: '100%' }}
+          options={keyOptions}
+          placeholder="Select keys"
+        />
+      </Form.Item>
     </Space>
   );
 };
