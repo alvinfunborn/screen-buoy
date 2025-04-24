@@ -70,6 +70,16 @@ charset_extra = [
     "-",
 ]
 
+[hint.types.button]
+style = """
+{
+  background-color: rgba(66, 133, 244, 1); 
+  color: black; 
+  font-size: 11px;
+}
+"""
+z_index = 4
+
 [hint.types.default]
 style = """
 {
@@ -79,6 +89,36 @@ style = """
 }
 """
 z_index = 0
+
+[hint.types.pane]
+style = """
+{
+  background-color: rgba(67, 7, 231, 1); 
+  color: white; 
+  font-size: 12px;
+}
+"""
+z_index = 1
+
+[hint.types.scrollbar]
+style = """
+{
+  background-color: rgba(19, 148, 30, 1); 
+  color: black; 
+  font-size: 11px;
+}
+"""
+z_index = 3
+
+[hint.types.tab]
+style = """
+{
+  background-color: rgba(225, 240, 22, 1); 
+  color: black; 
+  font-size: 11px;
+}
+"""
+z_index = 2
 
 [hint.types.text]
 style = "{background-color: rgba(66, 133, 244, 1); color: black; font-size: 11px;}"
@@ -93,46 +133,6 @@ style = """
 }
 """
 z_index = 5
-
-[hint.types.pane]
-style = """
-{
-  background-color: rgba(67, 7, 231, 1); 
-  color: white; 
-  font-size: 12px;
-}
-"""
-z_index = 1
-
-[hint.types.tab]
-style = """
-{
-  background-color: rgba(225, 240, 22, 1); 
-  color: black; 
-  font-size: 11px;
-}
-"""
-z_index = 2
-
-[hint.types.button]
-style = """
-{
-  background-color: rgba(66, 133, 244, 1); 
-  color: black; 
-  font-size: 11px;
-}
-"""
-z_index = 4
-
-[hint.types.scrollbar]
-style = """
-{
-  background-color: rgba(19, 148, 30, 1); 
-  color: black; 
-  font-size: 11px;
-}
-"""
-z_index = 3
 
 [keybinding]
 hotkey_buoy = "Alt+H"
@@ -295,6 +295,25 @@ RCtrl = 163
 LAlt = 164
 RAlt = 165
 
+[keyboard.map_left_right."'"]
+left = ";"
+right = "/"
+
+[keyboard.map_left_right.","]
+left = "M"
+right = "."
+
+[keyboard.map_left_right.-]
+left = "0"
+right = "="
+
+[keyboard.map_left_right."."]
+left = ","
+right = "/"
+
+[keyboard.map_left_right."/"]
+left = "."
+
 [keyboard.map_left_right.0]
 left = "9"
 right = "-"
@@ -335,76 +354,31 @@ right = "9"
 left = "8"
 right = "0"
 
-[keyboard.map_left_right."`"]
-right = "1"
-
-[keyboard.map_left_right.-]
-left = "0"
-right = "="
+[keyboard.map_left_right.";"]
+left = "L"
+right = "'"
 
 [keyboard.map_left_right."="]
 left = "-"
 
-[keyboard.map_left_right.Q]
-right = "W"
-
-[keyboard.map_left_right.W]
-left = "Q"
-right = "E"
-
-[keyboard.map_left_right.E]
-left = "W"
-right = "R"
-
-[keyboard.map_left_right.R]
-left = "E"
-right = "T"
-
-[keyboard.map_left_right.T]
-left = "R"
-right = "Y"
-
-[keyboard.map_left_right.Y]
-left = "T"
-right = "U"
-
-[keyboard.map_left_right.U]
-left = "Y"
-right = "I"
-
-[keyboard.map_left_right.I]
-left = "U"
-right = "O"
-
-[keyboard.map_left_right.O]
-left = "I"
-right = "P"
-
-[keyboard.map_left_right.P]
-left = "O"
-right = "["
-
-[keyboard.map_left_right."["]
-left = "P"
-right = "]"
-
-[keyboard.map_left_right."]"]
-left = "["
-right = '\'
-
-[keyboard.map_left_right.'\']
-left = "]"
-
 [keyboard.map_left_right.A]
 right = "S"
 
-[keyboard.map_left_right.S]
-left = "A"
-right = "D"
+[keyboard.map_left_right.B]
+left = "V"
+right = "N"
+
+[keyboard.map_left_right.C]
+left = "X"
+right = "V"
 
 [keyboard.map_left_right.D]
 left = "S"
 right = "F"
+
+[keyboard.map_left_right.E]
+left = "W"
+right = "R"
 
 [keyboard.map_left_right.F]
 left = "D"
@@ -418,6 +392,10 @@ right = "H"
 left = "G"
 right = "J"
 
+[keyboard.map_left_right.I]
+left = "U"
+right = "O"
+
 [keyboard.map_left_right.J]
 left = "H"
 right = "K"
@@ -430,51 +408,73 @@ right = "L"
 left = "K"
 right = ";"
 
-[keyboard.map_left_right.";"]
-left = "L"
-right = "'"
-
-[keyboard.map_left_right."'"]
-left = ";"
-right = "/"
-
-[keyboard.map_left_right.Z]
-right = "X"
-
-[keyboard.map_left_right.X]
-left = "Z"
-right = "C"
-
-[keyboard.map_left_right.C]
-left = "X"
-right = "V"
-
-[keyboard.map_left_right.V]
-left = "C"
-right = "B"
-
-[keyboard.map_left_right.B]
-left = "V"
-right = "N"
+[keyboard.map_left_right.M]
+left = "N"
+right = ","
 
 [keyboard.map_left_right.N]
 left = "B"
 right = "M"
 
-[keyboard.map_left_right.M]
-left = "N"
-right = ","
+[keyboard.map_left_right.O]
+left = "I"
+right = "P"
 
-[keyboard.map_left_right.","]
-left = "M"
-right = "."
+[keyboard.map_left_right.P]
+left = "O"
+right = "["
 
-[keyboard.map_left_right."."]
-left = ","
-right = "/"
+[keyboard.map_left_right.Q]
+right = "W"
 
-[keyboard.map_left_right."/"]
-left = "."
+[keyboard.map_left_right.R]
+left = "E"
+right = "T"
+
+[keyboard.map_left_right.S]
+left = "A"
+right = "D"
+
+[keyboard.map_left_right.T]
+left = "R"
+right = "Y"
+
+[keyboard.map_left_right.U]
+left = "Y"
+right = "I"
+
+[keyboard.map_left_right.V]
+left = "C"
+right = "B"
+
+[keyboard.map_left_right.W]
+left = "Q"
+right = "E"
+
+[keyboard.map_left_right.X]
+left = "Z"
+right = "C"
+
+[keyboard.map_left_right.Y]
+left = "T"
+right = "U"
+
+[keyboard.map_left_right.Z]
+right = "X"
+
+[keyboard.map_left_right."["]
+left = "P"
+right = "]"
+
+[keyboard.map_left_right.'\']
+left = "]"
+
+[keyboard.map_left_right."]"]
+left = "["
+right = '\'
+
+[keyboard.map_left_right."`"]
+right = "1"
 
 [system]
 start_in_tray = true

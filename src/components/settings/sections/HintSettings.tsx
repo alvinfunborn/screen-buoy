@@ -8,11 +8,10 @@ import '../../../styles/global.css';
 const { Title, Paragraph } = Typography;
 
 interface HintSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesChange }) => {
+export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) => {
   const form = Form.useFormInstance<Config>(); // Get form instance from context
 
   // Re-add the useState definitions

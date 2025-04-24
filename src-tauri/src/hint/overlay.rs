@@ -40,7 +40,7 @@ pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), 
         let window_label = get_overlay_window_label(index);
 
         // 如果已存在，先关闭
-        if let Some(existing_window) = app_handle.get_window(&window_label) {
+        if let Some(existing_window) = app_handle.get_webview_window(&window_label) {
             println!("关闭已存在的overlay窗口: {}", window_label);
             existing_window.close().map_err(|e| e.to_string())?;
         }
@@ -50,15 +50,15 @@ pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), 
             window_label, monitor.id, monitor.x, monitor.y, monitor.width, monitor.height
         );
 
-        let window = tauri::WindowBuilder::new(
+        let window = tauri::WebviewWindow::builder(
             &app_handle,
-            &window_label,
-            tauri::WindowUrl::App("overlay.html".into()),
+            window_label.clone(),
+            tauri::WebviewUrl::App("overlay.html".into()),
         )
         .title(window_label.clone())
         .transparent(true)
         .decorations(false)
-        .skip_taskbar(true)
+        // .skip_taskbar(true)
         .always_on_top(true)
         .position(monitor.x as f64, monitor.y as f64)
         .inner_size(monitor.width as f64, monitor.height as f64)
@@ -86,6 +86,10 @@ pub async fn create_overlay_windows(app_handle: tauri::AppHandle) -> Result<(), 
                     handles.insert(window_label, hwnd_raw as i64);
                 }
             }
+        }
+
+        #[cfg(debug_assertions)] {
+            window.open_devtools();
         }
     }
 

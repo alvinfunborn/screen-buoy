@@ -7,12 +7,11 @@ import '../../../styles/global.css';
 const { Title, Text, Paragraph } = Typography;
 
 interface KeybindingSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
   availableKeysData?: Record<string, number>;
 }
 
-export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading, onValuesChange, availableKeysData }) => {
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ onValuesChange, availableKeysData }) => {
   const form = Form.useFormInstance<Config>();
   const keyOptions = useKeyOptions(availableKeysData);
 

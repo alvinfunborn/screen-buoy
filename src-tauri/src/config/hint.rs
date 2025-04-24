@@ -29,14 +29,22 @@ pub static HAS_EXTRA_CHARSET: Lazy<bool> = Lazy::new(|| {
 });
 
 pub fn get_hint_type_index(hint_type_name: &str) -> usize {
-    super::get_config().unwrap().hint.types.iter().position(|(name, _)| name == hint_type_name).unwrap()
+    super::get_config()
+        .unwrap()
+        .hint
+        .types
+        .iter()
+        .position(|(name, _)| name == hint_type_name)
+        .unwrap()
 }
 
 #[tauri::command]
-pub async fn get_hint_styles(state: tauri::State<'_, crate::config::Config>) -> Result<Vec<String>, String> {
+pub async fn get_hint_styles(
+    state: tauri::State<'_, crate::config::Config>,
+) -> Result<Vec<String>, String> {
     let mut styles: Vec<String> = Vec::new();
     for (_, hint_type) in state.hint.types.iter() {
         styles.push(hint_type.style.clone());
     }
     Ok(styles)
-} 
+}

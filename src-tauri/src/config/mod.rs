@@ -5,13 +5,16 @@ pub mod mouse;
 pub mod system;
 pub mod ui_automation;
 
-pub use hint::HintConfig;
+pub use hint::{get_hint_styles, HintConfig};
+pub use hint::{
+    HINT_TYPE_BUTTON_NAME, HINT_TYPE_DEFAULT_NAME, HINT_TYPE_PANE_NAME, HINT_TYPE_SCROLLBAR_NAME,
+    HINT_TYPE_TAB_NAME, HINT_TYPE_TEXT_NAME, HINT_TYPE_WINDOW_NAME,
+};
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
 pub use mouse::MouseConfig;
 pub use system::SystemConfig;
 pub use ui_automation::UiAutomationConfig;
-pub use hint::{HINT_TYPE_DEFAULT_NAME, HINT_TYPE_TEXT_NAME, HINT_TYPE_WINDOW_NAME, HINT_TYPE_PANE_NAME, HINT_TYPE_TAB_NAME, HINT_TYPE_BUTTON_NAME, HINT_TYPE_SCROLLBAR_NAME};
 
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -55,11 +58,11 @@ use std::sync::Mutex;
 pub static CONFIG: Lazy<Mutex<Option<Config>>> = Lazy::new(|| Mutex::new(None));
 
 // 初始化配置
-pub fn init_config() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_config() -> Result<Config, Box<dyn std::error::Error>> {
     let config = load_config()?;
     let mut config_guard = CONFIG.lock().unwrap();
-    *config_guard = Some(config);
-    Ok(())
+    *config_guard = Some(config.clone());
+    Ok(config)
 }
 
 // 获取配置
@@ -82,10 +85,15 @@ pub fn get_config_for_frontend() -> Config {
 #[tauri::command]
 pub fn save_config_for_frontend(config: Config) -> Result<(), String> {
     // 重排序 keyboard.available_key
-    let mut config = config.clone();
-    let mut available_keys_vec = config.keyboard.available_key.into_iter().collect::<Vec<_>>();
+    let mut config = config;
+    let mut available_keys_vec = config
+        .keyboard
+        .available_key
+        .into_iter()
+        .collect::<Vec<_>>();
     available_keys_vec.sort_by_key(|k| k.1);
     config.keyboard.available_key = available_keys_vec.into_iter().collect();
+    
     // 更新内存中的配置
     {
         let mut config_guard = CONFIG.lock().unwrap();

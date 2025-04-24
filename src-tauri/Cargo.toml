@@ -1,17 +1,17 @@
 [package]
 name = "screen-buoy"
-version = "0.1.0"
+version = "0.0.1"
 description = "A screen hint tool"
 authors = ["you"]
 edition = "2021"
 
 [build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+tauri-build = { version = "2.2.0", features = ["config-toml"] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5", features = [ "process-exit", "process-relaunch", "window-show", "app-show", "global-shortcut-all", "app-hide", "window-set-focus", "window-close", "window-hide", "system-tray", "devtools"] }
+tauri = { version = "2.5.0", features = ["tray-icon", "devtools", "image-ico", "config-toml"] }
 windows = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
@@ -28,9 +28,20 @@ once_cell = "1.21.3"
 lazy_static = "1.5.0"
 thread_local = "1.1.8"
 indexmap = { version = "2.9.0", features = ["serde"] }
-tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
+# v2 不再直接支持 tauri-plugin-log v1, 暂时注释掉, 后续需要寻找替代方案或适配
+# tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 log = "0.4"
 toml = "0.8.10"
+tauri-plugin-log = "2"
+tauri-plugin-process = "2"
 
 [features]
-custom-protocol = ["tauri/custom-protocol"] 
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-global-shortcut = "2"
+tauri-plugin-positioner = "2"
+# custom-protocol 功能在 v2 中有变化, 需要在 Tauri.toml 中配置
+# custom-protocol = ["tauri/custom-protocol"]
+
+# v2 不再直接支持 tauri-plugin-single-instance v2, 暂时注释掉, 后续需要寻找替代方案或适配
+# [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+# tauri-plugin-single-instance = "2"

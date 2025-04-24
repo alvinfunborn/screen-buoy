@@ -2,7 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import './styles/index.css'
-import { attachConsole } from 'tauri-plugin-log-api'
+import {
+  warn,
+  debug,
+  trace,
+  info,
+  error,
+  attachConsole,
+  attachLogger,
+  } from '@tauri-apps/plugin-log';
 
 // 初始化日志监听
 attachConsole().catch(console.error)

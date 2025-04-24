@@ -70,12 +70,20 @@
         <!-- hints will be added here -->
     </div>
     <script type="module">
-        import { invoke } from "@tauri-apps/api/tauri";
+        // import { invoke } from "@tauri-apps/api/tauri"; // v1
+        import { invoke } from "@tauri-apps/api/core"; // v2
         import { listen, emit } from "@tauri-apps/api/event";
-        import { appWindow, WebviewWindow, getCurrent } from "@tauri-apps/api/window";
-        import { attachConsole, info, error, warn } from "tauri-plugin-log-api";
-        attachConsole();
-
+        import { getCurrent, WebviewWindow } from "@tauri-apps/api/window"; // 移除了 appWindow, getCurrent 就够了
+        import {
+            warn,
+            debug,
+            trace,
+            info,
+            error,
+            attachConsole,
+            attachLogger,
+            } from '@tauri-apps/plugin-log';
+        
         // 创建提示元素
         function createHintElement(hint) {
             try {
@@ -187,9 +195,9 @@
                 // 设置 show-hints 事件监听
                 info('开始设置 show-hints 事件监听...');
                 const unlistenShow = await currentWindow.listen('show-hints', (event) => {
-                    const hints = event.payload;
+                    const hints = event.payload; // payload 类型在 v2 中可能是 any 或 unknown
                     if (!Array.isArray(hints)) {
-                        info('警告: hints 不是数组:', hints);
+                        warn('警告: hints 不是数组:', hints);
                         return;
                     }
                     info(`准备显示 ${hints.length} 个hints`);
@@ -212,9 +220,9 @@
                 // 设置 show-hints2 事件监听
                 info('开始设置 show-hints2 事件监听...');
                 const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
-                    const hints = event.payload;
+                    const hints = event.payload; // payload 类型在 v2 中可能是 any 或 unknown
                     if (!Array.isArray(hints)) {
-                        info('警告: hints 不是数组:', hints);
+                        warn('警告: hints 不是数组:', hints);
                         return;
                     }
                     info(`准备显示 ${hints.length} 个hints`);
@@ -233,7 +241,7 @@
 
                 // 设置 hide-hints 事件监听
                 info('开始设置 hide-hints 事件监听...');
-                const unlistenHide = await currentWindow.listen('hide-hints', () => {
+                const unlistenHide = await currentWindow.listen('hide-hints', (_event) => { // v2 listener 回调可能带 event
                     info('收到hide-hints事件');
                     clearHints();
                 });
@@ -243,8 +251,13 @@
                 info('开始设置 move-hints 事件监听...');
                 const unlistenMove = await currentWindow.listen('move-hints', (event) => {
                     info('收到move-hints事件:', event.payload);
-                    const {x, y} = event.payload;
-                    moveHints(x, y);
+                    const payload = event.payload; // 先获取 payload
+                    if (payload && typeof payload === 'object' && 'x' in payload && 'y' in payload) {
+                        const {x, y} = payload; // 确认属性存在后再解构
+                        moveHints(x, y);
+                    } else {
+                        warn('无效的 move-hints payload:', payload);
+                    }
                 });
                 info('move-hints 事件监听器设置成功');
 

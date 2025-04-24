@@ -1,0 +1,78 @@
+identifier = "com.screen-buoy.dev"
+version = "0.0.1"
+productName = "screen-buoy"
+
+[build]
+beforeDevCommand = "npm run dev"
+beforeBuildCommand = "npm run build"
+devUrl = "http://localhost:1420"
+frontendDist = ["../dist"] # v2 需要明确指定
+
+[app.security]
+capabilities = ["main-capability"]
+
+# # v2 需要显式设置 security
+# [app.security]
+# capabilities = [
+#   "app-show", "app-hide",                    # 应用显隐
+#   "window-show", "window-hide",              # 窗口显隐
+#   "window-close", "window-set-focus", "window-start-dragging",  # 窗口操作
+#   "process-exit", "process-relaunch",        # 进程控制
+#   "global-shortcut-all",                     # 全局快捷键
+#   "tray-icon",                              # 系统托盘
+#   "event-all",                              # 替换原来的 event-listen 和 event-emit
+#   "ipc-invoke",                             # IPC 调用
+#   "devtools"                                # 开发工具
+# ]
+# # 如果需要用到 tauri-plugin-shell, 需要定义 shell scope
+# # shell = { scope = [] }
+
+[[app.windows]]
+label = "main"
+title = "Screen Buoy"
+url = "index.html"
+width = 600
+height = 800
+resizable = true
+fullscreen = false
+center = true
+# decorations = true # 根据需要设置
+# transparent = false # 根据需要设置
+
+[bundle]
+active = true
+targets = "all" # 或者指定具体格式如 "msi", "app", "deb", "dmg"
+icon = [
+  "icons/32x32.png",
+  "icons/128x128.png",
+  "icons/128x128@2x.png",
+  "icons/icon.icns",
+  "icons/icon.ico",
+]
+copyright = ""
+category = "DeveloperTool"
+shortDescription = ""
+longDescription = ""
+
+# [bundle.deb]
+# depends = []
+
+# [bundle.macOS]
+# frameworks = []
+# exceptionDomain = ""
+# signingIdentity = null
+# providerShortName = null
+# entitlements = null
+
+[bundle.windows]
+# certificateThumbprint = null
+digestAlgorithm = "sha256"
+timestampUrl = ""
+# wix = {} # 可选，用于 WiX 配置
+
+[plugins.trayIcon]
+iconPath = "icons/icon.ico"
+iconAsTemplate = true
+
+[plugins.updater]
+active = false 

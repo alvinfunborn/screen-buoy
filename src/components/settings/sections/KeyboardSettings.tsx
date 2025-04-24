@@ -8,7 +8,6 @@ const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 
 interface KeyboardSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
@@ -60,7 +59,7 @@ const leftRightMapListToRecord = (list: LeftRightMapItem[]): Record<string, Left
   }, {} as Record<string, LeftRightConfig>);
 };
 
-export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onValuesChange }) => {
+export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChange }) => {
   const form = Form.useFormInstance<Config>();
   const [availableKeyList, setAvailableKeyList] = useState<AvailableKeyItem[]>([]);
   const [leftRightMapList, setLeftRightMapList] = useState<LeftRightMapItem[]>([]);
@@ -182,9 +181,6 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onV
     updateFormState(undefined, newList);
   };
 
-  if (loading) {
-    return <Spin />;
-  }
 
   // Options for Propagation Modifier Select (needs available keys from local state now)
   const keyOptionsForSelect = availableKeyList.map(item => ({

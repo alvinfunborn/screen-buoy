@@ -1,198 +1,121 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-mod config;
-mod element;
-mod hint;
-mod input;
-mod monitor;
-mod utils;
-mod window;
-
-use element::element::collect_ui_elements;
-use hint::{create_overlay_windows, show_hints};
 use log::{error, info};
-use monitor::monitor::init_monitors;
-use std::time::Duration;
-use tauri::{
-    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, WindowEvent,
-    GlobalShortcutManager,
-};
-use tauri_plugin_log::{Builder as LogBuilder, LogTarget};
-use windows::Win32::System::Com::*;
-use config::hint::get_hint_styles;
-use config::{get_config_for_frontend, save_config_for_frontend};
+use screen_buoy::config;
+use screen_buoy::element;
+use screen_buoy::hint;
+use screen_buoy::hint::create_overlay_windows;
+use screen_buoy::init_plugins;
+use screen_buoy::input;
+use screen_buoy::monitor::monitor;
+use screen_buoy::setup_shortcut;
+use screen_buoy::setup_tray;
+use tauri::Manager;
+use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
 
 fn main() {
-    // 初始化配置
-    if let Err(e) = config::init_config() {
-        eprintln!("配置初始化失败: {}", e);
-        return;
-    }
-
-    // 获取配置用于状态管理
-    let config = config::get_config().expect("配置已初始化");
-
+    // Initialize COM
     unsafe {
-        let hr = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-        if hr.is_err() {
-            error!("COM初始化失败: {:?}", hr);
+        let result = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        if result.is_err() {
+            error!("COM 初始化失败: {:?}", result.message());
+        } else {
+            info!("COM 初始化成功 (APARTMENTTHREADED)");
         }
     }
 
-    // 创建系统托盘菜单
-    let exit = CustomMenuItem::new("exit".to_string(), "Exit");
-    let restart = CustomMenuItem::new("restart".to_string(), "Restart");
-    let settings = CustomMenuItem::new("settings".to_string(), "Settings");
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(settings)
-        .add_item(restart)
-        .add_item(exit);
-    let tray = SystemTray::new().with_menu(tray_menu);
+    // Initialize config first
+    config::init_config().expect("Failed to initialize config");
+    let config = config::get_config().expect("Failed to get config");
+    let config_for_manage = config.clone();
 
-    let builder = tauri::Builder::default()
-        .plugin(
-            LogBuilder::default()
-                .targets([LogTarget::Stdout, LogTarget::Webview, LogTarget::LogDir])
-                .level(log::LevelFilter::Info)
-                .build(),
-        )
-        .manage(config.clone())
-        .setup(move |app| {
-            info!("=== 应用程序启动 ===");
-            info!("调试模式: {}", cfg!(debug_assertions));
+    let mut builder = screen_buoy::create_app_builder();
+    // Setup application
+    builder = builder.setup(move |app| {
+        info!("=== 应用程序启动 ===");
+        info!("调试模式: {}", cfg!(debug_assertions));
 
-            let app_handle = app.handle();
-            
-            // 设置开机自启动
-            if config.system.start_at_login {
-                info!("[i] 开机自启动功能需要系统权限支持");
+        let app_handle = app.handle();
+
+        // 初始化插件
+        init_plugins(&app_handle).expect("Failed to initialize plugins");
+
+        // Setup system tray
+        setup_tray(&app_handle, &config).expect("Failed to setup system tray");
+
+        // Setup main window
+        let main_window = app_handle.get_webview_window("main").unwrap();
+
+        // Setup shortcuts
+        setup_shortcut(&app_handle, &config, main_window.clone())
+            .expect("Failed to setup shortcuts");
+
+        if config.system.start_at_login {
+            info!("[i] 开机自启动功能在 v2 中可能需要 tauri-plugin-autostart (待验证)");
+        }
+
+        #[cfg(debug_assertions)]
+        {
+            main_window.open_devtools();
+            info!("[✓] 主窗口开发工具已打开");
+        }
+
+        // Handle window visibility
+        if config.system.start_in_tray {
+            if let Err(e) = main_window.hide() {
+                error!("[✗] 启动时隐藏窗口失败: {}", e);
             }
-
-            // 初始化键盘钩子
-            input::hook::init(app_handle.clone());
-            info!("[✓] 键盘钩子初始化成功");
-
-            // 初始化hints
-            hint::init_hint_text_list_storage();
-            info!("[✓] hints初始化成功");
-
-            // 初始化显示器信息
-            let main_window = app_handle.get_window("main").unwrap();
-            let main_window_clone = main_window.clone();
-            init_monitors(&main_window_clone);
-            info!("[✓] 显示器信息初始化成功");
-            
-            // 开发工具相关代码...
-            #[cfg(debug_assertions)]
-            {
-                let main_window_clone = main_window.clone();
-                tauri::async_runtime::spawn(async move {
-                    main_window_clone.open_devtools();
-                    info!("[✓] 主窗口开发工具已打开");
-                });
+            info!("[✓] 已最小化到托盘 (如果 show_tray_icon 为 true)");
+        } else {
+            if let Err(e) = main_window.show() {
+                error!("[✗] 启动时显示窗口失败: {}", e);
             }
+        }
 
-            // 根据配置决定是否启动时最小化到托盘
-            if config.system.start_in_tray {
-                main_window.hide().unwrap();
-                info!("[✓] 已最小化到托盘");
-            }
-
-            // 启动后台线程更新 UI 元素
-            std::thread::spawn(move || {
-                info!("[✓] UI元素收集线程已启动");
-                loop {
-                    std::thread::sleep(Duration::from_millis(config.ui_automation.collect_interval));
-                    collect_ui_elements();
-                }
-            });
-
-            // 启动时创建 overlay 窗口
+        // Create overlay windows
+        let app_handle_clone = app_handle.clone();
+        tauri::async_runtime::spawn(async move {
             info!("正在创建遮罩层窗口...");
-            match tauri::async_runtime::block_on(create_overlay_windows(app_handle.clone())) {
+            match create_overlay_windows(app_handle_clone).await {
                 Ok(_) => info!("[✓] 遮罩层窗口创建成功"),
                 Err(e) => error!("[✗] 创建overlay窗口失败: {}", e),
             }
-
-            let main_window_clone = main_window.clone();
-            let hotkey_buoy = config.keybinding.hotkey_buoy.clone();
-            match app_handle
-                .global_shortcut_manager()
-                .register(hotkey_buoy.as_str(), move || {
-                    let main_window_clone = main_window_clone.clone();
-                    tauri::async_runtime::spawn(async move {
-                        if let Err(e) = show_hints(main_window_clone).await {
-                            error!("[✗] 显示hints失败: {}", e);
-                        } else {
-                            info!("[✓] 显示hints成功");
-                        }
-                    });
-                }) {
-                Ok(_) => info!("[✓] 全局快捷键注册成功"),
-                Err(e) => error!("[✗] 全局快捷键注册失败: {}", e),
-            }
-
-            info!("=== 应用程序初始化完成 ===");
-            Ok(())
-        })
-        // 处理窗口事件
-        .on_window_event(|event| {
-            if let WindowEvent::CloseRequested { api, .. } = event.event() {
-                event.window().hide().unwrap();
-                api.prevent_close();
-            }
-        })
-        // 处理系统托盘事件
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::MenuItemClick { id, .. } => {
-                match id.as_str() {
-                    "exit" => {
-                        app.exit(0);
-                    }
-                    "settings" => {
-                        let window = app.get_window("main").unwrap();
-                        window.show().unwrap();
-                        window.set_focus().unwrap();
-                    }
-                    "restart" => {
-                        app.restart();
-                    }
-                    _ => {}
-                }
-            }
-            SystemTrayEvent::DoubleClick { .. } => {
-                let window = app.get_window("main").unwrap();
-                window.show().unwrap();
-                window.set_focus().unwrap();
-            }
-            _ => {}
         });
 
-    // 根据配置决定是否显示托盘图标
-    let builder = if config.system.show_tray_icon {
-        builder.system_tray(tray)
-    } else {
-        builder
-    };
+        // Initialize input hook
+        input::hook::init(app_handle.clone());
 
-    // 运行应用
-    match builder
-        .invoke_handler(tauri::generate_handler![
-            get_hint_styles,
-            get_config_for_frontend,
-            save_config_for_frontend,
-        ])
-        .run(tauri::generate_context!())
-    {
-        Ok(_) => info!("应用程序正常退出"),
-        Err(e) => error!("应用程序异常退出: {}", e),
-    }
+        // Initialize hints
+        hint::init_hint_text_list_storage();
+        info!("[✓] hints初始化成功");
 
-    // 清理键盘钩子
-    input::hook::cleanup();
-    info!("[✓] 键盘钩子已清理");
+        monitor::init_monitors(&main_window);
+        info!("[✓] 显示器信息初始化成功");
 
-    unsafe {
-        CoUninitialize();
-    }
+        // Setup UI collection
+        element::setup_ui_collection(&config);
+        info!("[✓] UI元素收集线程已启动");
+
+        info!("=== 应用程序初始化完成 ===");
+        Ok(())
+    });
+
+    // Build and run application
+    let app = builder
+        .build(tauri::generate_context!("Tauri.toml"))
+        .expect("error while building tauri application");
+
+    app.manage(config_for_manage);
+
+    app.run(|_app_handle, event| {
+        if let tauri::RunEvent::Exit = event {
+            info!("应用程序正在退出，清理资源...");
+            input::hook::cleanup();
+            info!("[✓] 键盘钩子已清理");
+
+            unsafe {
+                CoUninitialize();
+                info!("[✓] COM 已卸载");
+            }
+        }
+    });
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Tabs, Form, message, Spin } from 'antd';
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 import type { Config } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
 import { KeyboardSettings } from './sections/KeyboardSettings';

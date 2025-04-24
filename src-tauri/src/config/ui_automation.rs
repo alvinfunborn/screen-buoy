@@ -4,4 +4,3 @@ use serde::{Deserialize, Serialize};
 pub struct UiAutomationConfig {
     pub collect_interval: u64,
 }
-

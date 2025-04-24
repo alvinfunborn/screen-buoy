@@ -1,7 +1,7 @@
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
-use tauri::Window;
+use tauri::WebviewWindow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MonitorInfo {
@@ -16,7 +16,7 @@ pub struct MonitorInfo {
 pub static MONITORS_STORAGE: Lazy<Mutex<Vec<MonitorInfo>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 // 获取所有显示器信息，按照x坐标排序
-fn get_sorted_monitors(window: &Window) -> Result<Vec<MonitorInfo>, String> {
+fn get_sorted_monitors(window: &WebviewWindow) -> Result<Vec<MonitorInfo>, String> {
     let mut monitors = window
         .available_monitors()
         .map_err(|e| format!("获取显示器信息失败: {}", e))?
@@ -55,7 +55,7 @@ fn get_sorted_monitors(window: &Window) -> Result<Vec<MonitorInfo>, String> {
     Ok(monitors)
 }
 
-pub fn init_monitors(window: &Window) {
+pub fn init_monitors(window: &WebviewWindow) {
     // 获取显示器信息
     let monitors = get_sorted_monitors(window).unwrap_or_else(|e| {
         eprintln!("获取显示器信息失败: {}", e);

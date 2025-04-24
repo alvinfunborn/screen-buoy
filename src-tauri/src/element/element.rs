@@ -1,4 +1,4 @@
-use crate::{window::WindowElement, config};
+use crate::{config, window::WindowElement};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

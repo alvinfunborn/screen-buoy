@@ -1,18 +1,16 @@
 import React from 'react';
 import { Form, Switch, Space, Typography, Spin, Button } from 'antd';
-import { invoke } from '@tauri-apps/api/tauri';
-import { relaunch, exit } from '@tauri-apps/api/process';
+import { relaunch, exit } from '@tauri-apps/plugin-process';
 import { Config } from '@/types/config';
 import '../../../styles/global.css';
 
 const { Title } = Typography;
 
 interface SystemSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading, onValuesChange }) => {
+export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }) => {
   const handleRestart = async () => {
     try {
       await relaunch();

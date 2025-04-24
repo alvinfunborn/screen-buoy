@@ -8,12 +8,11 @@ import '../../../styles/global.css';
 const { Title, Text, Paragraph } = Typography;
 
 interface MouseSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
   availableKeysData?: Record<string, number>;
 }
 
-export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesChange, availableKeysData }) => {
+export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, availableKeysData }) => {
   const form = Form.useFormInstance<Config>();
   const keyOptions = useKeyOptions(availableKeysData);
 

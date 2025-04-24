@@ -6,11 +6,10 @@ import '../../../styles/global.css';
 const { Title } = Typography;
 
 interface UiAutomationSettingsProps {
-  loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ loading, onValuesChange }) => {
+export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ onValuesChange }) => {
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>

@@ -84,14 +84,18 @@ fn key_in_keys(key: &str, keys: &Vec<String>) -> bool {
 fn is_right_key_of(key: &str, last_key: &str) -> bool {
     let configs = config::get_config().unwrap();
     let keyboard = &configs.keyboard;
-    keyboard.get_right_key(last_key).map_or(false, |right_key| right_key == key)
+    keyboard
+        .get_right_key(last_key)
+        .map_or(false, |right_key| right_key == key)
 }
 
 // 检查是否是末尾hint键的左侧键
 fn is_left_key_of(key: &str, last_key: &str) -> bool {
     let configs = config::get_config().unwrap();
     let keyboard = &configs.keyboard;
-    keyboard.get_left_key(last_key).map_or(false, |left_key| left_key == key)
+    keyboard
+        .get_left_key(last_key)
+        .map_or(false, |left_key| left_key == key)
 }
 
 fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {

@@ -10,13 +10,14 @@ use std::collections::HashSet;
 use storage::clear_hints;
 use storage::save_hints;
 use storage::update_hints_offset;
-use tauri::{Manager, Window};
+use tauri::Emitter;
+use tauri::{Manager, WebviewWindow};
 
 pub use generator::init_hint_text_list_storage;
 pub use overlay::create_overlay_windows;
 pub use overlay::OVERLAY_WINDOW_PREFIX;
 
-pub async fn show_hints(window: Window) -> Result<(), String> {
+pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
     // 清空之前的 hints 数据
     clear_hints();
 
@@ -31,7 +32,7 @@ pub async fn show_hints(window: Window) -> Result<(), String> {
 
     let monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
-        if let Some(overlay_window) = app_handle.get_window(window_label) {
+        if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             overlay_window
                 .emit("show-hints", hints)
                 .map_err(|e| e.to_string())?;
@@ -44,7 +45,7 @@ pub async fn show_hints(window: Window) -> Result<(), String> {
 
     let monitor_hints = hints_generator.generate_hints_batch2(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
-        if let Some(overlay_window) = app_handle.get_window(window_label) {
+        if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             overlay_window
                 .emit("show-hints2", hints)
                 .map_err(|e| e.to_string())?;
@@ -60,7 +61,7 @@ pub async fn show_hints(window: Window) -> Result<(), String> {
 
 pub async fn hide_hints(app_handle: tauri::AppHandle) -> Result<(), String> {
     // 获取所有overlay窗口并发送hide-hints事件
-    let windows = app_handle.windows();
+    let windows = app_handle.webview_windows();
 
     for (label, window) in windows {
         if label.starts_with(OVERLAY_WINDOW_PREFIX) {
@@ -81,7 +82,7 @@ pub async fn move_hints(
     move_direction: (i32, i32),
 ) -> Result<(), String> {
     update_hints_offset(move_direction.0, move_direction.1);
-    let windows = app_handle.windows();
+    let windows = app_handle.webview_windows();
     for (label, window) in windows {
         if label.starts_with(OVERLAY_WINDOW_PREFIX) {
             println!("发送move-hints事件到窗口: {}", label);
@@ -96,7 +97,7 @@ pub async fn move_hints(
 }
 
 pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) -> Result<(), String> {
-    let windows = app_handle.windows();
+    let windows = app_handle.webview_windows();
     for (label, window) in windows {
         if label.starts_with(OVERLAY_WINDOW_PREFIX) {
             println!("发送filter-hints事件到窗口: {}", label);
