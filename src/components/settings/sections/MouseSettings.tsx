@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, List, Space, Spin, Typography, Select, Button } from 'antd';
+import { Form, InputNumber, List, Space, Spin, Typography, Select, Button, Flex } from 'antd';
 import { Config, MouseStep, MouseConfig } from '@/types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
-const { Title, Text } = Typography;
+import '../../../styles/global.css';
+
+const { Title, Text, Paragraph } = Typography;
 
 interface MouseSettingsProps {
   loading?: boolean;
@@ -178,7 +180,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
     }
 
     return (
-      <Form.Item label={label} style={{ width: '100%' }}>
+      <Form.Item label={label} className="config-section-title" style={{ width: '100%' }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered
@@ -202,7 +204,9 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
                     onChange={(value) => updateStepConfig(type, index, 'y', value)}
                     style={{ width: '80px' }}
                   />
-                  <Text style={{ marginRight: 8 }}>Modifiers:</Text>
+                  <Paragraph style={{ fontWeight: 'normal', marginBottom: 0 }}>
+                    Modifiers:
+                  </Paragraph>
                   <Select
                     mode="multiple"
                     value={step.modifier}

@@ -22,11 +22,11 @@ function App() {
   }, []);
 
   return (
-    <div>
-      <Title level={3} style={{ marginTop: '24px', marginBottom: '8px', padding: '0 20px' }}>
+    <div className="container">
+      <Title level={3} style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 'bold' }}>
         Settings
       </Title>
-      <Text type="secondary" style={{ display: 'block', padding: '0 20px' }}>
+      <Text type="secondary" style={{ display: 'block' }}>
         Restart to apply changes
       </Text>
       {error && (

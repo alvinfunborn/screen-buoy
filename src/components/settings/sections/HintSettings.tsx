@@ -3,6 +3,7 @@ import { Form, Space, Typography, Spin, Input, Button, InputNumber } from 'antd'
 import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import '../../../styles/global.css';
 
 const { Title, Paragraph } = Typography;
 
@@ -131,7 +132,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       {/* Hint Charsets Section (Existing) */}
-      <Form.Item label="Hint Charsets">
+      <Form.Item label="Hint Charsets" className="config-section-title">
         <Form.List name={['hint', 'charsets']}>
           {(fields, { add, remove }) => (
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -185,6 +186,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
       {/* Hint Charset Extra Section */}
       <Form.Item
         label="Hint Charset Extra"
+        className="config-section-title"
         name={['hint', 'charset_extra']} // Bind to form state
       >
         <Input
@@ -197,7 +199,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
         />
       </Form.Item>
 
-      <Paragraph>Hint Types</Paragraph>
+      <Paragraph className="config-section-title">Hint Types</Paragraph>
       {/* Dynamic Hint Types Section */}
       {hintTypeNames.map((typeName) => (
         <Space key={typeName} direction="vertical" style={{ border: '1px solid #d9d9d9', padding: '16px', borderRadius: '8px', marginBottom: '16px', width: '100%' }}>
@@ -212,7 +214,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
             style={{ width: '100%' }}
           >
             <Input.TextArea
-              rows={3}
+              rows={6}
               placeholder={`Enter the style css for ${typeName}`}
               // Input value is controlled by local state for better typing UX
               value={rawStyleInputs[typeName] ?? ''}

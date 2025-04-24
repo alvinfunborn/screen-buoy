@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, InputNumber, Space, Spin, Typography } from 'antd';
 import type { Config } from '../../../types/config';
+import '../../../styles/global.css';
 
 const { Title } = Typography;
 

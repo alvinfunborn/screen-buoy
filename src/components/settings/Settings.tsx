@@ -74,7 +74,7 @@ const Settings: React.FC = () => {
       layout="vertical"
       initialValues={initialConfig}
       onValuesChange={handleValuesChange}
-      style={{ paddingLeft: '24px', paddingRight: '24px' }}
+      style={{ padding: '0 8px' }}
     >
       <Tabs
         defaultActiveKey="keybinding"

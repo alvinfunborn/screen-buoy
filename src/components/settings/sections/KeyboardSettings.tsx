@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Form, Space, Typography, Button, Input, List, Spin, Collapse, Select, InputNumber } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Config, KeyboardConfig, LeftRightConfig } from '../../../types/config';
+import '../../../styles/global.css';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 
 interface KeyboardSettingsProps {
@@ -196,6 +197,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onV
       {/* Propagation Modifier */}
       <Form.Item
         label="Propagation Modifier"
+        className="config-section-title"
         name={['keyboard', 'propagation_modifier']}
       >
         <Select
@@ -207,7 +209,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onV
       </Form.Item>
 
       <Collapse>
-        <Panel header="Available Keys" key="available_keys">
+        <Panel header="Available Keys" className="config-section-title" key="available_keys">
           {/* Render list manually based on local state */}
           <List
             bordered
@@ -258,7 +260,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onV
       </Collapse>
 
       <Collapse>
-        <Panel header="Left Right Mapping" key="left_right_mapping">
+        <Panel header="Left Right Mapping" className="config-section-title" key="left_right_mapping">
            {/* Render list manually based on local state */}
           <List
             bordered

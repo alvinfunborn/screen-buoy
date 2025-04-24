@@ -2,8 +2,9 @@ import React from 'react';
 import { Form, Space, Typography, Spin, Input, Select } from 'antd';
 import type { Config } from '../../../types/config';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
+import '../../../styles/global.css';
 
-const { Title, Text } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 interface KeybindingSettingsProps {
   loading?: boolean;
@@ -18,6 +19,7 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading,
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Form.Item layout="horizontal"
+        className="config-section-title"
         label="Main Hotkey"
         name={['keybinding', 'hotkey_buoy']}
       >
@@ -25,7 +27,7 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading,
       </Form.Item>
 
       {/* Global Shortcuts Section */}
-      <Title level={5}>Global Keybindings</Title>
+      <Paragraph className="config-section-title">Global Keybindings</Paragraph>
       <Form.Item
         layout="horizontal"
         label="Move to Hint"
@@ -92,7 +94,7 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading,
       </Form.Item>
 
       {/* At Hint Shortcuts Section */}
-      <Title level={5}>At Hint Keybindings</Title>
+      <Paragraph className="config-section-title">At Hint Keybindings</Paragraph>
       <Form.Item
         layout="horizontal"
         label="Exit"
