@@ -8,11 +8,12 @@ const { Title, Text } = Typography;
 interface KeybindingSettingsProps {
   loading?: boolean;
   onValuesChange?: (changedValues: any, allValues: Config) => void;
+  availableKeysData?: Record<string, number>;
 }
 
-export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading, onValuesChange }) => {
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading, onValuesChange, availableKeysData }) => {
   const form = Form.useFormInstance<Config>();
-  const keyOptions = useKeyOptions(form);
+  const keyOptions = useKeyOptions(availableKeysData);
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>

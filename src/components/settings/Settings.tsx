@@ -14,6 +14,7 @@ const Settings: React.FC = () => {
   const [form] = Form.useForm<Config>();
   const [loading, setLoading] = useState(true);
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
+  const [availableKeysState, setAvailableKeysState] = useState<Record<string, number> | undefined>(undefined);
 
   useEffect(() => {
     loadConfig();
@@ -25,6 +26,7 @@ const Settings: React.FC = () => {
       const config = await invoke<Config>('get_config_for_frontend');
       console.log("Config loaded from backend:", JSON.stringify(config, null, 2));
       setInitialConfig(config);
+      setAvailableKeysState(config.keyboard?.available_key);
     } catch (err) {
       message.error('加载配置失败');
       console.error('加载配置失败:', err);
@@ -36,14 +38,21 @@ const Settings: React.FC = () => {
   const debouncedSave = debounce(async (values: Config) => {
     try {
       await invoke('save_config_for_frontend', { config: values });
-      message.success('保存成功');
     } catch (err) {
       message.error('保存失败');
       console.error('保存配置失败:', err);
     }
   }, 500);
 
-  const handleValuesChange = (_: any, allValues: Config) => {
+  const handleValuesChange = (changedValues: any, allValues: Config) => {
+    if (changedValues.keyboard && changedValues.keyboard.available_key) {
+      console.log("[Settings.tsx] keyboard.available_key changed, updating state:", changedValues.keyboard.available_key);
+      setAvailableKeysState(changedValues.keyboard.available_key);
+    } else if (changedValues.keyboard && allValues.keyboard?.available_key !== availableKeysState) {
+      console.log("[Settings.tsx] keyboard object changed, updating state:", allValues.keyboard?.available_key);
+      setAvailableKeysState(allValues.keyboard?.available_key);
+    }
+
     debouncedSave(allValues);
   };
 
@@ -66,12 +75,12 @@ const Settings: React.FC = () => {
           {
             key: 'keybinding',
             label: 'Keybinding',
-            children: <KeybindingSettings />,
+            children: <KeybindingSettings availableKeysData={availableKeysState} />,
           },
           {
             key: 'mouse',
             label: 'Mouse',
-            children: <MouseSettings onValuesChange={handleValuesChange} />,
+            children: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeysState} />,
           },
           {
             key: 'hint',

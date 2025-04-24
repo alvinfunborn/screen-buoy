@@ -2,26 +2,29 @@ import { Form } from 'antd';
 import { useMemo } from 'react';
 import type { Config } from '../types/config';
 
-export const useKeyOptions = (form: ReturnType<typeof Form.useForm<Config>>[0]) => {
-  // 使用 useWatch 监听 keyboard.available_key 的变化
-  const availableKeys = Form.useWatch('keyboard.available_key', form) as Record<string, number> | undefined;
-  
-  // 动态计算 keyOptions
+// Hook now accepts availableKeys data directly
+export const useKeyOptions = (availableKeysData: Record<string, number> | undefined) => {
+  // Remove useWatch - data comes from prop
+  // const availableKeys = Form.useWatch('keyboard.available_key') as Record<string, number> | undefined;
+
+  // 动态计算 keyOptions, based on the passed prop
   return useMemo(() => {
-    const options = availableKeys ? 
-      Object.entries(availableKeys)
-        .sort((a, b) => a[1] - b[1])
+    console.log('[useKeyOptions] Recalculating. availableKeysData:', availableKeysData);
+
+    const options = availableKeysData ?
+      Object.entries(availableKeysData)
+        .sort((a, b) => a[1] - b[1]) // 按 virtualKey 排序
         .map(([key, _]) => ({
           label: key,
           value: key
         })) : [];
-        
-    // 添加固定的选项
+
     return [
-      ...options,
-      { label: "HintKey", value: "HintKey" },
-      { label: "HintRightKey", value: "HintRightKey" },
-      { label: "HintLeftKey", value: "HintLeftKey" }
-    ];
-  }, [availableKeys]);
+        ...options,
+        { label: "HintKey", value: "HintKey" },
+        { label: "HintRightKey", value: "HintRightKey" },
+        { label: "HintLeftKey", value: "HintLeftKey" }
+        ];
+
+  }, [availableKeysData]); // Depend on the prop
 }; 
