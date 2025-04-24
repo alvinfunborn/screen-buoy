@@ -45,6 +45,8 @@ const Settings: React.FC = () => {
   }, 500);
 
   const handleValuesChange = (changedValues: any, allValues: Config) => {
+    console.log("[Settings.tsx] handleValuesChange triggered. Changed:", JSON.stringify(changedValues));
+
     if (changedValues.keyboard && changedValues.keyboard.available_key) {
       console.log("[Settings.tsx] keyboard.available_key changed, updating state:", changedValues.keyboard.available_key);
       setAvailableKeysState(changedValues.keyboard.available_key);
@@ -85,7 +87,7 @@ const Settings: React.FC = () => {
           {
             key: 'hint',
             label: 'Hint',
-            children: <HintSettings />,
+            children: <HintSettings onValuesChange={handleValuesChange} />,
           },
           {
             key: 'ui_automation',
