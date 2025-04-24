@@ -22,18 +22,13 @@ export interface HintConfig {
   styles: HintStyles;
 }
 
-export interface KeyConfig {
-  key: string;
-  virtual_key?: number;
-}
-
 export interface LeftRightConfig {
   left?: string;
   right?: string;
 }
 
 export interface KeyboardConfig {
-  available_key: Record<string, KeyConfig>;
+  available_key: Record<string, number>;
   propagation_modifier: string[];
   map_left_right: Record<string, LeftRightConfig>;
 }

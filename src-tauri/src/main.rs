@@ -81,6 +81,16 @@ fn main() {
             let main_window_clone = main_window.clone();
             init_monitors(&main_window_clone);
             info!("[✓] 显示器信息初始化成功");
+            
+            // 开发工具相关代码...
+            #[cfg(debug_assertions)]
+            {
+                let main_window_clone = main_window.clone();
+                tauri::async_runtime::spawn(async move {
+                    main_window_clone.open_devtools();
+                    info!("[✓] 主窗口开发工具已打开");
+                });
+            }
 
             // 根据配置决定是否启动时最小化到托盘
             if config.system.start_in_tray {

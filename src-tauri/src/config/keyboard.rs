@@ -4,15 +4,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyboardConfig {
-    pub available_key: HashMap<String, KeyConfig>,
+    pub available_key: HashMap<String, Option<u16>>,
     pub propagation_modifier: Vec<String>,
     pub map_left_right: HashMap<String, LeftRightConfig>,
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub struct KeyConfig {
-    pub key: String,
-    pub virtual_key: Option<u16>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -21,22 +15,20 @@ pub struct LeftRightConfig {
     pub right: Option<String>,
 }
 
-pub const HINT_KEY_NAME: &str = "HINT_KEY";
-pub const HINT_RIGHT_KEY_NAME: &str = "HINT_RIGHT_KEY";
-pub const HINT_LEFT_KEY_NAME: &str = "HINT_LEFT_KEY";
+pub const HINT_KEY: &str = "HintKey";
+pub const HINT_RIGHT_KEY: &str = "HintRightKey";
+pub const HINT_LEFT_KEY: &str = "HintLeftKey";
 
 impl KeyboardConfig {
-    pub fn get_key_by_virtual_key(&self, virtual_key: u16) -> Option<&KeyConfig> {
-        for (_, key) in &self.available_key {
-            if key.virtual_key == Some(virtual_key) {
-                return Some(key);
+    pub fn get_key_by_virtual_key(&self, virtual_key: u16) -> Option<&str> {
+        for (key, vk) in &self.available_key {
+            if let Some(vk) = vk {
+                if *vk == virtual_key {
+                    return Some(key);
+                }
             }
         }
         None
-    }
-
-    pub fn get_key_by_name(&self, name: &str) -> Option<&str> {
-        self.available_key.get(name).map(|key| key.key.as_str())
     }
 
     pub fn get_left_key(&self, key: &str) -> Option<&str> {

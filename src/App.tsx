@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import Settings from './components/settings/Settings'
 import 'antd/dist/reset.css'
+import './styles/App.css'
 
 function App() {
   const [error, setError] = useState<string | null>(null)

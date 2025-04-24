@@ -42,34 +42,34 @@ const Settings: React.FC = () => {
 
   const items = [
     {
-      key: 'system',
-      label: '系统',
-      children: <SystemSettings />,
-    },
-    {
-      key: 'hint',
-      label: '提示',
-      children: <HintSettings />,
-    },
-    {
-      key: 'keyboard',
-      label: '键盘',
-      children: <KeyboardSettings />,
+      key: 'keybinding',
+      label: 'Keybinding',
+      children: <KeybindingSettings loading={loading} />,
     },
     {
       key: 'mouse',
-      label: '鼠标',
-      children: <MouseSettings />,
+      label: 'Mouse',
+      children: <MouseSettings loading={loading} />,
     },
     {
-      key: 'keybinding',
-      label: '快捷键',
-      children: <KeybindingSettings />,
+      key: 'hint',
+      label: 'Hint',
+      children: <HintSettings loading={loading} />,
     },
     {
       key: 'ui_automation',
-      label: '自动化',
-      children: <UiAutomationSettings />,
+      label: 'Ui Automation',
+      children: <UiAutomationSettings loading={loading} />,
+    },
+    {
+      key: 'keyboard',
+      label: 'Keyboard',
+      children: <KeyboardSettings loading={loading} />,
+    },
+    {
+      key: 'system',
+      label: 'System',
+      children: <SystemSettings loading={loading} />,
     },
   ];
 

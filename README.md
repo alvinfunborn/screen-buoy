@@ -28,6 +28,8 @@ windows ui控件类型https://learn.microsoft.com/zh-cn/windows/win32/winauto/ui
 1. leftmap和rightmap也配置化
 1. [x] 前端配置化
 1. [ ] 开机启动
+1. [ ] 只能启动一个实例
+1. 双击托盘图标打开设置
 
 ### 步骤二, 实现按键交互
 1. 所有hint都是大写字母, 首先有一份数据记录A-Z每个按键的右侧按键是什么, 比如a的右侧是s, b的右侧是n

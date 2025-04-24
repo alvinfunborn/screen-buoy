@@ -1,9 +1,17 @@
 import React from 'react';
-import { Form, InputNumber, Space, Typography } from 'antd';
+import { Form, InputNumber, Space, Spin, Typography } from 'antd';
 
 const { Title } = Typography;
 
-export const MouseSettings: React.FC = () => {
+interface MouseSettingsProps {
+  loading?: boolean;
+}
+
+export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading }) => {
+  if (loading) {
+    return <Spin />;
+  }
+
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Title level={3}>Mouse Settings</Title>

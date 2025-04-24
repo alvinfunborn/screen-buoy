@@ -47,7 +47,7 @@
         "icons/icon.icns",
         "icons/icon.ico"
       ],
-      "identifier": "com.screen-click.dev",
+      "identifier": "com.screen-buoy.dev",
       "longDescription": "",
       "macOS": {
         "entitlements": null,
@@ -74,10 +74,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "width": 800,
-        "height": 600,
+        "width": 600,
+        "height": 800,
         "resizable": true,
-        "title": "Screen Click",
+        "title": "Screen Buoy",
         "label": "main",
         "url": "index.html",
         "center": true

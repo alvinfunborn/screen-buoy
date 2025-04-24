@@ -1,23 +1,26 @@
 import React from 'react';
-import { Form, Space, Typography, Collapse, Select } from 'antd';
+import { Form, Space, Typography, Collapse, Select, Spin } from 'antd';
+import type { Config } from '../../../types/config';
 
 const { Title } = Typography;
 const { Panel } = Collapse;
 
-export const KeybindingSettings: React.FC = () => {
-  const keyOptions = [
-    { label: 'Ctrl', value: 'ctrl' },
-    { label: 'Shift', value: 'shift' },
-    { label: 'Alt', value: 'alt' },
-    { label: 'Space', value: 'space' },
-    { label: 'Enter', value: 'enter' },
-    { label: 'Escape', value: 'escape' },
-    { label: 'Tab', value: 'tab' },
-    { label: 'ArrowUp', value: 'arrowup' },
-    { label: 'ArrowDown', value: 'arrowdown' },
-    { label: 'ArrowLeft', value: 'arrowleft' },
-    { label: 'ArrowRight', value: 'arrowright' },
-  ];
+interface KeybindingSettingsProps {
+  loading?: boolean;
+}
+
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading }) => {
+  if (loading) {
+    return <Spin />;
+  }
+
+  const form = Form.useFormInstance<Config>();
+  const values = form.getFieldsValue();
+  const keyOptions = values?.keyboard?.available_key ? 
+    Object.entries(values.keyboard.available_key).sort((a, b) => a[1] - b[1]).map(([key, _]) => ({
+      label: key,
+      value: key
+    })) : [];
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>

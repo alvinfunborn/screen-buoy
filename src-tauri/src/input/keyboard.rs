@@ -200,10 +200,7 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                         if state.hint_length == 1 {
                             // hint一共只有一位
                             state.final_hint_key = Some(key.to_string());
-                            current_key = configs
-                                .keyboard
-                                .get_key_by_name(config::keyboard::HINT_KEY_NAME)
-                                .unwrap();
+                            current_key = config::keyboard::HINT_KEY;
                         }
                         filter_hints_by_state(&mut state, app_handle);
                         no_propagation = true;
@@ -225,10 +222,7 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                         if new_prefix.len() == state.hint_length {
                             // 达到完整长度
                             state.final_hint_key = Some(key.to_string());
-                            current_key = configs
-                                .keyboard
-                                .get_key_by_name(config::keyboard::HINT_KEY_NAME)
-                                .unwrap();
+                            current_key = config::keyboard::HINT_KEY;
                         }
                         filter_hints_by_state(&mut state, app_handle);
                         no_propagation = true;
@@ -261,15 +255,9 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                     // 是当前holding的末尾hint键, 不传递
                     return true;
                 } else if is_right_key_of(key, last_key) {
-                    current_key = configs
-                        .keyboard
-                        .get_key_by_name(config::keyboard::HINT_RIGHT_KEY_NAME)
-                        .unwrap();
+                    current_key = config::keyboard::HINT_RIGHT_KEY;
                 } else if is_left_key_of(key, last_key) {
-                    current_key = configs
-                        .keyboard
-                        .get_key_by_name(config::keyboard::HINT_LEFT_KEY_NAME)
-                        .unwrap();
+                    current_key = config::keyboard::HINT_LEFT_KEY;
                 }
             }
             for (cmd, keys) in cmd_key {
@@ -291,10 +279,7 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
         let mut end_session = false;
         if let Some(final_key) = state.final_hint_key.as_ref() {
             if key == final_key {
-                current_key = configs
-                    .keyboard
-                    .get_key_by_name(config::keyboard::HINT_KEY_NAME)
-                    .unwrap();
+                current_key = config::keyboard::HINT_KEY;
             }
         }
 

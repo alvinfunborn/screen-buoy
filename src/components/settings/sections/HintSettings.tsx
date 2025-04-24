@@ -1,9 +1,17 @@
 import React from 'react';
-import { Form, Switch, InputNumber, Space, Typography } from 'antd';
+import { Form, Switch, InputNumber, Space, Typography, Spin } from 'antd';
 
 const { Title } = Typography;
 
-export const HintSettings: React.FC = () => {
+interface HintSettingsProps {
+  loading?: boolean;
+}
+
+export const HintSettings: React.FC<HintSettingsProps> = ({ loading }) => {
+  if (loading) {
+    return <Spin />;
+  }
+  
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Title level={3}>Hint Settings</Title>

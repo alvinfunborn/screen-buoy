@@ -41,7 +41,7 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     let keyboard_config = &config.keyboard;
     let key: String;
     if let Some(key_config) = keyboard_config.get_key_by_virtual_key(vk_code) {
-        key = key_config.key.clone();
+        key = key_config.to_string();
     } else {
         // 转换虚拟键码到字符串
         key = match vk_code {

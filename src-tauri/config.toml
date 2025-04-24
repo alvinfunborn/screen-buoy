@@ -1,58 +1,55 @@
 [keyboard.available_key]
-HINT_KEY = { key = "HintKey" }
-HINT_RIGHT_KEY = { key = "HintRightKey" }
-HINT_LEFT_KEY = { key = "HintLeftKey" }
-BACK = { key = "Back", virtual_key = 0x08 }
-TAB = { key = "Tab", virtual_key = 0x09 }
-CAPS_LOCK = { key = "CapsLock", virtual_key = 0x14 }
-ENTER = {key = "Enter", virtual_key = 0x0D }
-ESC = { key = "Esc", virtual_key = 0x1B }
-SPACE = { key = "Space", virtual_key = 0x20 }
-PAGE_UP = { key = "PageUp", virtual_key = 0x21 }
-PAGE_DOWN = { key = "PageDown", virtual_key = 0x22 }
-END = { key = "End", virtual_key = 0x23 }
-HOME = { key = "Home", virtual_key = 0x24 }
-LEFT = { key = "Left", virtual_key = 0x25 }
-UP = { key = "Up", virtual_key = 0x26 }
-RIGHT = { key = "Right", virtual_key = 0x27 }
-DOWN = { key = "Down", virtual_key = 0x28 }
-INSERT = { key = "Insert", virtual_key = 0x2D }
-DELETE = { key = "Delete", virtual_key = 0x2E }
-LWIN = { key = "LWin", virtual_key = 0x5B }
-RWIN = { key = "RWin", virtual_key = 0x5C }
-NUM_0 = { key = "Num0", virtual_key = 0x60 }
-NUM_1 = { key = "Num1", virtual_key = 0x61 }
-NUM_2 = { key = "Num2", virtual_key = 0x62 }
-NUM_3 = { key = "Num3", virtual_key = 0x63 }
-NUM_4 = { key = "Num4", virtual_key = 0x64 }
-NUM_5 = { key = "Num5", virtual_key = 0x65 }
-NUM_6 = { key = "Num6", virtual_key = 0x66 }
-NUM_7 = { key = "Num7", virtual_key = 0x67 }
-NUM_8 = { key = "Num8", virtual_key = 0x68 }
-NUM_9 = { key = "Num9", virtual_key = 0x69 }
-NUM_MULTIPLY = { key = "NumMultiply", virtual_key = 0x6A }
-NUM_ADD = { key = "NumAdd", virtual_key = 0x6B }
-NUM_SUBTRACT = { key = "NumSubtract", virtual_key = 0x6D }
-NUM_DECIMAL = { key = "NumDecimal", virtual_key = 0x6E }
-NUM_DIVIDE = { key = "NumDivide", virtual_key = 0x6F }
-F1 = { key = "F1", virtual_key = 0x70 }
-F2 = { key = "F2", virtual_key = 0x71 }
-F3 = { key = "F3", virtual_key = 0x72 }
-F4 = { key = "F4", virtual_key = 0x73 }
-F5 = { key = "F5", virtual_key = 0x74 }
-F6 = { key = "F6", virtual_key = 0x75 }
-F7 = { key = "F7", virtual_key = 0x76 }
-F8 = { key = "F8", virtual_key = 0x77 }
-F9 = { key = "F9", virtual_key = 0x78 }
-F10 = { key = "F10", virtual_key = 0x79 }
-F11 = { key = "F11", virtual_key = 0x7A }
-F12 = { key = "F12", virtual_key = 0x7B }
-LSHIFT = { key = "LShift", virtual_key = 0xA0 }
-RSHIFT = { key = "RShift", virtual_key = 0xA1 }
-LCTRL = { key = "LCtrl", virtual_key = 0xA2 }
-RCTRL = { key = "RCtrl", virtual_key = 0xA3 }
-LALT = { key = "LAlt", virtual_key = 0xA4 }
-RALT = { key = "RAlt", virtual_key = 0xA5 }
+Back = 0x08
+Tab = 0x09
+CapsLock = 0x14
+Enter = 0x0D
+Esc = 0x1B
+Space = 0x20
+PageUp = 0x21
+PageDown = 0x22
+End = 0x23
+Home = 0x24
+Left = 0x25
+Up = 0x26
+Right = 0x27
+Down = 0x28
+Insert = 0x2D
+Delete = 0x2E
+LWin = 0x5B
+RWin = 0x5C
+Num0 = 0x60
+Num1 = 0x61
+Num2 = 0x62
+Num3 = 0x63
+Num4 = 0x64
+Num5 = 0x65
+Num6 = 0x66
+Num7 = 0x67
+Num8 = 0x68
+Num9 = 0x69
+NumMultiply = 0x6A
+NumAdd = 0x6B
+NumSubtract = 0x6D
+NumDecimal = 0x6E
+NumDivide = 0x6F
+F1 = 0x70
+F2 = 0x71
+F3 = 0x72
+F4 = 0x73
+F5 = 0x74
+F6 = 0x75
+F7 = 0x76
+F8 = 0x77
+F9 = 0x78
+F10 = 0x79
+F11 = 0x7A
+F12 = 0x7B
+LShift = 0xA0
+RShift = 0xA1
+LCtrl = 0xA2
+RCtrl = 0xA3
+LAlt = 0xA4
+RAlt = 0xA5
 [keyboard]
 propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin", "RWin",]
 [keyboard.map_left_right]
