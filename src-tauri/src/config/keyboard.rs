@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyboardConfig {
     pub available_key: HashMap<String, u16>,
     pub propagation_modifier: Vec<String>,
-    pub map_left_right: HashMap<String, LeftRightConfig>,
+    pub map_left_right: IndexMap<String, LeftRightConfig>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

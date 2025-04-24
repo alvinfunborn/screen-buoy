@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Space, Typography, Collapse, Select, Spin } from 'antd';
+import { Form, Space, Typography, Collapse, Select, Spin, Input } from 'antd';
 import type { Config } from '../../../types/config';
 
 const { Title } = Typography;
@@ -21,6 +21,18 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading 
       label: key,
       value: key
     })) : [];
+  keyOptions.push({
+    label: "HintKey",
+    value: "HintKey"
+  });
+  keyOptions.push({
+    label: "HintRightKey",
+    value: "HintRightKey"
+  });
+  keyOptions.push({
+    label: "HintLeftKey",
+    value: "HintLeftKey"
+  });
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -30,12 +42,7 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading 
         label="Main Hotkey"
         name={['keybinding', 'hotkey_buoy']}
       >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder="Select keys"
-        />
+        <Input/>
       </Form.Item>
 
       <Collapse>

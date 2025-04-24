@@ -1,7 +1,8 @@
 import React from 'react';
-import { Form, Switch, InputNumber, Space, Typography, Spin } from 'antd';
+import { Form, Switch, InputNumber, Space, Typography, Spin, List, Input } from 'antd';
+import { Config } from '@/types/config';
 
-const { Title } = Typography;
+const { Title, Text, Paragraph } = Typography;
 
 interface HintSettingsProps {
   loading?: boolean;
@@ -11,50 +12,64 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading }) => {
   if (loading) {
     return <Spin />;
   }
-  
+
+  const form = Form.useFormInstance<Config>();
+  // 直接从表单实例获取值
+  const formValues = form.getFieldsValue(true) as Config;
+
+  const hint_charsets = formValues?.hint?.charsets.map(item => item.join(', '))
+  const hint_charset_extra = formValues?.hint?.charset_extra.join(', ')
+  const hint_styles_default = JSON.stringify(formValues?.hint?.styles?.default)
+  const hint_styles_types = formValues?.hint?.styles?.types.map(item => JSON.stringify(item))
+
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Title level={3}>Hint Settings</Title>
       
       <Form.Item
-        label="Show Hints"
-        name={['hints', 'enabled']}
-        valuePropName="checked"
+        label="Hint Charsets"
       >
-        <Switch />
-      </Form.Item>
-
-      <Form.Item
-        label="Hint Size"
-        name={['hints', 'size']}
-      >
-        <InputNumber min={8} max={32} />
-      </Form.Item>
-
-      <Form.Item
-        label="Hint Color"
-        name={['hints', 'color']}
-      >
-        <input 
-          type="color" 
-          title="Choose hint color"
-          aria-label="Choose hint color"
+        <List
+          dataSource={hint_charsets}
+          renderItem={(item) => 
+            <List.Item>
+              <Input value={item} />
+            </List.Item>
+          }
         />
       </Form.Item>
 
       <Form.Item
-        label="Hint Opacity"
-        name={['hints', 'opacity']}
+        label="Hint Charset Extra"
       >
-        <InputNumber min={0} max={1} step={0.1} />
+        <Input value={hint_charset_extra} />
       </Form.Item>
 
       <Form.Item
-        label="Show Border"
-        name={['hints', 'showBorder']}
-        valuePropName="checked"
+        label="Hint Styles Default"
       >
-        <Switch />
+        <Input.TextArea rows={4} value={hint_styles_default} />
+      </Form.Item>
+      
+      <Form.Item
+        label="Hint Styles Types"
+      >
+        <Paragraph style={{ fontSize: '11px' }}>
+          type 0: hint for text
+          <br/>type 1: hint for application window
+          <br/>type 2: hint for application pane
+          <br/>type 3: hint for Tab
+          <br/>type 4: hint for Button
+          <br/>type 5: hint for Scrollbar
+        </Paragraph>
+        <List
+          dataSource={hint_styles_types}
+          renderItem={(item) => 
+            <List.Item>
+              <Input.TextArea rows={2} value={item} />
+            </List.Item>
+          }    
+        />
       </Form.Item>
     </Space>
   );
