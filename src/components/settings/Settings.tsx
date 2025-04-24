@@ -21,6 +21,7 @@ const Settings: React.FC = () => {
     try {
       setLoading(true);
       const config = await invoke<Config>('get_config_for_frontend');
+      console.log(config);
       form.setFieldsValue(config);
     } catch (err) {
       message.error('加载配置失败');

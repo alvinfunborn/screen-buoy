@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyboardConfig {
-    pub available_key: HashMap<String, Option<u16>>,
+    pub available_key: HashMap<String, u16>,
     pub propagation_modifier: Vec<String>,
     pub map_left_right: HashMap<String, LeftRightConfig>,
 }
@@ -22,10 +22,8 @@ pub const HINT_LEFT_KEY: &str = "HintLeftKey";
 impl KeyboardConfig {
     pub fn get_key_by_virtual_key(&self, virtual_key: u16) -> Option<&str> {
         for (key, vk) in &self.available_key {
-            if let Some(vk) = vk {
-                if *vk == virtual_key {
-                    return Some(key);
-                }
+            if *vk == virtual_key {
+                return Some(key);
             }
         }
         None

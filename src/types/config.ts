@@ -23,8 +23,8 @@ export interface HintConfig {
 }
 
 export interface LeftRightConfig {
-  left?: string;
-  right?: string;
+  left?: string | null;
+  right?: string | null;
 }
 
 export interface KeyboardConfig {

@@ -9,6 +9,17 @@ interface KeyboardSettingsProps {
   loading?: boolean;
 }
 
+interface KeyEntry {
+  key: string;
+  virtual_key: number;
+}
+
+interface LeftRightEntry {
+  key: string;
+  left: string | null;
+  right: string | null;
+}
+
 export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) => {
   if (loading) {
     return <Spin />;
@@ -18,6 +29,40 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) =
   const hint_key = "HintKey";
   const hint_right_key = "HintRightKey";
   const hint_left_key = "HintLeftKey";
+
+  // 获取完整的表单值
+  const values = Form.useWatch([], form);
+  console.log(values);
+  const availableKeys = values?.keyboard?.available_key || {};
+  console.log(availableKeys);
+  const keyEntries = Object.entries(availableKeys).sort((a, b) => a[1] - b[1])
+    .map(([key, value]: [string, number]): KeyEntry => ({
+    key,
+    virtual_key: value
+  }));
+  console.log(keyEntries);
+  const updateKeyVk = (entries: KeyEntry[]) => {
+    const newValue = entries.reduce((acc, { key, virtual_key }) => ({
+      ...acc,
+      [key]: virtual_key
+    }), {});
+    form.setFieldValue(['keyboard', 'available_key'], newValue);
+  };
+
+  const keyLeftRight = values?.keyboard?.map_left_right || {};
+  const keyLeftRightEntries = Object.entries(keyLeftRight).map(([key, value]: [string, LeftRightConfig]): LeftRightEntry => ({
+    key,
+    left: value?.left || '',
+    right: value?.right || ''
+  }));
+  console.log(keyLeftRightEntries);
+  const updateLeftRight = (entries: LeftRightEntry[]) => {
+    const newValue = entries.reduce((acc, { key, left, right }) => ({
+      ...acc,
+      [key]: { left: left || null, right: right || null }
+    }), {});
+    form.setFieldValue(['keyboard', 'map_left_right'], newValue);
+  };
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -29,60 +74,64 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) =
       >
         <List
           bordered
-          dataSource={[ hint_key, hint_right_key, hint_left_key]}
-          renderItem={(item) => (
-            <List.Item>
+          dataSource={[hint_key, hint_right_key, hint_left_key]}
+          renderItem={(key) => (
+            <List.Item key={key}>
               <Space>
-                <Form.Item
-                  label="Key"
-                >
-                  <Input value={item} disabled />
+                <Form.Item label="Key">
+                  <Input value={key} disabled />
                 </Form.Item>
-                <Form.Item
-                  label="Virtual Key Value"
-                >
+                <Form.Item label="Virtual Key Value">
                   <Input type="number" disabled />
                 </Form.Item>
               </Space>
             </List.Item>
           )}
         />
-        
-        <Form.List name={['keyboard', 'available_key']}>
-          {(fields, { add, remove }) => (
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <List
-                bordered
-                dataSource={fields}
-                renderItem={(field) => (
-                  <List.Item>
-                    <Space>
-                      <Form.Item
-                        {...field}
-                        label="Key"
-                        name={[field.name, 0]}
-                        rules={[{ required: true }]}
-                      >
-                        <Input />
-                      </Form.Item>
-                      <Form.Item
-                        {...field}
-                        label="Virtual Key Value"
-                        name={[field.name, 1]}
-                      >
-                        <Input type="number" />
-                      </Form.Item>
-                      <MinusCircleOutlined onClick={() => remove(field.name)} />
-                    </Space>
-                  </List.Item>
-                )}
-              />
-              <Button type="dashed" onClick={() => add({ key: '', virtual_key: undefined })} block icon={<PlusOutlined />}>
-                Add Key
-              </Button>
-            </Space>
+
+        <List
+          bordered
+          dataSource={keyEntries.filter(item => 
+            ![hint_key, hint_right_key, hint_left_key].includes(item.key)
           )}
-        </Form.List>
+          renderItem={(item) => (
+            <List.Item key={item.key}>
+              <Space>
+                <Form.Item label="Key">
+                  <Input value={item.key} disabled />
+                </Form.Item>
+                <Form.Item label="Virtual Key Value">
+                  <Input 
+                    type="number" 
+                    value={item.virtual_key === null ? '' : item.virtual_key}
+                    onChange={(e) => {
+                      const newEntries = keyEntries.map(entry => 
+                        entry.key === item.key 
+                          ? { ...entry, virtual_key: Number(e.target.value) }
+                          : entry
+                      );
+                      updateKeyVk(newEntries);
+                    }}
+                  />
+                </Form.Item>
+                <MinusCircleOutlined onClick={() => {
+                  const newEntries = keyEntries.filter(entry => entry.key !== item.key);
+                  updateKeyVk(newEntries);
+                }} />
+              </Space>
+            </List.Item>
+          )}
+        />
+        <Button 
+          type="dashed" 
+          onClick={() => {
+            
+          }} 
+          block 
+          icon={<PlusOutlined />}
+        >
+          Add Key
+        </Button>
       </Form.Item>
 
       <Form.Item
@@ -97,10 +146,10 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) =
                 bordered
                 dataSource={fields}
                 renderItem={(field) => (
-                  <List.Item>
+                  <List.Item key={field.key}>
                     <Space>
                       <Form.Item
-                        {...field}
+                        name={field.name}
                         rules={[{ required: true }]}
                       >
                         <Input />
@@ -122,49 +171,58 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) =
         label="Left Right Mapping"
         required
       >
-        <Form.List name={['keyboard', 'map_left_right']}>
-          {(fields, { add, remove }) => (
-            <Space direction="vertical" style={{ width: '100%' }}>
-              <List
-                header={<div>Left Right Mapping</div>}
-                bordered
-                dataSource={fields}
-                renderItem={(field) => (
-                  <List.Item>
-                    <Space>
-                      <Form.Item
-                        {...field}
-                        label="Key Name"
-                        name={[field.name, 0]}
-                        rules={[{ required: true }]}
-                      >
-                        <Input />
-                      </Form.Item>
-                      <Form.Item
-                        {...field}
-                        label="Left Key"
-                        name={[field.name, 1, 'left']}
-                      >
-                        <Input />
-                      </Form.Item>
-                      <Form.Item
-                        {...field}
-                        label="Right Key"
-                        name={[field.name, 1, 'right']}
-                      >
-                        <Input />
-                      </Form.Item>
-                      <MinusCircleOutlined onClick={() => remove(field.name)} />
-                    </Space>
-                  </List.Item>
-                )}
-              />
-              <Button type="dashed" onClick={() => add(['', { left: '', right: '' }])} block icon={<PlusOutlined />}>
-                Add Mapping
-              </Button>
-            </Space>
+        <List
+          header={<div>Left Right Mapping</div>}
+          bordered
+          dataSource={keyLeftRightEntries}
+          renderItem={(item) => (
+            <List.Item key={item.key}>
+              <Space>
+                <Form.Item label="Key Name">
+                  <Input value={item.key} disabled />
+                </Form.Item>
+                <Form.Item label="Left Key">
+                  <Input 
+                    value={item.left || ''}
+                    onChange={(e) => {
+                      const newEntries = keyLeftRightEntries.map(entry => 
+                        entry.key === item.key 
+                          ? { ...entry, left: e.target.value }
+                          : entry
+                      );
+                      updateLeftRight(newEntries);
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item label="Right Key">
+                  <Input 
+                    value={item.right || ''}
+                    onChange={(e) => {
+                      const newEntries = keyLeftRightEntries.map(entry => 
+                        entry.key === item.key 
+                          ? { ...entry, right: e.target.value }
+                          : entry
+                      );
+                      updateLeftRight(newEntries);
+                    }}
+                  />
+                </Form.Item>
+                <MinusCircleOutlined onClick={() => 
+                  updateLeftRight(keyLeftRightEntries.filter(entry => entry.key !== item.key))
+                } />
+              </Space>
+            </List.Item>
           )}
-        </Form.List>
+        />
+        <Button 
+          type="dashed" 
+          onClick={() => {
+          }} 
+          block 
+          icon={<PlusOutlined />}
+        >
+          Add Mapping
+        </Button>
       </Form.Item>
     </Space>
   );
