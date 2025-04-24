@@ -1,7 +1,6 @@
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use serde_json::Value as JSONObject;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct HintConfig {
@@ -12,7 +11,7 @@ pub struct HintConfig {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct HintType {
-    pub style: JSONObject,
+    pub style: String,
     pub z_index: i32,
 }
 
@@ -34,8 +33,8 @@ pub fn get_hint_type_index(hint_type_name: &str) -> usize {
 }
 
 #[tauri::command]
-pub async fn get_hint_styles(state: tauri::State<'_, crate::config::Config>) -> Result<Vec<JSONObject>, String> {
-    let mut styles: Vec<JSONObject> = Vec::new();
+pub async fn get_hint_styles(state: tauri::State<'_, crate::config::Config>) -> Result<Vec<String>, String> {
+    let mut styles: Vec<String> = Vec::new();
     for (_, hint_type) in state.hint.types.iter() {
         styles.push(hint_type.style.clone());
     }

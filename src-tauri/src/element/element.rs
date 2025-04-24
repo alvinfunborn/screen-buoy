@@ -71,9 +71,13 @@ fn get_element_type_and_z_index(
     };
 
     let z_index = if let Some(config) = config::get_config() {
-        config.hint.types.get(element_type).unwrap_or(&config::hint::HintType { z_index: 0, style: serde_json::Value::Null }).z_index
+        if let Some(hint_type) = config.hint.types.get(element_type) {
+            hint_type.z_index
+        } else {
+            0
+        }
     } else {
-        i32::MIN
+        0
     };
 
     (config::hint::get_hint_type_index(element_type), z_index)

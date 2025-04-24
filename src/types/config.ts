@@ -1,8 +1,6 @@
-export type JSONObject = Record<string, any>;
-
 export interface HintType {
   z_index: number;
-  style: JSONObject;
+  style: string;
 }
 
 export interface HintConfig {

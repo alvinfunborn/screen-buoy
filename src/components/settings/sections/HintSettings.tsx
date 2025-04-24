@@ -33,8 +33,8 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
     if (initialHintConfig?.types) {
       // Assert the type of Object.entries result before calling reduce
       const initialRawStyles = (Object.entries(initialHintConfig.types) as [string, HintType][]).reduce((acc, [key, value]) => {
-        const styleValue = value.style as any;
-        acc[key] = styleValue ? JSON.stringify(styleValue, null, 2) : '';
+        const styleValue = value.style;
+        acc[key] = styleValue;
         return acc;
       }, {} as Record<string, string>);
       setRawStyleInputs(initialRawStyles);
@@ -61,7 +61,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
 
   const handleRawStyleBlur = (typeName: string) => {
     const rawValue = rawStyleInputs[typeName] ?? ''; // Default to empty string
-    console.log(`[handleRawStyleBlur] typeName: ${typeName}, rawValue BEFORE parse attempt:`, JSON.stringify(rawValue)); // Log the raw value
+    console.log(`[handleRawStyleBlur] typeName: ${typeName}, rawValue BEFORE parse attempt:`, rawValue); // Log the raw value
 
     if (!rawValue.trim()) { // Handle empty or whitespace-only strings
         console.log("[handleRawStyleBlur] Raw value is empty, setting field to undefined.");
@@ -71,13 +71,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
     }
 
     try {
-      const parsedValue = JSON.parse(rawValue);
-      if (typeof parsedValue !== 'object' || Array.isArray(parsedValue) || parsedValue === null) {
-          console.error("[handleRawStyleBlur] Parsed value is not a valid object:", parsedValue);
-          throw new Error("Style must be a JSON object.");
-      }
-      console.log("[handleRawStyleBlur] Parse SUCCESS, setting field value:", parsedValue);
-      form.setFieldValue(['hint', 'types', typeName, 'style'], parsedValue);
+      form.setFieldValue(['hint', 'types', typeName, 'style'], rawValue);
       // Re-validate on success to potentially clear previous errors
       form.validateFields([['hint', 'types', typeName, 'style']]);
     } catch (e) {
@@ -203,7 +197,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
         <Space key={typeName} direction="vertical" style={{ border: '1px solid #d9d9d9', padding: '16px', borderRadius: '8px', marginBottom: '16px', width: '100%' }}>
           <Title level={5} style={{ marginTop: 0 }}>Type: {typeName}</Title>
           <Form.Item
-            label="Style (JSON)"
+            label="Style CSS"
             rules={[{
               validator: async (_, value) => {
                 if (value === undefined || value === '') return Promise.resolve();
@@ -217,7 +211,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
           >
             <Input.TextArea
               rows={6}
-              placeholder={`Enter the style JSON for ${typeName}`}
+              placeholder={`Enter the style css for ${typeName}`}
               value={rawStyleInputs[typeName] ?? ''}
               onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
               onBlur={() => handleRawStyleBlur(typeName)}

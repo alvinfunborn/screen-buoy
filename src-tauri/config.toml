@@ -71,60 +71,35 @@ charset_extra = [
 ]
 
 [hint.types.default]
+style = "{background-color: rgba(66, 133, 244, 1); color: black; font-size: 11px;}"
 z_index = 0
 
-[hint.types.default.style]
-background_color = "rgba(66, 133, 244, 1)"
-font_size = "11px"
-color = "black"
-
 [hint.types.text]
+style = "{background-color: rgba(66, 133, 244, 1); color: black; font-size: 11px;}"
 z_index = 1
-
-[hint.types.text.style]
-background_color = "rgba(66, 133, 244, 1)"
-font_size = "11px"
-color = "black"
 
 [hint.types.window]
+style = """
+{background-color: rgba(223, 8, 252, 1); 
+color: white; font-size: 13px;
+}"""
 z_index = 5
 
-[hint.types.window.style]
-background_color = "rgba(223, 8, 252, 1)"
-font_size = "13px"
-color = "white"
-
 [hint.types.pane]
+style = "{background-color: rgba(67, 7, 231, 1); color: white; font-size: 12px;}"
 z_index = 1
 
-[hint.types.pane.style]
-background_color = "rgba(67, 7, 231, 1)"
-font_size = "12px"
-color = "white"
-
 [hint.types.tab]
+style = "{background-color: rgba(225, 240, 22, 1); color: black; font-size: 11px;}"
 z_index = 2
 
-[hint.types.tab.style]
-background_color = "rgba(225, 240, 22, 1)"
-font_size = "11px"
-color = "black"
-
 [hint.types.button]
+style = "{background-color: rgba(66, 133, 244, 1); color: black; font-size: 11px;}"
 z_index = 4
 
-[hint.types.button.style]
-background_color = "rgba(66, 133, 244, 1)"
-font_size = "11px"
-color = "black"
-
 [hint.types.scrollbar]
+style = "{background-color: rgba(19, 148, 30, 1); color: black; font-size: 11px;}"
 z_index = 3
-
-[hint.types.scrollbar.style]
-background_color = "rgba(19, 148, 30, 1)"
-font_size = "11px"
-color = "black"
 
 [keybinding]
 hotkey_buoy = "Alt+H"
@@ -235,58 +210,58 @@ propagation_modifier = [
 ]
 
 [keyboard.available_key]
-Backspace = 8
-Tab = 9
-Space = 32
-F9 = 120
-Delete = 46
-F3 = 114
-Num5 = 101
-LCtrl = 162
-Esc = 27
-End = 35
-NumAdd = 107
 F4 = 115
-PageUp = 33
 Num8 = 104
-Down = 40
-F2 = 113
-NumDecimal = 110
-F6 = 117
-RShift = 161
-Insert = 45
-LWin = 91
-Num2 = 98
-F1 = 112
-Num4 = 100
-LShift = 160
-Num1 = 97
-F5 = 116
-RWin = 92
-Num3 = 99
-LAlt = 164
-F12 = 123
-Num6 = 102
-RCtrl = 163
-Num0 = 96
-F11 = 122
-NumMultiply = 106
-CapsLock = 20
-NumDivide = 111
-Up = 38
-Right = 39
-PageDown = 34
-Home = 36
-Back = 8
-NumSubtract = 109
-Num7 = 103
-Left = 37
-F7 = 118
 Num9 = 105
-Enter = 13
+NumMultiply = 106
+F9 = 120
 RAlt = 165
+Insert = 45
+Num0 = 96
+Num1 = 97
+Esc = 27
+Back = 8
+F5 = 116
+Delete = 46
+Num5 = 101
+F7 = 118
+F2 = 113
+NumDivide = 111
+Space = 32
+Right = 39
+Num7 = 103
 F10 = 121
 F8 = 119
+Up = 38
+F1 = 112
+Num4 = 100
+Down = 40
+NumAdd = 107
+LWin = 91
+LShift = 160
+F6 = 117
+PageDown = 34
+NumSubtract = 109
+Tab = 9
+Backspace = 8
+F3 = 114
+CapsLock = 20
+Num6 = 102
+PageUp = 33
+Enter = 13
+RCtrl = 163
+Num3 = 99
+F11 = 122
+LAlt = 164
+F12 = 123
+RShift = 161
+LCtrl = 162
+Left = 37
+NumDecimal = 110
+Home = 36
+RWin = 92
+End = 35
+Num2 = 98
 
 [keyboard.map_left_right.0]
 left = "9"
@@ -470,7 +445,7 @@ right = "/"
 left = "."
 
 [system]
-start_in_tray = true
+start_in_tray = false
 show_tray_icon = true
 start_at_login = true
 

@@ -147,11 +147,7 @@
             let css = ``;
             for (let i = 0; i < styles.length; i++) {
                 css += `
-                .hint-style${i} {
-                    ${Object.entries(styles[i]).map(([key, value]) => 
-                        `${key.replace(/_/g, '-')}: ${value};`
-                    ).join('\n                    ')}
-                }`;
+                .hint-style${i} ${styles[i]}`;
             }
 
             return css;
