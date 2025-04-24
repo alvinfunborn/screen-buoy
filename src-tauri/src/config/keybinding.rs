@@ -1,15 +1,15 @@
 use once_cell::sync::Lazy;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeybindingConfig {
     pub global: GlobalKeybindingConfig,
     pub at_hint: AtHintKeybindingConfig,
     pub hotkey_buoy: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct GlobalKeybindingConfig {
     pub move_to_hint: Vec<String>,
     pub move_to_hint_exit: Vec<String>,
@@ -19,7 +19,7 @@ pub struct GlobalKeybindingConfig {
     pub translate: DirectionKeybindingsConfig,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AtHintKeybindingConfig {
     pub exit: Vec<String>,
     pub left_click: Vec<String>,
@@ -35,7 +35,7 @@ pub struct AtHintKeybindingConfig {
     pub scroll: DirectionKeybindingsConfig,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct DirectionKeybindingsConfig {
     pub up: Vec<String>,
     pub down: Vec<String>,

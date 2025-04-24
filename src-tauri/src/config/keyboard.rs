@@ -1,21 +1,21 @@
 use std::collections::HashMap;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyboardConfig {
     pub available_key: HashMap<String, KeyConfig>,
     pub propagation_modifier: Vec<String>,
     pub map_left_right: HashMap<String, LeftRightConfig>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyConfig {
     pub key: String,
     pub virtual_key: Option<u16>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct LeftRightConfig {
     pub left: Option<String>,
     pub right: Option<String>,

@@ -12,12 +12,12 @@ pub use mouse::MouseConfig;
 pub use system::SystemConfig;
 pub use ui_automation::UiAutomationConfig;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 use toml;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub hint: HintConfig,
     pub keybinding: KeybindingConfig,
@@ -59,4 +59,35 @@ pub fn init_config() -> Result<(), Box<dyn std::error::Error>> {
 // 获取配置
 pub fn get_config() -> Option<Config> {
     CONFIG.lock().unwrap().clone()
+}
+
+// 为前端提供的配置获取命令
+#[tauri::command]
+pub fn get_config_for_frontend() -> Config {
+    get_config().unwrap_or_else(|| {
+        let config = load_config().expect("Failed to load config");
+        let mut config_guard = CONFIG.lock().unwrap();
+        *config_guard = Some(config.clone());
+        config
+    })
+}
+
+// 为前端提供的配置保存命令
+#[tauri::command]
+pub fn save_config_for_frontend(config: Config) -> Result<(), String> {
+    // 更新内存中的配置
+    {
+        let mut config_guard = CONFIG.lock().unwrap();
+        *config_guard = Some(config.clone());
+    }
+
+    // 保存到文件
+    let config_str = toml::to_string_pretty(&config)
+        .map_err(|e| format!("Failed to serialize config: {}", e))?;
+
+    let config_path = "src-tauri/config.toml";
+    fs::write(config_path, config_str)
+        .map_err(|e| format!("Failed to write config file: {}", e))?;
+
+    Ok(())
 }

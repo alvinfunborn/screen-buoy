@@ -1,20 +1,20 @@
 use std::collections::HashSet;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MouseConfig {
     pub step: MouseStepConfig,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MouseStepConfig {
     pub translate: Vec<MouseStep>,
     pub scroll: Vec<MouseStep>,
     pub drag: Vec<MouseStep>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct MouseStep {
     pub x: i32,
     pub y: i32,

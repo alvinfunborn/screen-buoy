@@ -20,6 +20,7 @@ use tauri::{
 use tauri_plugin_log::{Builder as LogBuilder, LogTarget};
 use windows::Win32::System::Com::*;
 use config::hint::get_hint_styles;
+use config::{get_config_for_frontend, save_config_for_frontend};
 
 fn main() {
     // 初始化配置
@@ -40,9 +41,11 @@ fn main() {
 
     // 创建系统托盘菜单
     let quit = CustomMenuItem::new("quit".to_string(), "Quit");
-    let show = CustomMenuItem::new("show".to_string(), "Settings");
+    let restart = CustomMenuItem::new("restart".to_string(), "Restart");
+    let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let tray_menu = SystemTrayMenu::new()
-        .add_item(show)
+        .add_item(settings)
+        .add_item(restart)
         .add_item(quit);
     let tray = SystemTray::new().with_menu(tray_menu);
 
@@ -136,10 +139,13 @@ fn main() {
                     "quit" => {
                         app.exit(0);
                     }
-                    "show" => {
+                    "settings" => {
                         let window = app.get_window("main").unwrap();
                         window.show().unwrap();
                         window.set_focus().unwrap();
+                    }
+                    "restart" => {
+                        app.restart();
                     }
                     _ => {}
                 }
@@ -158,6 +164,8 @@ fn main() {
     match builder
         .invoke_handler(tauri::generate_handler![
             get_hint_styles,
+            get_config_for_frontend,
+            save_config_for_frontend,
         ])
         .run(tauri::generate_context!())
     {

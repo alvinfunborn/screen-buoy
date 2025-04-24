@@ -2,7 +2,7 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct HintConfig {
     pub charsets: Vec<Vec<char>>,
     pub charset_extra: Vec<char>,
