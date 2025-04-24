@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeyboardConfig {
-    pub available_key: HashMap<String, u16>,
+    pub available_key: IndexMap<String, u16>,
     pub propagation_modifier: Vec<String>,
     pub map_left_right: IndexMap<String, LeftRightConfig>,
 }

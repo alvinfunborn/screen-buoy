@@ -81,6 +81,11 @@ pub fn get_config_for_frontend() -> Config {
 // 为前端提供的配置保存命令
 #[tauri::command]
 pub fn save_config_for_frontend(config: Config) -> Result<(), String> {
+    // 重排序 keyboard.available_key
+    let mut config = config.clone();
+    let mut available_keys_vec = config.keyboard.available_key.into_iter().collect::<Vec<_>>();
+    available_keys_vec.sort_by_key(|k| k.1);
+    config.keyboard.available_key = available_keys_vec.into_iter().collect();
     // 更新内存中的配置
     {
         let mut config_guard = CONFIG.lock().unwrap();

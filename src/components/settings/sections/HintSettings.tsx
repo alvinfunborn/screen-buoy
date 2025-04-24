@@ -4,7 +4,7 @@ import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 
-const { Title } = Typography;
+const { Title, Paragraph } = Typography;
 
 interface HintSettingsProps {
   loading?: boolean;
@@ -33,7 +33,8 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
     if (initialHintConfig?.types) {
       // Assert the type of Object.entries result before calling reduce
       const initialRawStyles = (Object.entries(initialHintConfig.types) as [string, HintType][]).reduce((acc, [key, value]) => {
-        const styleValue = value.style;
+        // Style is now directly a string
+        const styleValue = typeof value.style === 'string' ? value.style : ''; // Ensure it's a string
         acc[key] = styleValue;
         return acc;
       }, {} as Record<string, string>);
@@ -51,7 +52,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
       setRawExtraCharsetInput(Array.isArray(initialHintConfig.charset_extra) ? initialHintConfig.charset_extra.join(', ') : '');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form]);
+  }, [form]); // Dependency array only includes form, assuming initial load logic
 
   // --- Event Handlers ---
   // Re-add the missing handler for local state update
@@ -59,28 +60,29 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
     setRawStyleInputs(prev => ({ ...prev, [typeName]: value }));
   };
 
+  // Simplified handleRawStyleBlur
   const handleRawStyleBlur = (typeName: string) => {
-    const rawValue = rawStyleInputs[typeName] ?? ''; // Default to empty string
-    console.log(`[handleRawStyleBlur] typeName: ${typeName}, rawValue BEFORE parse attempt:`, rawValue); // Log the raw value
+    const rawValue = rawStyleInputs[typeName] ?? '';
+    console.log(`[handleRawStyleBlur] typeName: ${typeName}, rawValue:`, rawValue); // Log the raw value
+
+    const fieldPath: NamePath = ['hint', 'types', typeName, 'style'];
 
     if (!rawValue.trim()) { // Handle empty or whitespace-only strings
         console.log("[handleRawStyleBlur] Raw value is empty, setting field to undefined.");
-        form.setFieldValue(['hint', 'types', typeName, 'style'], undefined);
-        form.validateFields([['hint', 'types', typeName, 'style']]); // Validate after clearing
-        return;
+        form.setFieldValue(fieldPath, undefined);
+        // form.validateFields([fieldPath]); // Validate after clearing? Might cause flicker if user is tabbing. Let's rely on form submit validation or rule trigger.
+    } else {
+        // Directly set the string value without parsing
+        console.log(`[handleRawStyleBlur] Setting field to: "${rawValue}"`);
+        form.setFieldValue(fieldPath, rawValue);
+        // form.validateFields([fieldPath]); // Validate after setting? Let's rely on form submit validation or rule trigger.
     }
+    // Trigger validation explicitly for immediate feedback if desired, but can sometimes be disruptive.
+    // Let's validate here to show errors immediately if any basic rules apply (like required, though we removed it).
+    form.validateFields([fieldPath]);
 
-    try {
-      form.setFieldValue(['hint', 'types', typeName, 'style'], rawValue);
-      // Re-validate on success to potentially clear previous errors
-      form.validateFields([['hint', 'types', typeName, 'style']]);
-    } catch (e) {
-      console.error("[handleRawStyleBlur] Parse FAILED:", e);
-      // Store the invalid raw string back to let validator catch it
-      form.setFieldValue(['hint', 'types', typeName, 'style'], rawValue); // Store raw string on error
-      // Trigger validation explicitly for immediate feedback
-      form.validateFields([['hint', 'types', typeName, 'style']]);
-    }
+    // Note: onValuesChange is not called here, maintaining original behavior.
+    // If needed, it could be added similar to handleRawCharsetBlur.
   };
 
   // Re-add the missing handler for charsets list items
@@ -163,6 +165,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
                         placeholder="Enter the charset, separated by commas"
                         // Ensure value defaults to empty string if state entry is missing
                         value={rawCharsetInputs[key] ?? ''}
+                        style={{ width: '400px' }}
                         onChange={(e) => handleRawCharsetChange(key, e.target.value)}
                         onBlur={() => handleRawCharsetBlur(key, name)}
                       />
@@ -182,43 +185,45 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
       {/* Hint Charset Extra Section */}
       <Form.Item
         label="Hint Charset Extra"
+        name={['hint', 'charset_extra']} // Bind to form state
       >
         <Input
           placeholder="Enter the extra charset, separated by commas"
+          // Value comes from local raw state
           value={rawExtraCharsetInput}
           onChange={(e) => setRawExtraCharsetInput(e.target.value)}
+          // Commit to form state on blur
           onBlur={handleRawExtraCharsetBlur}
         />
       </Form.Item>
 
-      <Title level={4}>Hint Types</Title>
+      <Paragraph>Hint Types</Paragraph>
       {/* Dynamic Hint Types Section */}
       {hintTypeNames.map((typeName) => (
         <Space key={typeName} direction="vertical" style={{ border: '1px solid #d9d9d9', padding: '16px', borderRadius: '8px', marginBottom: '16px', width: '100%' }}>
-          <Title level={5} style={{ marginTop: 0 }}>Type: {typeName}</Title>
+          <Paragraph style={{ marginTop: 0 }}>Type: {typeName}</Paragraph>
           <Form.Item
             label="Style CSS"
-            rules={[{
-              validator: async (_, value) => {
-                if (value === undefined || value === '') return Promise.resolve();
-                if (typeof value === 'string') {
-                  return Promise.reject(new Error('Invalid JSON format (parsing failed or not an object)'));
-                }
-                return Promise.resolve();
-              }
-            }]}
+            layout='horizontal'
+            name={['hint', 'types', typeName, 'style']} // Bind directly to form state path
+            // Removed the complex JSON validator rule.
+            // Add basic rules if needed, e.g., required: false (allows empty)
+            rules={[{ required: false }]} // Example: Make it optional
             style={{ width: '100%' }}
           >
             <Input.TextArea
-              rows={6}
+              rows={3}
               placeholder={`Enter the style css for ${typeName}`}
+              // Input value is controlled by local state for better typing UX
               value={rawStyleInputs[typeName] ?? ''}
               onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
+              // On blur, the simplified handleRawStyleBlur updates the form state
               onBlur={() => handleRawStyleBlur(typeName)}
-              style={{ width: '400px' }}
+              style={{ width: '300px' }}
             />
           </Form.Item>
           <Form.Item
+            layout='horizontal'
             label="Z-Index"
             name={['hint', 'types', typeName, 'z_index']}
             rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
@@ -226,7 +231,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
           >
             <InputNumber
               placeholder="Enter Z-Index"
-              style={{ width: '150px' }}
+              style={{ width: '80px' }}
             />
           </Form.Item>
           {/* Add remove button if needed, requires more complex state management */}
