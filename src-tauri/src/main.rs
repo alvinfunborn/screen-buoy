@@ -40,13 +40,13 @@ fn main() {
     }
 
     // 创建系统托盘菜单
-    let quit = CustomMenuItem::new("quit".to_string(), "Quit");
+    let exit = CustomMenuItem::new("exit".to_string(), "Exit");
     let restart = CustomMenuItem::new("restart".to_string(), "Restart");
     let settings = CustomMenuItem::new("settings".to_string(), "Settings");
     let tray_menu = SystemTrayMenu::new()
         .add_item(settings)
         .add_item(restart)
-        .add_item(quit);
+        .add_item(exit);
     let tray = SystemTray::new().with_menu(tray_menu);
 
     let builder = tauri::Builder::default()
@@ -146,7 +146,7 @@ fn main() {
         .on_system_tray_event(|app, event| match event {
             SystemTrayEvent::MenuItemClick { id, .. } => {
                 match id.as_str() {
-                    "quit" => {
+                    "exit" => {
                         app.exit(0);
                     }
                     "settings" => {

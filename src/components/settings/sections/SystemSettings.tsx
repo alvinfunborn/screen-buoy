@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form, Switch, Space, Typography, Spin } from 'antd';
+import { Form, Switch, Space, Typography, Spin, Button } from 'antd';
+import { invoke } from '@tauri-apps/api/tauri';
+import { relaunch, exit } from '@tauri-apps/api/process';
 
 const { Title } = Typography;
 
@@ -11,6 +13,22 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading }) => {
   if (loading) {
     return <Spin />;
   }
+
+  const handleRestart = async () => {
+    try {
+      await relaunch();
+    } catch (error) {
+      console.error('重启失败:', error);
+    }
+  };
+
+  const handleExit = async () => {
+    try {
+      await exit(0);
+    } catch (error) {
+      console.error('退出失败:', error);
+    }
+  };
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -42,6 +60,11 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading }) => {
       >
         <Switch />
       </Form.Item>
+
+      <Space>
+        <Button type="primary" onClick={handleRestart}>Restart</Button>
+        <Button danger onClick={handleExit}>Exit</Button>
+      </Space>
     </Space>
   );
 }; 

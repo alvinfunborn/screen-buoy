@@ -11,7 +11,7 @@ tauri-build = { version = "1.5", features = [] }
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5", features = [ "window-show", "app-show", "global-shortcut-all", "app-hide", "window-set-focus", "window-close", "window-hide", "system-tray", "devtools"] }
+tauri = { version = "1.5", features = [ "process-exit", "process-relaunch", "window-show", "app-show", "global-shortcut-all", "app-hide", "window-set-focus", "window-close", "window-hide", "system-tray", "devtools"] }
 windows = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",

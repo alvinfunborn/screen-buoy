@@ -26,6 +26,11 @@
       },
       "globalShortcut": {
         "all": true
+      },
+      "process": {
+        "all": false,
+        "exit": true,
+        "relaunch": true
       }
     },
     "systemTray": {
@@ -74,8 +79,8 @@
     "windows": [
       {
         "fullscreen": false,
-        "width": 600,
-        "height": 800,
+        "width": 500,
+        "height": 600,
         "resizable": true,
         "title": "Screen Buoy",
         "label": "main",
