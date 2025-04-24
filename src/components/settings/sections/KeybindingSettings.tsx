@@ -7,15 +7,12 @@ const { Title, Text } = Typography;
 
 interface KeybindingSettingsProps {
   loading?: boolean;
+  onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading }) => {
-  const [form] = Form.useForm<Config>();
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading, onValuesChange }) => {
+  const form = Form.useFormInstance<Config>();
   const keyOptions = useKeyOptions(form);
-
-  if (loading) {
-    return <Spin />;
-  }
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>

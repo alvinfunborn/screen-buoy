@@ -7,14 +7,11 @@ const { Title } = Typography;
 
 interface HintSettingsProps {
   loading?: boolean;
+  onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const HintSettings: React.FC<HintSettingsProps> = ({ loading }) => {
+export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesChange }) => {
   const form = Form.useFormInstance<Config>(); // Get form instance from context
-
-  if (loading) {
-    return <Spin />;
-  }
 
   // Get value directly from form state instead of using useWatch
   const hintTypes = form.getFieldValue(['hint', 'types']) || {};

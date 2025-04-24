@@ -1,16 +1,15 @@
 import React from 'react';
 import { Form, InputNumber, Space, Spin, Typography } from 'antd';
+import type { Config } from '../../../types/config';
 
 const { Title } = Typography;
 
 interface UiAutomationSettingsProps {
   loading?: boolean;
+  onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ loading }) => {
-  if (loading) {
-    return <Spin />;
-  }
+export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ loading, onValuesChange }) => {
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -22,7 +21,7 @@ export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ load
         name={['ui_automation', 'collect_interval']}
         tooltip="Time interval between UI element scans in milliseconds"
       >
-        <InputNumber min={100} max={1000} step={50} />
+        <InputNumber min={50} max={10000} step={50} />
       </Form.Item>
     </Space>
   );

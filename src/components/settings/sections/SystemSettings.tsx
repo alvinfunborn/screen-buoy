@@ -8,13 +8,10 @@ const { Title } = Typography;
 
 interface SystemSettingsProps {
   loading?: boolean;
+  onValuesChange?: (changedValues: any, allValues: Config) => void;
 }
 
-export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading }) => {
-  if (loading) {
-    return <Spin />;
-  }
-
+export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading, onValuesChange }) => {
   const handleRestart = async () => {
     try {
       await relaunch();

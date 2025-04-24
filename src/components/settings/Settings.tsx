@@ -66,32 +66,32 @@ const Settings: React.FC = () => {
           {
             key: 'keybinding',
             label: 'Keybinding',
-            children: <KeybindingSettings loading={false} />,
+            children: <KeybindingSettings />,
           },
           {
             key: 'mouse',
             label: 'Mouse',
-            children: <MouseSettings loading={false} />,
+            children: <MouseSettings onValuesChange={handleValuesChange} />,
           },
           {
             key: 'hint',
             label: 'Hint',
-            children: <HintSettings loading={false} />,
+            children: <HintSettings />,
           },
           {
             key: 'ui_automation',
             label: 'UI Automation',
-            children: <UiAutomationSettings loading={false} />,
+            children: <UiAutomationSettings />,
           },
           {
             key: 'keyboard',
             label: 'Keyboard',
-            children: <KeyboardSettings loading={false} />,
+            children: <KeyboardSettings onValuesChange={handleValuesChange} />,
           },
           {
             key: 'system',
             label: 'System',
-            children: <SystemSettings loading={false} />,
+            children: <SystemSettings />,
           },
         ]}
       />
