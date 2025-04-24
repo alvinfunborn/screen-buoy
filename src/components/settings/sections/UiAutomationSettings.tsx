@@ -13,8 +13,6 @@ export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ load
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>UI Automation Settings</Title>
-      
       <Form.Item
         layout="horizontal"
         label="Collection Interval (ms)"

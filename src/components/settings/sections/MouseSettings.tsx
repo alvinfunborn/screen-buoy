@@ -235,7 +235,6 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>Mouse Settings</Title>
       
       {renderStepList('translate', 'Movement Step')}
       {renderStepList('scroll', 'Scroll Step')}

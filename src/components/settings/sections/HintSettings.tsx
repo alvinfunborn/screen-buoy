@@ -134,8 +134,6 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ loading, onValuesCha
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>Hint Settings</Title>
-
       {/* Hint Charsets Section (Existing) */}
       <Form.Item label="Hint Charsets">
         <Form.List name={['hint', 'charsets']}>

@@ -160,6 +160,11 @@ fn main() {
                     _ => {}
                 }
             }
+            SystemTrayEvent::DoubleClick { .. } => {
+                let window = app.get_window("main").unwrap();
+                window.show().unwrap();
+                window.set_focus().unwrap();
+            }
             _ => {}
         });
 

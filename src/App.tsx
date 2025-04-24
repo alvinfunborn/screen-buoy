@@ -20,7 +20,7 @@ function App() {
 
   return (
     <div>
-      <h1 style={{ textAlign: 'center', marginTop: '20px' }}>Screen Buoy Settings</h1>
+      <h2 style={{ marginTop: '24px', paddingLeft: '20px', paddingRight: '20px' }}>Settings</h2>
       {error && (
         <div className="error-message">
           错误: {error}

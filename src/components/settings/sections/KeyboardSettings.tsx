@@ -193,8 +193,6 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading, onV
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>Keyboard Settings</Title>
-
       {/* Propagation Modifier */}
       <Form.Item
         label="Propagation Modifier"

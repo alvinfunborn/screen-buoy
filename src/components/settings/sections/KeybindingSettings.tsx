@@ -17,8 +17,6 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ loading,
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>Keybinding Settings</Title>
-
       <Form.Item layout="horizontal"
         label="Main Hotkey"
         name={['keybinding', 'hotkey_buoy']}

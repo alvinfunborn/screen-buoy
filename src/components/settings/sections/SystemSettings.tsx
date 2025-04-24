@@ -30,8 +30,6 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ loading, onValue
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      <Title level={3}>System Settings</Title>
-      
       <Form.Item
         label="Start in System Tray"
         name={['system', 'start_in_tray']}
