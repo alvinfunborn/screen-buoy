@@ -25,7 +25,7 @@ export interface KeyboardConfig {
 export interface MouseStep {
   x: number;
   y: number;
-  modifier?: string[];
+  modifier: string[];
 }
 
 export interface MouseStepConfig {

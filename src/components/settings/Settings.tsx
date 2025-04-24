@@ -37,6 +37,7 @@ const Settings: React.FC = () => {
 
   const debouncedSave = debounce(async (values: Config) => {
     try {
+      console.log("[Settings.tsx] Saving config:", JSON.stringify(values, null, 2));
       await invoke('save_config_for_frontend', { config: values });
     } catch (err) {
       message.error('保存失败');
@@ -44,18 +45,22 @@ const Settings: React.FC = () => {
     }
   }, 500);
 
-  const handleValuesChange = (changedValues: any, allValues: Config) => {
+  const handleValuesChange = (changedValues: any, _allValues: Config) => {
     console.log("[Settings.tsx] handleValuesChange triggered. Changed:", JSON.stringify(changedValues));
+
+    // 从 form 实例获取最新的完整值，而不是依赖回调参数
+    const currentAllValues = form.getFieldsValue(true);
+    console.log("[Settings.tsx] currentAllValues from form:", JSON.stringify(currentAllValues, null, 2));
 
     if (changedValues.keyboard && changedValues.keyboard.available_key) {
       console.log("[Settings.tsx] keyboard.available_key changed, updating state:", changedValues.keyboard.available_key);
       setAvailableKeysState(changedValues.keyboard.available_key);
-    } else if (changedValues.keyboard && allValues.keyboard?.available_key !== availableKeysState) {
-      console.log("[Settings.tsx] keyboard object changed, updating state:", allValues.keyboard?.available_key);
-      setAvailableKeysState(allValues.keyboard?.available_key);
+    } else if (changedValues.keyboard && currentAllValues.keyboard?.available_key !== availableKeysState) {
+      console.log("[Settings.tsx] keyboard object changed, updating state:", currentAllValues.keyboard?.available_key);
+      setAvailableKeysState(currentAllValues.keyboard?.available_key);
     }
 
-    debouncedSave(allValues);
+    debouncedSave(currentAllValues); // 使用从 form 获取的最新值
   };
 
   if (loading || !initialConfig) {

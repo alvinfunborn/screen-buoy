@@ -31,10 +31,23 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]); // Depend on form instance
 
-  // --- Function to Update Form and Notify Parent ---
+  // --- Function to Update Form and Notify ---
   const syncFormAndNotify = (updatedSteps: { translate?: MouseStep[], scroll?: MouseStep[], drag?: MouseStep[] }) => {
     const currentMouseConfig = form.getFieldValue('mouse') as MouseConfig || {};
-    const newStepConfig = { ...currentMouseConfig.step, ...updatedSteps }; // Merge updates
+    const currentStepConfig = currentMouseConfig.step || {
+      translate: [],
+      scroll: [],
+      drag: []
+    };
+    
+    // 确保所有必需的字段都存在
+    const newStepConfig = {
+      translate: currentStepConfig.translate || [],
+      scroll: currentStepConfig.scroll || [],
+      drag: currentStepConfig.drag || [],
+      ...updatedSteps
+    };
+
     const newMouseValue = {
       ...currentMouseConfig,
       step: newStepConfig
@@ -84,7 +97,17 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
     if (!newSteps[index]) {
       newSteps[index] = { x: 0, y: 0, modifier: [] }; // Default structure if somehow missing
     }
-    newSteps[index] = { ...newSteps[index], [field]: value };
+    
+    // 确保 modifier 字段存在
+    if (field === 'modifier' && value === undefined) {
+      value = [];
+    }
+    
+    newSteps[index] = { 
+      ...newSteps[index], 
+      [field]: value,
+      modifier: field === 'modifier' ? value : (newSteps[index].modifier || [])
+    };
 
     setSteps(newSteps); // Update local state first (triggers re-render)
     syncFormAndNotify({ [type]: newSteps }); // Sync with form and notify parent
@@ -109,7 +132,11 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading, onValuesC
         break;
     }
 
-    newSteps.push({ x: 1, y: 1, modifier: [] }); // Add default new step
+    newSteps.push({ 
+      x: 1, 
+      y: 1, 
+      modifier: [] 
+    }); // Add default new step with empty modifier array
 
     setSteps(newSteps); // Update local state
     syncFormAndNotify({ [type]: newSteps }); // Sync and notify

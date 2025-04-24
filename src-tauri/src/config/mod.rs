@@ -28,18 +28,23 @@ pub struct Config {
     pub ui_automation: UiAutomationConfig,
 }
 
-pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
+pub fn get_config_path() -> Option<String> {
     let config_paths = vec!["config.toml", "src-tauri/config.toml", "../config.toml"];
-
     for path in config_paths {
         if Path::new(path).exists() {
-            let config_str = fs::read_to_string(path)?;
-            let config: Config = toml::from_str(&config_str)?;
-            println!("[配置] 从 {} 加载配置成功: {:?}", path, config);
-            return Ok(config);
+            return Some(path.to_string());
         }
     }
+    None
+}
 
+pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
+    if let Some(path) = get_config_path() {
+        let config_str = fs::read_to_string(&path)?;
+        let config: Config = toml::from_str(&config_str)?;
+        println!("[配置] 从 {} 加载配置成功: {:?}", path, config);
+        return Ok(config);
+    }
     Err("未找到配置文件".into())
 }
 
@@ -86,8 +91,24 @@ pub fn save_config_for_frontend(config: Config) -> Result<(), String> {
     let config_str = toml::to_string_pretty(&config)
         .map_err(|e| format!("Failed to serialize config: {}", e))?;
 
-    let config_path = "src-tauri/config.toml";
-    fs::write(config_path, config_str)
+    // 获取当前配置文件路径，如果不存在则使用默认路径
+    let config_path = get_config_path().unwrap_or_else(|| {
+        if cfg!(debug_assertions) {
+            "src-tauri/config.toml".to_string()
+        } else {
+            "config.toml".to_string()
+        }
+    });
+
+    // 确保目标目录存在
+    if let Some(parent) = Path::new(&config_path).parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create config directory: {}", e))?;
+        }
+    }
+
+    fs::write(&config_path, config_str)
         .map_err(|e| format!("Failed to write config file: {}", e))?;
 
     Ok(())
