@@ -17,6 +17,7 @@ export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ load
       <Title level={3}>UI Automation Settings</Title>
       
       <Form.Item
+        layout="horizontal"
         label="Collection Interval (ms)"
         name={['ui_automation', 'collect_interval']}
         tooltip="Time interval between UI element scans in milliseconds"

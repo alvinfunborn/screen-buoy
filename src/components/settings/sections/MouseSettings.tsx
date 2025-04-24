@@ -86,7 +86,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ loading }) => {
     const steps = values?.mouse?.step?.[type] || [];
     
     return (
-      <Form.Item label={label}>
+      <Form.Item label={label} style={{ width: '100%' }}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered

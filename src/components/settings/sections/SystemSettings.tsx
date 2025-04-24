@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, Switch, Space, Typography, Spin, Button } from 'antd';
 import { invoke } from '@tauri-apps/api/tauri';
 import { relaunch, exit } from '@tauri-apps/api/process';
+import { Config } from '@/types/config';
 
 const { Title } = Typography;
 

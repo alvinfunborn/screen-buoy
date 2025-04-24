@@ -19,8 +19,8 @@ function App() {
   }, []);
 
   return (
-    <div className="container">
-      <h1>Screen Buoy Settings</h1>
+    <div>
+      <h1 style={{ textAlign: 'center', marginTop: '20px' }}>Screen Buoy Settings</h1>
       {error && (
         <div className="error-message">
           错误: {error}

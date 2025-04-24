@@ -83,6 +83,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ loading }) =
       <Title level={3}>Keyboard Settings</Title>
 
       <Form.Item
+        layout="horizontal"
         label="Propagation Modifier"
         name={['keyboard', 'propagation_modifier']}
       >
