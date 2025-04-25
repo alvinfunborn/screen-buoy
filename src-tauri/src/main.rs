@@ -4,9 +4,9 @@ use screen_buoy::config;
 use screen_buoy::element;
 use screen_buoy::hint;
 use screen_buoy::hint::create_overlay_windows;
-use screen_buoy::init_plugins;
 use screen_buoy::input;
 use screen_buoy::monitor::monitor;
+use screen_buoy::set_auto_start;
 use screen_buoy::setup_shortcut;
 use screen_buoy::setup_tray;
 use tauri::Manager;
@@ -36,18 +36,11 @@ fn main() {
 
         let app_handle = app.handle();
 
-        // 初始化插件
-        init_plugins(&app_handle).expect("Failed to initialize plugins");
-
         // Setup system tray
         setup_tray(&app_handle, &config).expect("Failed to setup system tray");
 
         // Setup main window
         let main_window = app_handle.get_webview_window("main").unwrap();
-
-        if config.system.start_at_login {
-            info!("[i] 开机自启动功能在 v2 中可能需要 tauri-plugin-autostart (待验证)");
-        }
 
         // Handle window visibility
         if config.system.start_in_tray {
@@ -84,6 +77,8 @@ fn main() {
         // Setup shortcuts
         setup_shortcut(&app_handle, &config, main_window.clone())
             .expect("Failed to setup shortcuts");
+        // set autostart
+        set_auto_start(&app_handle, &config).expect("Failed to setup auto start");
 
         info!("=== 应用程序初始化完成 ===");
         Ok(())

@@ -37,8 +37,10 @@ tauri-plugin-process = "2"
 
 [features]
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-autostart = "2"
 tauri-plugin-global-shortcut = "2"
 tauri-plugin-positioner = "2"
+tauri-plugin-single-instance = "2"
 # custom-protocol 功能在 v2 中有变化, 需要在 Tauri.toml 中配置
 # custom-protocol = ["tauri/custom-protocol"]
 

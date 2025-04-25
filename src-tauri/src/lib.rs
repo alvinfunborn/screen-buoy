@@ -11,6 +11,7 @@ pub mod window;
 use config::{get_config_for_frontend, get_hint_styles, save_config_for_frontend};
 use hint::{overlay::OVERLAY_HANDLES_STORAGE, show_hints};
 use log::{error, info};
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use std::str::FromStr;
 use tauri::{
     image::Image,
@@ -21,20 +22,6 @@ use tauri::{
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_log::{Target, TargetKind};
 use windows::Win32::Foundation::HWND;
-
-pub fn init_plugins(app_handle: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    app_handle.plugin(tauri_plugin_process::init())?;
-    app_handle.plugin(
-        tauri_plugin_log::Builder::new()
-            .targets([
-                Target::new(TargetKind::Stdout),
-                Target::new(TargetKind::Webview),
-            ])
-            .build(),
-    )?;
-    app_handle.plugin(tauri_plugin_positioner::init())?;
-    Ok(())
-}
 
 pub fn setup_tray(
     app_handle: &AppHandle,
@@ -132,8 +119,39 @@ pub fn setup_shortcut(
     Ok(())
 }
 
+pub fn set_auto_start(app_handle: &AppHandle, config: &config::Config) -> Result<(), Box<dyn std::error::Error>> {
+    let auto_start = config.system.start_at_login;
+    let autostart_manager = app_handle.autolaunch();
+    if auto_start {
+        let _ = autostart_manager.enable();
+    } else {
+        let _ = autostart_manager.disable();
+    }
+    Ok(())
+}
+
 pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
     tauri::Builder::default()
+        .plugin(tauri_plugin_autostart::init(
+            MacosLauncher::LaunchAgent,
+            None,
+        ))
+        .plugin(tauri_plugin_process::init())
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .targets([
+                    Target::new(TargetKind::Stdout),
+                    Target::new(TargetKind::Webview),
+                ])
+                .build(),
+        )
+        .plugin(tauri_plugin_positioner::init())
+        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+            let _ = app
+                .get_webview_window("main")
+                .expect("no main window")
+                .set_focus();
+        }))
         .invoke_handler(tauri::generate_handler![
             get_hint_styles,
             get_config_for_frontend,

@@ -17,6 +17,7 @@
     "core:image:default",
     "core:webview:default",
     "log:default",
-    "process:default"
+    "process:default",
+    "autostart:default"
   ]
 }

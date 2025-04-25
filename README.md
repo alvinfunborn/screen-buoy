@@ -27,8 +27,8 @@ windows ui控件类型https://learn.microsoft.com/zh-cn/windows/win32/winauto/ui
 1. [x] 实现退格键
 1. leftmap和rightmap也配置化
 1. [x] 前端配置化
-1. [ ] 开机启动
-1. [ ] 只能启动一个实例
+1. [x] 开机启动
+1. [x] 只能启动一个实例
 1. [x] 双击托盘图标打开设置
 
 ### 步骤二, 实现按键交互
