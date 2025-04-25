@@ -209,12 +209,6 @@ pub fn create_overlay_window(
         }
     }
 
-    #[cfg(debug_assertions)]
-    {
-        info!("开发模式：打开devtools");
-        window.open_devtools();
-    }
-
     info!("overlay窗口创建完成");
     Ok(())
 }

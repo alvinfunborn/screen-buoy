@@ -49,12 +49,6 @@ fn main() {
             info!("[i] 开机自启动功能在 v2 中可能需要 tauri-plugin-autostart (待验证)");
         }
 
-        #[cfg(debug_assertions)]
-        {
-            main_window.open_devtools();
-            info!("[✓] 主窗口开发工具已打开");
-        }
-
         // Handle window visibility
         if config.system.start_in_tray {
             if let Err(e) = main_window.hide() {

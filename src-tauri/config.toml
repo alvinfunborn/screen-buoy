@@ -477,7 +477,7 @@ right = '\'
 right = "1"
 
 [system]
-start_in_tray = false
+start_in_tray = true
 show_tray_icon = true
 start_at_login = true
 
