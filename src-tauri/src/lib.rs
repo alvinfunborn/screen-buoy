@@ -11,14 +11,14 @@ pub mod window;
 use config::{get_config_for_frontend, get_hint_styles, save_config_for_frontend};
 use hint::{overlay::OVERLAY_HANDLES_STORAGE, show_hints};
 use log::{error, info};
-use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
-use std::str::FromStr;
+use std::{panic, str::FromStr};
 use tauri::{
     image::Image,
     menu::{MenuBuilder, MenuItemBuilder},
     tray::{TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, WindowEvent,
+    AppHandle, Emitter, Manager, WindowEvent,
 };
+use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_log::{Target, TargetKind};
 use windows::Win32::Foundation::HWND;
@@ -28,7 +28,7 @@ pub fn setup_tray(
     config: &config::Config,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !config.system.show_tray_icon {
-        info!("[i] 系统托盘未启用");
+        info!("[setup_tray] tray icon is not enabled");
         return Ok(());
     }
 
@@ -76,8 +76,6 @@ pub fn setup_tray(
             }
         })
         .build(app_handle)?;
-
-    info!("[✓] 系统托盘已设置");
     Ok(())
 }
 
@@ -98,9 +96,7 @@ pub fn setup_shortcut(
                         ShortcutState::Pressed => {
                             let window_clone = main_window_clone.clone();
                             tauri::async_runtime::spawn(async move {
-                                if let Err(e) = show_hints(window_clone).await {
-                                    error!("[✗] 显示hints失败: {}", e);
-                                }
+                                show_hints(window_clone).await;
                             });
                         }
                         ShortcutState::Released => {}
@@ -114,12 +110,13 @@ pub fn setup_shortcut(
         error!("[✗] 注册快捷键失败: {}", e);
         return Err(e.into());
     }
-    info!("[✓] 快捷键已注册: {}", hotkey_buoy);
-
     Ok(())
 }
 
-pub fn set_auto_start(app_handle: &AppHandle, config: &config::Config) -> Result<(), Box<dyn std::error::Error>> {
+pub fn set_auto_start(
+    app_handle: &AppHandle,
+    config: &config::Config,
+) -> Result<(), Box<dyn std::error::Error>> {
     let auto_start = config.system.start_at_login;
     let autostart_manager = app_handle.autolaunch();
     if auto_start {
@@ -128,6 +125,39 @@ pub fn set_auto_start(app_handle: &AppHandle, config: &config::Config) -> Result
         let _ = autostart_manager.disable();
     }
     Ok(())
+}
+
+pub fn setup_panic_handler(app_handle: tauri::AppHandle) {
+    panic::set_hook(Box::new(move |panic_info| {
+        let location = panic_info
+            .location()
+            .unwrap_or_else(|| panic::Location::caller());
+        let message = match panic_info.payload().downcast_ref::<&str>() {
+            Some(s) => *s,
+            None => match panic_info.payload().downcast_ref::<String>() {
+                Some(s) => &s[..],
+                None => "Box<Any>",
+            },
+        };
+
+        let error_info = format!(
+            "program panic:\nlocation: {}:{}\nerror: {}",
+            location.file(),
+            location.line(),
+            message
+        );
+
+        error!("{}", error_info);
+
+        // 发送错误到前端
+        let window = app_handle.get_webview_window("main").unwrap();
+        window.emit("rust-panic", error_info).unwrap_or_else(|e| {
+            error!(
+                "[setup_panic_handler] send panic info to frontend failed: {}",
+                e
+            );
+        });
+    }));
 }
 
 pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
@@ -169,15 +199,19 @@ pub fn create_overlay_window(
     app_handle: &AppHandle,
     window_label: &str,
     monitor: &monitor::MonitorInfo,
-) -> Result<(), Box<dyn std::error::Error>> {
+) {
     // 如果已存在，先关闭
     if let Some(existing_window) = app_handle.get_webview_window(&window_label) {
-        info!("关闭已存在的overlay窗口: {}", window_label);
-        existing_window.close().map_err(|e| e.to_string())?;
+        if let Err(e) = existing_window.close() {
+            error!(
+                "[create_overlay_window] close existing window failed: {}",
+                e
+            );
+        }
     }
 
     info!(
-        "创建overlay窗口 {} 在显示器 {}: 位置({}, {}), 大小{}x{}",
+        "[create_overlay_window] create overlay window {} on monitor {}: position({}, {}), size{}x{}",
         window_label, monitor.id, monitor.x, monitor.y, monitor.width, monitor.height
     );
 
@@ -193,14 +227,17 @@ pub fn create_overlay_window(
     .always_on_top(true)
     .inner_size(monitor.width as f64, monitor.height as f64)
     .focused(false)
-    .build()
-    .map_err(|e| format!("创建overlay窗口失败: {}", e))?;
+    .build();
 
-    window
-        .set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y))
-        .map_err(|e| e.to_string())?;
+    if let Err(e) = window {
+        panic!(
+            "[create_overlay_window] create overlay window failed: {}",
+            e
+        );
+    }
 
-    info!("overlay窗口创建成功，准备设置窗口属性");
+    let window = window.unwrap();
+    window.set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y));
 
     // 设置窗口为鼠标穿透并确保在最顶层
     #[cfg(target_os = "windows")]
@@ -217,16 +254,10 @@ pub fn create_overlay_window(
                 style | (WS_EX_TRANSPARENT.0 | WS_EX_LAYERED.0) as i32,
             );
 
-            info!("设置窗口样式成功");
-
             // 保存窗口句柄
             if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
                 handles.insert(window_label.to_string(), hwnd_raw as i64);
-                info!("窗口句柄保存成功");
             }
         }
     }
-
-    info!("overlay窗口创建完成");
-    Ok(())
 }

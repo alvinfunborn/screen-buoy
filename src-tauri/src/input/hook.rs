@@ -1,5 +1,6 @@
 use std::sync::Mutex;
 
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use windows::Win32::{
     Foundation::{LPARAM, LRESULT, WPARAM},
@@ -37,7 +38,7 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     let is_down = wparam.0 == WM_KEYDOWN as usize;
     let vk_code = key_info.vkCode as u16;
 
-    let config = config::get_config().expect("配置未初始化");
+    let config = config::get_config().unwrap();
     let keyboard_config = &config.keyboard;
     let key: String;
     if let Some(key_config) = keyboard_config.get_key_by_virtual_key(vk_code) {
@@ -106,14 +107,14 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     if let Ok(app_handle_lock) = APP_HANDLE.lock() {
         if let Some(app_handle) = app_handle_lock.as_ref() {
             if handle_keyboard_event(app_handle, &key, is_down) {
-                println!("[键盘钩子] 事件已处理，不传递");
+                debug!("[keyboard_hook_proc] event handled, not passing");
                 return LRESULT(1);
             }
         } else {
-            println!("[键盘钩子] APP_HANDLE 为 None");
+            error!("[keyboard_hook_proc] APP_HANDLE is None");
         }
     } else {
-        println!("[键盘钩子] 无法获取 APP_HANDLE 锁");
+        error!("[keyboard_hook_proc] failed to get APP_HANDLE lock");
     }
 
     CallNextHookEx(None, code, wparam, lparam)
@@ -124,32 +125,28 @@ static HOOK_ID: Lazy<Mutex<Option<HookHandle>>> = Lazy::new(|| Mutex::new(None))
 static APP_HANDLE: Lazy<Mutex<Option<tauri::AppHandle>>> = Lazy::new(|| Mutex::new(None));
 
 pub fn init(app_handle: tauri::AppHandle) {
-    println!("[键盘钩子] 初始化键盘钩子");
     *APP_HANDLE.lock().unwrap() = Some(app_handle);
 
     unsafe {
         if let Ok(hook) = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook_proc), None, 0) {
             *HOOK_ID.lock().unwrap() = Some(HookHandle(hook));
-            println!("[键盘钩子] 键盘钩子设置成功");
         } else {
-            println!("[键盘钩子] 键盘钩子设置失败");
+            error!("[init] keyboard hook set failed");
         }
     }
 }
 
 pub fn cleanup() {
-    println!("[键盘钩子] 清理键盘钩子");
     if let Ok(mut hook_id) = HOOK_ID.lock() {
         if let Some(hook) = hook_id.take() {
             unsafe {
                 if let Ok(_) = UnhookWindowsHookEx(hook.0) {
-                    println!("[键盘钩子] 键盘钩子清理成功");
                 } else {
-                    println!("[键盘钩子] 键盘钩子清理失败");
+                    error!("[cleanup] keyboard hook cleanup failed");
                 }
             }
         } else {
-            println!("[键盘钩子] 没有找到键盘钩子");
+            error!("[cleanup] keyboard hook not found");
         }
     }
 }

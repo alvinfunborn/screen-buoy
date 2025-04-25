@@ -1,3 +1,5 @@
+use log::{error, info};
+
 use crate::{
     config,
     hint::{filter_hints, hide_hints, move_hints, storage::get_hint_position_by_text},
@@ -109,13 +111,9 @@ impl<'a> Executor<'a> {
             get_hint_position_by_text(&self.state.pressed_hint_keys.clone().unwrap())
         {
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                    eprintln!("[键盘事件] mouse_move失败: {}", e);
-                }
+                mouse::mouse_move(monitor_id, x, y);
                 if exit {
-                    if let Err(e) = hide_hints(app_handle_clone).await {
-                        eprintln!("[键盘事件] hide_hints失败: {}", e);
-                    }
+                    hide_hints(app_handle_clone).await;
                 }
             });
             return true;
@@ -133,13 +131,9 @@ impl<'a> Executor<'a> {
         let app_handle_clone = self.app_handle.clone();
         if hold_duration < 300 {
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = mouse::mouse_click_left().await {
-                    eprintln!("[键盘事件] mouse_click_left失败: {}", e);
-                }
+                mouse::mouse_click_left();
                 if exit {
-                    if let Err(e) = hide_hints(app_handle_clone).await {
-                        eprintln!("[键盘事件] hide_hints失败: {}", e);
-                    }
+                    hide_hints(app_handle_clone).await;
                 }
             });
             return true;
@@ -158,11 +152,7 @@ impl<'a> Executor<'a> {
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
                 tauri::async_runtime::spawn(async move {
-                    if let Err(e) =
-                        filter_hints(app_handle_clone, "removeAllHints".to_string()).await
-                    {
-                        eprintln!("[键盘事件] filter_hints失败: {}", e);
-                    }
+                    filter_hints(app_handle_clone, "removeAllHints".to_string());
                 });
             }
         } else {
@@ -170,13 +160,9 @@ impl<'a> Executor<'a> {
             let app_handle_clone = self.app_handle.clone();
             tauri::async_runtime::spawn(async move {
                 if is_dragging {
-                    if let Err(e) = mouse::mouse_drag_end().await {
-                        eprintln!("[键盘事件] mouse_drag_end失败: {}", e);
-                    }
+                    mouse::mouse_drag_end();
                 }
-                if let Err(e) = hide_hints(app_handle_clone).await {
-                    eprintln!("[键盘事件] hide_hints失败: {}", e);
-                }
+                hide_hints(app_handle_clone);
             });
         }
         true
@@ -189,22 +175,14 @@ impl<'a> Executor<'a> {
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                if let Err(e) = mouse::mouse_drag_end().await {
-                    eprintln!("[键盘事件] mouse_drag_end失败: {}", e);
-                }
+                mouse::mouse_drag_end();
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                    eprintln!("[键盘事件] mouse_move失败: {}", e);
-                }
+                mouse::mouse_move(monitor_id, x, y);
             }
-            if let Err(e) = mouse::mouse_click_left().await {
-                eprintln!("[键盘事件] mouse_click_left失败: {}", e);
-            }
+            mouse::mouse_click_left();
             if exit {
-                if let Err(e) = hide_hints(app_handle_clone).await {
-                    eprintln!("[键盘事件] hide_hints失败: {}", e);
-                }
+                hide_hints(app_handle_clone);
             }
         });
         true
@@ -217,22 +195,14 @@ impl<'a> Executor<'a> {
         let app_handle_clone = self.app_handle.clone();
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                if let Err(e) = mouse::mouse_drag_end().await {
-                    eprintln!("[键盘事件] mouse_drag_end失败: {}", e);
-                }
+                mouse::mouse_drag_end();
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                    eprintln!("[键盘事件] mouse_move失败: {}", e);
-                }
+                mouse::mouse_move(monitor_id, x, y);
             }
-            if let Err(e) = mouse::mouse_click_right().await {
-                eprintln!("[键盘事件] mouse_click_right失败: {}", e);
-            }
+            mouse::mouse_click_right();
             if exit {
-                if let Err(e) = hide_hints(app_handle_clone).await {
-                    eprintln!("[键盘事件] hide_hints失败: {}", e);
-                }
+                hide_hints(app_handle_clone);
             }
         });
         true
@@ -248,17 +218,11 @@ impl<'a> Executor<'a> {
                 let _ = mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                    eprintln!("[键盘事件] mouse_move失败: {}", e);
-                }
+                mouse::mouse_move(monitor_id, x, y);
             }
-            if let Err(e) = mouse::mouse_click_middle().await {
-                eprintln!("[键盘事件] mouse_click_middle失败: {}", e);
-            }
+            mouse::mouse_click_middle();
             if exit {
-                if let Err(e) = hide_hints(app_handle_clone).await {
-                    eprintln!("[键盘事件] hide_hints失败: {}", e);
-                }
+                hide_hints(app_handle_clone);
             }
         });
         true
@@ -275,17 +239,11 @@ impl<'a> Executor<'a> {
                 let _ = mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                    eprintln!("[键盘事件] mouse_move失败: {}", e);
-                }
+                mouse::mouse_move(monitor_id, x, y);
             }
-            if let Err(e) = mouse::mouse_double_click().await {
-                eprintln!("[键盘事件] mouse_double_click失败: {}", e);
-            }
+            mouse::mouse_double_click();
             if exit {
-                if let Err(e) = hide_hints(app_handle_clone).await {
-                    eprintln!("[键盘事件] hide_hints失败: {}", e);
-                }
+                hide_hints(app_handle_clone);
             }
         });
         true
@@ -298,9 +256,7 @@ impl<'a> Executor<'a> {
             if is_dragging {
                 let _ = mouse::mouse_drag_end().await;
             }
-            if let Err(e) = hide_hints(app_handle_clone).await {
-                eprintln!("[键盘事件] hide_hints失败: {}", e);
-            }
+            hide_hints(app_handle_clone);
         });
         true
     }
@@ -325,9 +281,7 @@ impl<'a> Executor<'a> {
             let app_handle_clone = self.app_handle.clone();
             // 发送事件到前端更新显示
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = move_hints(app_handle_clone, (dx, dy)).await {
-                    eprintln!("[键盘事件] move-hints失败: {}", e);
-                }
+                move_hints(app_handle_clone, (dx, dy));
             });
             return true;
         }
@@ -348,17 +302,11 @@ impl<'a> Executor<'a> {
             }
         }
         let mouse_step = self.config.mouse.get_scroll_step(&hold_keys);
-        println!(
-            "[键盘事件] 修饰键: {:?}, 滚动步长: {:?}",
-            hold_keys, mouse_step
-        );
         let (dx, dy) =
             calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = mouse::mouse_wheel_move(dx, dy).await {
-                    eprintln!("[键盘事件] mouse_wheel_move失败: {}", e);
-                }
+                mouse::mouse_wheel_move(dx, dy);
             });
             return true;
         }
@@ -391,17 +339,11 @@ impl<'a> Executor<'a> {
             tauri::async_runtime::spawn(async move {
                 if start_dragging {
                     if let Some((monitor_id, x, y)) = get_hint_position_by_text(&prefix_keys) {
-                        if let Err(e) = mouse::mouse_move(monitor_id, x, y).await {
-                            eprintln!("[键盘事件] mouse_move失败: {}", e);
-                        }
+                        mouse::mouse_move(monitor_id, x, y);
                     }
-                    if let Err(e) = mouse::mouse_drag_start().await {
-                        eprintln!("[键盘事件] mouse_drag_start失败: {}", e);
-                    }
+                    mouse::mouse_drag_start();
                 }
-                if let Err(e) = mouse::mouse_move_relative(dx, dy).await {
-                    eprintln!("[键盘事件] mouse_move_relative失败: {}", e);
-                }
+                mouse::mouse_move_relative(dx, dy);
             });
             return true;
         }

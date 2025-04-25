@@ -1,6 +1,7 @@
 use crate::config;
 use crate::hint::{filter_hints, hide_hints};
 use crate::input::{executor, mouse};
+use log::{error, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -42,14 +43,12 @@ pub static KEYBOARD_STATE: Lazy<Mutex<KeyboardState>> =
     Lazy::new(|| Mutex::new(KeyboardState::new()));
 
 pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>) {
-    println!("[键盘状态] 设置 keyboard_ctrl = {}", visible);
     if let Ok(mut state) = KEYBOARD_STATE.lock() {
         let old_visible = state.in_ctrl_session;
         state.in_ctrl_session = visible;
 
         // 如果状态发生变化
         if old_visible != visible {
-            println!("[键盘状态] 状态从 {} 变为 {}", old_visible, visible);
             if !visible {
                 // 重置状态
                 state.pressed_hint_keys = Some("".to_string());
@@ -57,13 +56,10 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
                 state.final_hint_key_hold = false;
                 state.final_hint_key_hold_start = 0;
                 state.is_dragging = false;
-                println!("[键盘状态] 重置键盘状态");
                 if let Some(app_handle) = app_handle {
                     let app_handle_clone = app_handle.clone();
                     tauri::async_runtime::spawn(async move {
-                        if let Err(e) = hide_hints(app_handle_clone).await {
-                            eprintln!("[键盘状态] hide_hints失败: {}", e);
-                        }
+                        hide_hints(app_handle_clone);
                     });
                 }
             }
@@ -84,9 +80,7 @@ fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandl
     let prefix = state.pressed_hint_keys.clone().unwrap();
     let app_handle_clone = app_handle.clone();
     tauri::async_runtime::spawn(async move {
-        if let Err(e) = filter_hints(app_handle_clone, prefix).await {
-            eprintln!("[键盘事件] filter-hints失败: {}", e);
-        }
+        filter_hints(app_handle_clone, prefix);
     });
 }
 
@@ -95,13 +89,9 @@ fn hide_hints_when_session_end(state: &mut KeyboardState, app_handle: &tauri::Ap
     let is_dragging = state.is_dragging;
     tauri::async_runtime::spawn(async move {
         if is_dragging {
-            if let Err(e) = mouse::mouse_drag_end().await {
-                eprintln!("[键盘事件] mouse_drag_end失败: {}", e);
-            }
+            mouse::mouse_drag_end();
         }
-        if let Err(e) = hide_hints(app_handle_clone).await {
-            eprintln!("[键盘事件] hide_hints失败: {}", e);
-        }
+        hide_hints(app_handle_clone);
     });
 }
 
@@ -113,14 +103,14 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
     if !state.in_ctrl_session {
         return false;
     }
-    println!(
-        "[键盘事件] 按键: {}, 状态: {}, is_holding:{}",
+    info!(
+        "[handle_keyboard_event] key: {}:{}, is_holding_at_hint:{}",
         key,
-        if is_down { "按下" } else { "释放" },
+        if is_down { "down" } else { "up" },
         state.final_hint_key_hold
     );
 
-    let configs = config::get_config().expect("配置未初始化");
+    let configs = config::get_config().unwrap();
     let keybindings = &configs.keybinding;
     let modifier_keys = config::keybinding::MODIFIERS.clone();
 
@@ -149,7 +139,6 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
         for modifier_key in propagation_modifier {
             if let Some(pressed) = state.hold_keys.get(modifier_key) {
                 if *pressed {
-                    println!("[键盘事件] 传播修饰键: {}", modifier_key);
                     // 如果传播修饰键是按住的状态，则不处理
                     return false;
                 }
@@ -218,8 +207,8 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
             let cmd_key = config::keybinding::GLOBAL_KEY_DOWN_KEYBINDINGS.clone();
             for (cmd, keys) in cmd_key {
                 if key_in_keys(current_key, &keys) {
-                    println!(
-                        "[keyboard] global_key_down cmd:{} triggered by key: {}",
+                    info!(
+                        "[handle_keyboard_event] global_key_down cmd:{} triggered by key: {}",
                         cmd, key
                     );
                     let mut executor = executor::Executor::new(app_handle, &configs, &mut state);
@@ -248,8 +237,8 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
             }
             for (cmd, keys) in cmd_key {
                 if key_in_keys(current_key, &keys) {
-                    println!(
-                        "[keyboard] at_hint cmd:{} triggered by key: {}",
+                    info!(
+                        "[handle_keyboard_event] at_hint cmd:{} triggered by key: {}",
                         cmd, current_key
                     );
                     let mut executor = executor::Executor::new(app_handle, &configs, &mut state);
@@ -272,8 +261,8 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
         let cmd_key = config::keybinding::GLOBAL_KEY_UP_KEYBINDINGS.clone();
         for (cmd, keys) in cmd_key {
             if key_in_keys(current_key, &keys) {
-                println!(
-                    "[keyboard] global_key_up cmd:{} triggered by key: {}",
+                info!(
+                    "[handle_keyboard_event] global_key_up cmd:{} triggered by key: {}",
                     cmd, current_key
                 );
                 let mut executor = executor::Executor::new(app_handle, &configs, &mut state);

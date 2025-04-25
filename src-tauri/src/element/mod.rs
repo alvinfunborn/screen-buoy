@@ -9,11 +9,8 @@ use std::time::Duration;
 
 pub fn setup_ui_collection(config: &config::Config) {
     let collect_interval = config.ui_automation.collect_interval;
-    std::thread::spawn(move || {
-        info!("[✓] UI元素收集线程已启动");
-        loop {
-            std::thread::sleep(Duration::from_millis(collect_interval));
-            collect_ui_elements();
-        }
+    std::thread::spawn(move || loop {
+        std::thread::sleep(Duration::from_millis(collect_interval));
+        collect_ui_elements();
     });
 }

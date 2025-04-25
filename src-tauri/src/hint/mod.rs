@@ -4,6 +4,8 @@ pub mod storage;
 
 use crate::hint::generator::HintsGenerator;
 use crate::input;
+use log::error;
+use log::info;
 use overlay::ensure_all_overlays_topmost;
 use serde_json::json;
 use std::collections::HashSet;
@@ -17,7 +19,7 @@ pub use generator::init_hint_text_list_storage;
 pub use overlay::create_overlay_windows;
 pub use overlay::OVERLAY_WINDOW_PREFIX;
 
-pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
+pub async fn show_hints(window: WebviewWindow) {
     // 清空之前的 hints 数据
     clear_hints();
 
@@ -33,15 +35,17 @@ pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
     let monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
-            overlay_window
-                .emit("show-hints", json!({
+            if let Err(e) = overlay_window.emit(
+                "show-hints",
+                json!({
                     "windowLabel": window_label,
                     "hints": hints
-                }))
-                .map_err(|e| e.to_string())?;
+                }),
+            ) {
+                error!("[show_hints] show-hints failed: {}", e);
+            }
         }
         // 保存 hints 到存储
-        println!("保存第一批 hints 到存储: {} 个", hints.len());
         save_hints(window_label.clone(), hints.clone()).await;
     }
     ensure_all_overlays_topmost();
@@ -49,51 +53,50 @@ pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
     let monitor_hints = hints_generator.generate_hints_batch2(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
-            overlay_window
-                .emit("show-hints2", json!({
+            if let Err(e) = overlay_window.emit(
+                "show-hints2",
+                json!({
                     "windowLabel": window_label,
                     "hints": hints
-                }))
-                .map_err(|e| e.to_string())?;
+                }),
+            ) {
+                error!("[show_hints] show-hints2 failed: {}", e);
+            }
         }
         // 保存 hints 到存储
-        println!("保存第二批 hints 到存储: {} 个", hints.len());
         save_hints(window_label.clone(), hints.clone()).await;
     }
     ensure_all_overlays_topmost();
-
-    Ok(())
 }
 
-pub async fn hide_hints(app_handle: tauri::AppHandle) -> Result<(), String> {
+pub async fn hide_hints(app_handle: tauri::AppHandle) {
     // 获取所有overlay窗口并发送hide-hints事件
     let window = app_handle.get_webview_window("main").unwrap();
-    window.emit("hide-hints", ()).map_err(|e| e.to_string())?;
+    if let Err(e) = window.emit("hide-hints", ()) {
+        error!("[hide_hints] hide-hints failed: {}", e);
+    }
 
     // 设置键盘状态为不可见
     input::keyboard::switch_keyboard_ctrl(false, Some(&app_handle));
     // 清空 hints 数据
     clear_hints();
-    Ok(())
 }
 
-pub async fn move_hints(
-    app_handle: tauri::AppHandle,
-    move_direction: (i32, i32),
-) -> Result<(), String> {
+pub async fn move_hints(app_handle: tauri::AppHandle, move_direction: (i32, i32)) {
     update_hints_offset(move_direction.0, move_direction.1);
     let window = app_handle.get_webview_window("main").unwrap();
     let json = json!({
         "x": move_direction.0,
         "y": move_direction.1
     });
-    window.emit("move-hints", json).map_err(|e| e.to_string())?;
-    Ok(())
+    if let Err(e) = window.emit("move-hints", json) {
+        error!("[move_hints] move-hints failed: {}", e);
+    }
 }
 
-pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) -> Result<(), String> {
+pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) {
     let window = app_handle.get_webview_window("main").unwrap();
-    window.emit("filter-hints", letters.clone()).map_err(|e| e.to_string())?;
-    Ok(())
+    if let Err(e) = window.emit("filter-hints", letters.clone()) {
+        error!("[filter_hints] filter-hints failed: {}", e);
+    }
 }
-

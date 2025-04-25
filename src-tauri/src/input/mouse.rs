@@ -1,4 +1,5 @@
 use crate::monitor::MONITORS_STORAGE;
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     mouse_event, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
@@ -11,7 +12,6 @@ fn move_to(monitor: usize, x: i32, y: i32) -> windows::core::Result<()> {
     // 获取显示器信息
     if let Ok(monitors) = MONITORS_STORAGE.lock() {
         if let Some(monitor_info) = monitors.get(monitor) {
-            println!("原始坐标: {}, {}", x, y);
             // 检查坐标是否在显示器范围内
             let mut x = x * monitor_info.scale_factor as i32;
             let mut y = y * monitor_info.scale_factor as i32;
@@ -30,19 +30,21 @@ fn move_to(monitor: usize, x: i32, y: i32) -> windows::core::Result<()> {
             let global_x = monitor_info.x + x;
             let global_y = monitor_info.y + y;
 
-            println!(
-                "移动鼠标到显示器 {}: 局部({}, {}) -> 全局({}, {})",
-                monitor, x, y, global_x, global_y
-            );
-
             unsafe { SetCursorPos(global_x, global_y) }
         } else {
-            println!("未找到显示器 {}", monitor);
+            error!("[move_to] monitor not found: {}", monitor);
             Err(windows::core::Error::from_win32())
         }
     } else {
-        println!("无法访问显示器信息");
+        error!("[move_to] failed to get MONITORS_STORAGE lock");
         Err(windows::core::Error::from_win32())
+    }
+}
+
+fn move_relative(delta_x: i32, delta_y: i32) -> windows::core::Result<()> {
+    unsafe {
+        mouse_event(MOUSEEVENTF_MOVE, delta_x, delta_y, 0, 0);
+        Ok(())
     }
 }
 
@@ -104,52 +106,61 @@ pub struct Point {
     y: i32,
 }
 
-pub async fn mouse_click_left() -> Result<(), String> {
-    click_left().map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_click_left() {
+    if let Err(e) = click_left() {
+        error!("[mouse_click_left] failed: {}", e);
+    }
 }
 
-pub async fn mouse_click_right() -> Result<(), String> {
-    click_right().map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_click_right() {
+    if let Err(e) = click_right() {
+        error!("[mouse_click_right] failed: {}", e);
+    }
 }
 
-pub async fn mouse_click_middle() -> Result<(), String> {
-    click_middle().map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_click_middle() {
+    if let Err(e) = click_middle() {
+        error!("[mouse_click_middle] failed: {}", e);
+    }
 }
 
-pub async fn mouse_double_click() -> Result<(), String> {
-    click_left().map_err(|e| e.to_string())?;
+pub async fn mouse_double_click() {
+    if let Err(e) = click_left() {
+        error!("[mouse_double_click] failed: {}", e);
+    }
     // 等待15毫秒，这是Windows默认双击间隔的一小部分
     tokio::time::sleep(tokio::time::Duration::from_millis(15)).await;
-    click_left().map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-pub async fn mouse_move(monitor: usize, x: i32, y: i32) -> Result<(), String> {
-    move_to(monitor, x, y).map_err(|e| e.to_string())?;
-    Ok(())
-}
-
-pub async fn mouse_move_relative(delta_x: i32, delta_y: i32) -> Result<(), String> {
-    unsafe {
-        mouse_event(MOUSEEVENTF_MOVE, delta_x, delta_y, 0, 0);
+    if let Err(e) = click_left() {
+        error!("[mouse_double_click] failed: {}", e);
     }
-    Ok(())
 }
 
-pub async fn mouse_drag_start() -> Result<(), String> {
-    start_drag().map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_move(monitor: usize, x: i32, y: i32) {
+    if let Err(e) = move_to(monitor, x, y) {
+        error!("[mouse_move] failed: {}", e);
+    }
 }
 
-pub async fn mouse_drag_end() -> Result<(), String> {
-    end_drag().map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_move_relative(delta_x: i32, delta_y: i32) {
+    if let Err(e) = move_relative(delta_x, delta_y) {
+        error!("[mouse_move_relative] failed: {}", e);
+    }
 }
 
-pub async fn mouse_wheel_move(delta_x: i32, delta_y: i32) -> Result<(), String> {
-    wheel_move(delta_x, delta_y).map_err(|e| e.to_string())?;
-    Ok(())
+pub async fn mouse_drag_start() {
+    if let Err(e) = start_drag() {
+        error!("[mouse_drag_start] failed: {}", e);
+    }
+}
+
+pub async fn mouse_drag_end() {
+    if let Err(e) = end_drag() {
+        error!("[mouse_drag_end] failed: {}", e);
+    }
+}
+
+pub async fn mouse_wheel_move(delta_x: i32, delta_y: i32) {
+    if let Err(e) = wheel_move(delta_x, delta_y) {
+        error!("[mouse_wheel_move] failed: {}", e);
+    }
 }

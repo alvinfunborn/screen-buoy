@@ -22,14 +22,16 @@ windows ui控件类型https://learn.microsoft.com/zh-cn/windows/win32/winauto/ui
 1. 元素缓存
 1. 文本分隔/图像识别: 一个页面元素根据文本拆分成多个
 1. [x] 窗口hint生成顺序: 窗口z序并不能反映多显示器下的窗口顺序, 需要计算窗口被遮挡数量来决定hint的顺序
-1. [x] 多向按键, 两个按键按下时前一个按键不会再上报键盘按下事件
+1. [ ] 多向按键, 两个按键按下时前一个按键不会再上报键盘按下事件
 1. [x] 双击键不放开可以修饰拖拽
 1. [x] 实现退格键
-1. leftmap和rightmap也配置化
+1. [x] leftmap和rightmap也配置化
 1. [x] 前端配置化
 1. [x] 开机启动
 1. [x] 只能启动一个实例
 1. [x] 双击托盘图标打开设置
+1. [ ] ctrl-type-id 配置化
+1. [ ] 可以按照window-label过滤event? 那直接修改listen和emit的topic即可
 
 ### 步骤二, 实现按键交互
 1. 所有hint都是大写字母, 首先有一份数据记录A-Z每个按键的右侧按键是什么, 比如a的右侧是s, b的右侧是n

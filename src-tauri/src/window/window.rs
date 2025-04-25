@@ -1,10 +1,10 @@
 use crate::utils::Rect;
 use indexmap::IndexMap;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::ptr;
-use std::time::Instant;
 use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, LPARAM, RECT};
 use windows::Win32::UI::Input::KeyboardAndMouse::IsWindowEnabled;
@@ -45,12 +45,12 @@ impl Eq for WindowElement {}
 pub fn get_all_windows() -> Vec<WindowElement> {
     let mut windows = Vec::new();
     unsafe {
-        EnumWindows(
+        if let Err(e) = EnumWindows(
             Some(enum_window_proc),
             LPARAM(&mut windows as *mut _ as isize),
-        )
-        .map_err(|e| format!("枚举窗口失败: {:?}", e))
-        .unwrap();
+        ) {
+            error!("[get_all_windows] enumerate windows failed: {:?}", e);
+        }
     }
     windows
 }
@@ -100,10 +100,6 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
         // 检查窗口是否有效
         let has_valid_size = (rect.right - rect.left) > 0 && (rect.bottom - rect.top) > 0;
 
-        // 打印调试信息
-        // println!("窗口 - 标题:{}, 类名:{}, 有效:{}, 最小化:{}, 工具窗口:{}, 透明:{}, 系统窗口:{}, 有效尺寸:{}",
-        //     title, class_name, is_enabled, is_iconic, is_tool_window, is_transparent, is_system_window, has_valid_size);
-
         // 如果窗口符合所有条件，则添加到列表中
         // 对任务栏窗口特殊处理，即使没有标题也允许
         if is_taskbar
@@ -147,7 +143,6 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
 }
 
 pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
-    let start = Instant::now();
     let mut windows = get_all_windows();
 
     // 按Z序从高到低排序窗口（z_index越大越靠近顶层）
@@ -233,19 +228,20 @@ pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElem
         }
     }
 
-    // println!(
-    //     "未被遮挡的窗口: {:?}",
-    //     uncovered_windows
-    //         .iter()
-    //         .map(|w| w.title.clone())
-    //         .collect::<Vec<String>>()
-    // );
-    // for (window, areas) in covered_areas.iter() {
-    //     println!("窗口:{}，遮挡区域数量:{}", window.title, areas.len());
-    //     for area in areas {
-    //         println!("窗口:{}，遮挡区域:{:?}", window.title, area);
-    //     }
-    // }
-    // println!("calculate_covered_areas 耗时: {:?}", start.elapsed());
+    debug!(
+        "[calculate_covered_areas] uncovered windows: {:?}",
+        uncovered_windows
+            .iter()
+            .map(|w| w.title.clone())
+            .collect::<Vec<String>>()
+    );
+    for (window, areas) in covered_areas.iter() {
+        for area in areas {
+            debug!(
+                "[calculate_covered_areas] window:{} covered by area:{:?}",
+                window.title, area
+            );
+        }
+    }
     (uncovered_windows, covered_areas)
 }

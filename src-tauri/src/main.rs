@@ -7,6 +7,7 @@ use screen_buoy::hint::create_overlay_windows;
 use screen_buoy::input;
 use screen_buoy::monitor::monitor;
 use screen_buoy::set_auto_start;
+use screen_buoy::setup_panic_handler;
 use screen_buoy::setup_shortcut;
 use screen_buoy::setup_tray;
 use tauri::Manager;
@@ -24,15 +25,15 @@ fn main() {
     }
 
     // Initialize config first
-    config::init_config().expect("Failed to initialize config");
-    let config = config::get_config().expect("Failed to get config");
+    config::init_config();
+    let config = config::get_config().unwrap();
     let config_for_manage = config.clone();
 
     let mut builder = screen_buoy::create_app_builder();
     // Setup application
     builder = builder.setup(move |app| {
-        info!("=== 应用程序启动 ===");
-        info!("调试模式: {}", cfg!(debug_assertions));
+        info!("=== application started ===");
+        info!("debug mode: {}", cfg!(debug_assertions));
 
         let app_handle = app.handle();
 
@@ -45,42 +46,46 @@ fn main() {
         // Handle window visibility
         if config.system.start_in_tray {
             if let Err(e) = main_window.hide() {
-                error!("[✗] 启动时隐藏窗口失败: {}", e);
+                error!("[✗] hide main window failed: {}", e);
             }
-            info!("[✓] 已最小化到托盘 (如果 show_tray_icon 为 true)");
+            info!("[✓] minimized to tray (if show_tray_icon is true)");
         } else {
             if let Err(e) = main_window.show() {
-                error!("[✗] 启动时显示窗口失败: {}", e);
+                error!("[✗] show main window failed: {}", e);
             }
         }
+
+        // Initialize panic handler
+        setup_panic_handler(app_handle.clone());
 
         // Initialize input hook
         input::hook::init(app_handle.clone());
 
         // Initialize hints
         hint::init_hint_text_list_storage();
-        info!("[✓] hints初始化成功");
+        info!("[✓] hints initialized successfully");
 
         monitor::init_monitors(&main_window);
-        info!("[✓] 显示器信息初始化成功");
+        info!("[✓] monitors initialized successfully");
 
         // Setup UI collection
         element::setup_ui_collection(&config);
-        info!("[✓] UI元素收集线程已启动");
+        info!("[✓] UI elements collection thread started");
 
         // Create overlay windows
-        match create_overlay_windows(&app_handle) {
-            Ok(_) => info!("[✓] 遮罩层窗口创建成功"),
-            Err(e) => error!("[✗] 创建overlay窗口失败: {}", e),
-        }
+        create_overlay_windows(&app_handle);
+        info!("[✓] overlay windows created successfully");
 
         // Setup shortcuts
         setup_shortcut(&app_handle, &config, main_window.clone())
             .expect("Failed to setup shortcuts");
+        info!("[✓] shortcuts setup successfully");
+
         // set autostart
         set_auto_start(&app_handle, &config).expect("Failed to setup auto start");
+        info!("[✓] auto start setup successfully");
 
-        info!("=== 应用程序初始化完成 ===");
+        info!("=== application initialized successfully ===");
         Ok(())
     });
 
@@ -93,13 +98,13 @@ fn main() {
 
     app.run(|_app_handle, event| {
         if let tauri::RunEvent::Exit = event {
-            info!("应用程序正在退出，清理资源...");
+            info!("application is exiting, cleaning up resources...");
             input::hook::cleanup();
-            info!("[✓] 键盘钩子已清理");
+            info!("[✓] keyboard hook cleaned up");
 
             unsafe {
                 CoUninitialize();
-                info!("[✓] COM 已卸载");
+                info!("[✓] COM uninitialized");
             }
         }
     });

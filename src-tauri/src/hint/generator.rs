@@ -6,6 +6,7 @@ use crate::{
     window::{window::calculate_covered_areas, WindowElement},
 };
 use indexmap::IndexMap;
+use log::{debug, info};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -27,7 +28,7 @@ pub struct Hint {
 static HINT_TEXT_LIST_STORAGE: Lazy<Mutex<Vec<String>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
 pub fn init_hint_text_list_storage() {
-    let configs = config::get_config().expect("配置未初始化");
+    let configs = config::get_config().unwrap();
     let hint_config = &configs.hint;
     let mut list = Vec::new();
     generate_n_digit_hints(&hint_config.charsets, String::new(), 0, &mut list);
@@ -136,10 +137,6 @@ impl HintsGenerator {
     ) {
         for hint in ui_elements {
             if !position_set.insert((hint.x, hint.y)) {
-                println!(
-                    "window:{}, hint:{}:({},{}) 已存在，跳过",
-                    window_element.title, hint.text, hint.x, hint.y
-                );
                 continue;
             }
             // 找到hint所在的显示器
@@ -156,10 +153,10 @@ impl HintsGenerator {
                 for area in covered_areas {
                     if area.contains_point(hint.x, hint.y) {
                         is_covered = true;
-                        // println!(
-                        //     "window:{}, hint:{}:({},{}) 在遮挡区域:{:?}内，跳过",
-                        //     window_element.title, hint.text, hint.x, hint.y, area
-                        // );
+                        debug!(
+                            "[generator] skip window:{}, hint:{}:({},{}) was covered by {:?}",
+                            window_element.title, hint.text, hint.x, hint.y, area
+                        );
                         break;
                     }
                 }
@@ -179,8 +176,8 @@ impl HintsGenerator {
                     let hint_letter =
                         HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
                     let hint_type = hint.element_type;
-                    // println!("window:{}, NO.{}hint:{},type:{},ctrl_type:{},pos:({},{}):{} 在显示器{}内，添加到hints",
-                    //     window_element.title, *hints_count, hint_letter, hint_type, hint.control_type, hint.x, hint.y, hint.text, monitor.id);
+                    debug!("[generator] add window:{}, NO.{}hint:{},type:{},ctrl_type:{},pos:({},{}):{} to monitor:{}",
+                        window_element.title, *hints_count, hint_letter, hint_type, hint.control_type, hint.x, hint.y, hint.text, monitor.id);
                     let hint = Hint {
                         text: hint_letter,
                         x: hint.x,

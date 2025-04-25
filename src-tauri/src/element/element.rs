@@ -1,4 +1,5 @@
 use crate::{config, window::WindowElement};
+use log::{error, info};
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -33,7 +34,7 @@ fn init_ui_automation() -> (IUIAutomation, IUIAutomationCondition) {
         {
             Ok(automation) => automation,
             Err(e) => {
-                panic!("创建UI Automation失败: {:?}", e);
+                panic!("[init_ui_automation] create UI Automation failed: {:?}", e);
             }
         }
     };
@@ -41,7 +42,7 @@ fn init_ui_automation() -> (IUIAutomation, IUIAutomationCondition) {
         match automation.CreateTrueCondition() {
             Ok(condition) => condition,
             Err(e) => {
-                panic!("创建条件失败: {:?}", e);
+                panic!("[init_ui_automation] create condition failed: {:?}", e);
             }
         }
     };
@@ -88,30 +89,41 @@ pub fn collect_ui_elements_for_window(
     condition: &IUIAutomationCondition,
     window: &WindowElement,
 ) -> Vec<UIElement> {
-    let start = Instant::now();
     let mut position_map: HashMap<(i32, i32), UIElement> = HashMap::new();
     let hwnd = HWND(window.window_handle as *mut _);
 
     unsafe {
         let root_element = match automation.ElementFromHandle(hwnd) {
             Ok(element) => element,
-            Err(_) => return Vec::new(),
+            Err(_) => {
+                error!("[collect_ui_elements_for_window] element from handle failed");
+                return Vec::new();
+            }
         };
 
         let all_elements = match root_element.FindAll(TreeScope_Subtree, condition) {
             Ok(elements) => elements,
-            Err(_) => return Vec::new(),
+            Err(_) => {
+                error!("[collect_ui_elements_for_window] find all elements failed");
+                return Vec::new();
+            }
         };
 
         let count = match all_elements.Length() {
             Ok(len) => len,
-            Err(_) => return Vec::new(),
+            Err(_) => {
+                error!("[collect_ui_elements_for_window] get all elements length failed");
+                return Vec::new();
+            }
         };
 
         for i in 0..count {
             let element = match all_elements.GetElement(i) {
                 Ok(e) => e,
-                Err(_) => continue,
+                Err(_) => {
+                    error!("[collect_ui_elements_for_window] get element failed");
+                    continue;
+                }
             };
 
             // 获取基本属性
@@ -122,7 +134,10 @@ pub fn collect_ui_elements_for_window(
                 element.CurrentIsOffscreen(),
             ) {
                 (Ok(n), Ok(id), Ok(e), Ok(o)) => (n, id, e, o),
-                _ => continue,
+                _ => {
+                    error!("[collect_ui_elements_for_window] get basic properties failed");
+                    continue;
+                }
             };
 
             // 检查可见性和启用状态
@@ -234,12 +249,6 @@ pub fn collect_ui_elements_for_window(
             }
         }
     }
-    // println!(
-    //     "collect_ui_elements_for_window:{} 耗时: {:?}, 元素数量: {}",
-    //     window.title,
-    //     start.elapsed(),
-    //     position_map.len()
-    // );
     position_map.values().cloned().collect()
 }
 
