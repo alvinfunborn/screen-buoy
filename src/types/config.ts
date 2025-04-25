@@ -1,6 +1,7 @@
 export interface HintType {
   z_index: number;
   style: string;
+  element_control_types: number[];
 }
 
 export interface HintConfig {

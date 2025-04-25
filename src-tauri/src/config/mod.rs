@@ -6,10 +6,6 @@ pub mod system;
 pub mod ui_automation;
 
 pub use hint::{get_hint_styles, HintConfig};
-pub use hint::{
-    HINT_TYPE_BUTTON_NAME, HINT_TYPE_DEFAULT_NAME, HINT_TYPE_PANE_NAME, HINT_TYPE_SCROLLBAR_NAME,
-    HINT_TYPE_TAB_NAME, HINT_TYPE_TEXT_NAME, HINT_TYPE_WINDOW_NAME,
-};
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
 use log::{error, info};

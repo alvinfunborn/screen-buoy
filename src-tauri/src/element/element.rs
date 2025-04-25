@@ -50,40 +50,6 @@ fn init_ui_automation() -> (IUIAutomation, IUIAutomationCondition) {
     (automation, condition)
 }
 
-fn get_element_type_and_z_index(
-    is_window: bool,
-    is_region: bool,
-    is_click2focus: bool,
-    is_click2modify: bool,
-    is_click2hold: bool,
-) -> (usize, i32) {
-    let element_type = if is_window {
-        config::hint::HINT_TYPE_WINDOW_NAME
-    } else if is_region {
-        config::hint::HINT_TYPE_PANE_NAME
-    } else if is_click2focus {
-        config::hint::HINT_TYPE_TAB_NAME
-    } else if is_click2modify {
-        config::hint::HINT_TYPE_BUTTON_NAME
-    } else if is_click2hold {
-        config::hint::HINT_TYPE_SCROLLBAR_NAME
-    } else {
-        config::hint::HINT_TYPE_DEFAULT_NAME
-    };
-
-    let z_index = if let Some(config) = config::get_config() {
-        if let Some(hint_type) = config.hint.types.get(element_type) {
-            hint_type.z_index
-        } else {
-            0
-        }
-    } else {
-        0
-    };
-
-    (config::hint::get_hint_type_index(element_type), z_index)
-}
-
 pub fn collect_ui_elements_for_window(
     automation: &IUIAutomation,
     condition: &IUIAutomationCondition,
@@ -157,89 +123,29 @@ pub fn collect_ui_elements_for_window(
                 continue;
             }
 
-            let is_window = match control_type_id {
-                UIA_WindowControlTypeId => true,
-                _ => false,
+            // 获取元素类型和z_index
+            let (element_type, z_index) = match config::hint::HINT_CONTROL_TYPES_ID_Z_MAP.get(&control_type_id.0) {
+                Some((element_type, z_index)) => (element_type, z_index),
+                None => continue,
             };
-            let is_region = match control_type_id {
-                UIA_AppBarControlTypeId => true,
-                UIA_HeaderControlTypeId => true,
-                UIA_HeaderItemControlTypeId => true,
-                UIA_PaneControlTypeId => true,
-                UIA_StatusBarControlTypeId => true,
-                UIA_TabControlTypeId => true,
-                UIA_TitleBarControlTypeId => true,
-                _ => false,
-            };
-            let is_click2focus = match control_type_id {
-                UIA_TabItemControlTypeId => true,
-                _ => false,
-            };
-            let is_click2modify = match control_type_id {
-                UIA_ToolBarControlTypeId => true,
-                UIA_GroupControlTypeId => true,
-
-                UIA_ButtonControlTypeId => true,
-                UIA_CalendarControlTypeId => true,
-                UIA_CheckBoxControlTypeId => true,
-                UIA_ComboBoxControlTypeId => true,
-                UIA_CustomControlTypeId => true,
-                UIA_DataGridControlTypeId => true,
-                UIA_DataItemControlTypeId => true,
-                UIA_DocumentControlTypeId => true,
-                UIA_EditControlTypeId => true,
-                UIA_HyperlinkControlTypeId => true,
-                UIA_ImageControlTypeId => true,
-                UIA_ListControlTypeId => true,
-                UIA_ListItemControlTypeId => true,
-                UIA_MenuBarControlTypeId => true,
-                UIA_MenuControlTypeId => true,
-                UIA_MenuItemControlTypeId => true,
-                UIA_ProgressBarControlTypeId => true,
-                UIA_RadioButtonControlTypeId => true,
-                UIA_SemanticZoomControlTypeId => true,
-                UIA_SplitButtonControlTypeId => true,
-                UIA_TableControlTypeId => true,
-                UIA_TextControlTypeId => true,
-                UIA_ThumbControlTypeId => true,
-                UIA_ToolTipControlTypeId => true,
-                UIA_TreeControlTypeId => true,
-                UIA_TreeItemControlTypeId => true,
-                _ => false,
-            };
-            let is_click2hold = match control_type_id {
-                UIA_ScrollBarControlTypeId => true,
-                UIA_SeparatorControlTypeId => true,
-                UIA_SliderControlTypeId => true,
-                UIA_SpinnerControlTypeId => true,
-                _ => false,
-            };
-
-            let (element_type, z_index) = get_element_type_and_z_index(
-                is_window,
-                is_region,
-                is_click2focus,
-                is_click2modify,
-                is_click2hold,
-            );
 
             let ui_element = UIElement {
                 text: name.to_string(),
                 is_enabled: true,
                 x: (rect.right + rect.left) / 2,
                 y: (rect.bottom + rect.top) / 2,
-                z: z_index as i32,
+                z: *z_index,
                 width: rect.right - rect.left,
                 height: rect.bottom - rect.top,
                 window_handle: window.window_handle,
                 control_type: control_type_id.0,
-                element_type,
+                element_type: *element_type,
             };
 
             let position = (rect.left, rect.top);
             match position_map.get(&position) {
                 Some(old_element) => {
-                    if old_element.z < z_index as i32 {
+                    if old_element.z < *z_index as i32 {
                         position_map.insert(position, ui_element);
                     }
                 }

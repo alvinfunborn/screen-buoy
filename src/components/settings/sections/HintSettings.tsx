@@ -235,6 +235,18 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               style={{ width: '80px' }}
             />
           </Form.Item>
+          <Form.Item
+            layout='horizontal'
+            label="Element Control Types"
+            name={['hint', 'types', typeName, 'element_control_types']}
+            rules={[{ required: true, type: 'array', message: 'Please enter a element control types' }]}
+            style={{ width: '100%' }}
+          >
+            <Input
+              placeholder="Enter element control types"
+              style={{ width: '200px' }}
+            />
+          </Form.Item>
           {/* Add remove button if needed, requires more complex state management */}
           {/* <Button danger onClick={() => handleRemoveType(typeName)} icon={<MinusCircleOutlined />}>Remove {typeName}</Button> */}
         </Space>

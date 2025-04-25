@@ -13,30 +13,24 @@ pub struct HintConfig {
 pub struct HintType {
     pub style: String,
     pub z_index: i32,
+    pub element_control_types: Vec<i32>,
 }
-
-pub const HINT_TYPE_DEFAULT_NAME: &str = "default";
-pub const HINT_TYPE_TEXT_NAME: &str = "text";
-pub const HINT_TYPE_WINDOW_NAME: &str = "window";
-pub const HINT_TYPE_PANE_NAME: &str = "pane";
-pub const HINT_TYPE_TAB_NAME: &str = "tab";
-pub const HINT_TYPE_BUTTON_NAME: &str = "button";
-pub const HINT_TYPE_SCROLLBAR_NAME: &str = "scrollbar";
 
 pub static HAS_EXTRA_CHARSET: Lazy<bool> = Lazy::new(|| {
     let config = super::get_config().unwrap().hint;
     !config.charset_extra.is_empty()
 });
 
-pub fn get_hint_type_index(hint_type_name: &str) -> usize {
-    super::get_config()
-        .unwrap()
-        .hint
-        .types
-        .iter()
-        .position(|(name, _)| name == hint_type_name)
-        .unwrap()
-}
+pub static HINT_CONTROL_TYPES_ID_Z_MAP: Lazy<IndexMap<i32, (usize, i32)>> = Lazy::new(|| {
+    let config = super::get_config().unwrap().hint;
+    let mut map = IndexMap::new();
+    for (i, (_name, hint_type)) in config.types.iter().enumerate() {
+        for control_type in hint_type.element_control_types.iter() {
+            map.insert(*control_type, (i, hint_type.z_index));
+        }
+    }
+    map
+});
 
 #[tauri::command]
 pub async fn get_hint_styles(
