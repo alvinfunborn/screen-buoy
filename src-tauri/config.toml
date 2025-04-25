@@ -107,7 +107,7 @@ element_control_types = [
     50027,
     50022,
     50023,
-    50024
+    50024,
 ]
 
 [hint.types.default]
@@ -137,7 +137,7 @@ element_control_types = [
     50033,
     50017,
     50018,
-    50037
+    50037,
 ]
 
 [hint.types.scrollbar]
@@ -153,7 +153,7 @@ element_control_types = [
     50014,
     50038,
     50015,
-    50016
+    50016,
 ]
 
 [hint.types.tab]
@@ -165,9 +165,7 @@ style = """
 }
 """
 z_index = 2
-element_control_types = [
-    50019
-]
+element_control_types = [50019]
 
 [hint.types.text]
 style = "{background-color: rgba(66, 133, 244, 1); color: black; font-size: 11px;}"
@@ -183,9 +181,7 @@ style = """
 }
 """
 z_index = 5
-element_control_types = [
-    50032,
-]
+element_control_types = [50032]
 
 [keybinding]
 hotkey_buoy = "Alt+H"
