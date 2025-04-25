@@ -63,13 +63,13 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       }, {} as Record<number, string>);
       setRawCharsetInputs(initialRawCharsets);
     } else {
-        setRawCharsetInputs({});
+      setRawCharsetInputs({});
     }
 
     if (initialHintConfig?.charset_extra) {
       setRawExtraCharsetInput(Array.isArray(initialHintConfig.charset_extra) ? initialHintConfig.charset_extra.join(', ') : '');
     } else {
-        setRawExtraCharsetInput('');
+      setRawExtraCharsetInput('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]); // Rerun if form instance changes
@@ -90,18 +90,18 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     form.validateFields([fieldPath]); // Validate after setting
 
     if (onValuesChange) {
-        const currentHintTypes = form.getFieldValue(['hint', 'types']) || {};
-        const updatedHintType = { ...(currentHintTypes[typeName] || {}), style: valueToSet };
-        const updatedHintTypes = { ...currentHintTypes, [typeName]: updatedHintType };
-        const changedValues = { hint: { types: { [typeName]: { style: valueToSet } } } }; // More specific change
-        const allValues = form.getFieldsValue(true);
-        onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } });
+      const currentHintTypes = form.getFieldValue(['hint', 'types']) || {};
+      const updatedHintType = { ...(currentHintTypes[typeName] || {}), style: valueToSet };
+      const updatedHintTypes = { ...currentHintTypes, [typeName]: updatedHintType };
+      const changedValues = { hint: { types: { [typeName]: { style: valueToSet } } } }; // More specific change
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } });
     }
   };
 
   // Charsets List Handlers
   const handleRawCharsetChange = (fieldKey: number, value: string) => {
-      setRawCharsetInputs(prev => ({ ...prev, [fieldKey]: value }));
+    setRawCharsetInputs(prev => ({ ...prev, [fieldKey]: value }));
   };
 
   const handleRawCharsetBlur = (fieldKey: number, fieldName: number) => {
@@ -111,20 +111,20 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     form.setFieldValue(fieldPath, newArrayValue);
 
     if (onValuesChange) {
-        const currentCharsets = form.getFieldValue(['hint', 'charsets']) || [];
-        // Create a new array representing the state after the update
-        const updatedCharsets = [...currentCharsets];
-        if (fieldName >= updatedCharsets.length) {
-            updatedCharsets.length = fieldName + 1; // Ensure array is long enough
-        }
-        updatedCharsets[fieldName] = newArrayValue; // Place the new value
+      const currentCharsets = form.getFieldValue(['hint', 'charsets']) || [];
+      // Create a new array representing the state after the update
+      const updatedCharsets = [...currentCharsets];
+      if (fieldName >= updatedCharsets.length) {
+        updatedCharsets.length = fieldName + 1; // Ensure array is long enough
+      }
+      updatedCharsets[fieldName] = newArrayValue; // Place the new value
 
-        const changedValues = { hint: { charsets: updatedCharsets } }; // Reflect the whole array change potentially
-        const allValues = form.getFieldsValue(true);
-        // Ensure allValues reflects the change we just made
-        const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charsets: updatedCharsets } };
-        onValuesChange(changedValues, updatedAllValues);
-        form.validateFields([fieldPath]); // Use the path directly
+      const changedValues = { hint: { charsets: updatedCharsets } }; // Reflect the whole array change potentially
+      const allValues = form.getFieldsValue(true);
+      // Ensure allValues reflects the change we just made
+      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charsets: updatedCharsets } };
+      onValuesChange(changedValues, updatedAllValues);
+      form.validateFields([fieldPath]); // Use the path directly
     } else {
       form.validateFields([fieldPath]);
     }
@@ -132,7 +132,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
 
   // Extra Charset Handlers
   const handleRawExtraCharsetChange = (value: string) => {
-      setRawExtraCharsetInput(value);
+    setRawExtraCharsetInput(value);
   };
 
   const handleRawExtraCharsetBlur = () => {
@@ -142,12 +142,12 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     form.setFieldValue(fieldPath, newArrayValue);
 
     if (onValuesChange) {
-        const changedValues = { hint: { charset_extra: newArrayValue } };
-        const allValues = form.getFieldsValue(true);
-        // Ensure allValues reflects the change
-        const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charset_extra: newArrayValue } };
-        onValuesChange(changedValues, updatedAllValues);
-        form.validateFields([fieldPath]);
+      const changedValues = { hint: { charset_extra: newArrayValue } };
+      const allValues = form.getFieldsValue(true);
+      // Ensure allValues reflects the change
+      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charset_extra: newArrayValue } };
+      onValuesChange(changedValues, updatedAllValues);
+      form.validateFields([fieldPath]);
     } else {
       form.validateFields([fieldPath]);
     }
@@ -162,26 +162,26 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     const rawValue = rawElementControlTypesInputs[typeName] ?? '';
     // Convert comma-separated string to array of numbers, filtering out non-integers
     const newArrayValue = rawValue
-        .split(',')                   // Split by comma
-        .map(s => s.trim())           // Trim whitespace
-        .filter(s => s)               // Filter out empty strings
-        .map(s => parseInt(s, 10))   // Parse to integer (base 10)
-        .filter(num => !isNaN(num)); // Filter out NaN values (parsing failures)
+      .split(',')                   // Split by comma
+      .map(s => s.trim())           // Trim whitespace
+      .filter(s => s)               // Filter out empty strings
+      .map(s => parseInt(s, 10))   // Parse to integer (base 10)
+      .filter(num => !isNaN(num)); // Filter out NaN values (parsing failures)
 
     const fieldPath: NamePath = ['hint', 'types', typeName, 'element_control_types'];
     form.setFieldValue(fieldPath, newArrayValue); // Set the array of numbers
     form.validateFields([fieldPath]); // Validate after setting
 
     if (onValuesChange) {
-        const currentHintTypes = form.getFieldValue(['hint', 'types']) || {};
-        // Ensure the updatedHintType reflects the numeric array
-        const updatedHintType = { ...(currentHintTypes[typeName] || {}), element_control_types: newArrayValue };
-        const updatedHintTypes = { ...currentHintTypes, [typeName]: updatedHintType };
-        // Changed values might be more specific if needed, but sending the updated object is often fine
-        const changedValues = { hint: { types: { [typeName]: { element_control_types: newArrayValue } } } };
-        const allValues = form.getFieldsValue(true);
-        // Ensure allValues reflects the numeric array change
-        onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } });
+      const currentHintTypes = form.getFieldValue(['hint', 'types']) || {};
+      // Ensure the updatedHintType reflects the numeric array
+      const updatedHintType = { ...(currentHintTypes[typeName] || {}), element_control_types: newArrayValue };
+      const updatedHintTypes = { ...currentHintTypes, [typeName]: updatedHintType };
+      // Changed values might be more specific if needed, but sending the updated object is often fine
+      const changedValues = { hint: { types: { [typeName]: { element_control_types: newArrayValue } } } };
+      const allValues = form.getFieldsValue(true);
+      // Ensure allValues reflects the numeric array change
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } });
     }
   };
 
@@ -216,11 +216,11 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
 
     // 4. Trigger Change Callback
     if (onValuesChange) {
-        const changedValues = { hint: { types: { [newTypeName]: newHintType } } }; // Changed value is the new type added
-        const allValues = form.getFieldsValue(true); // Get potentially updated values
-        // Ensure allValues reflects the addition we just made
-        const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } };
-        onValuesChange(changedValues, updatedAllValues);
+      const changedValues = { hint: { types: { [newTypeName]: newHintType } } }; // Changed value is the new type added
+      const allValues = form.getFieldsValue(true); // Get potentially updated values
+      // Ensure allValues reflects the addition we just made
+      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } };
+      onValuesChange(changedValues, updatedAllValues);
     }
 
     // Optionally, scroll to the new element or focus its first field
@@ -236,24 +236,24 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     // 2. Update Local State Management
     setHintTypeNames(prev => prev.filter(name => name !== typeNameToRemove));
     setRawStyleInputs(prev => {
-        const newState = { ...prev };
-        delete newState[typeNameToRemove];
-        return newState;
+      const newState = { ...prev };
+      delete newState[typeNameToRemove];
+      return newState;
     });
     setRawElementControlTypesInputs(prev => {
-        const newState = { ...prev };
-        delete newState[typeNameToRemove];
-        return newState;
+      const newState = { ...prev };
+      delete newState[typeNameToRemove];
+      return newState;
     });
 
     // 3. Trigger Change Callback
     if (onValuesChange) {
-        // Indicate that the type was removed. Sending the whole updated object might be simplest.
-        const changedValues = { hint: { types: updatedHintTypes } }; // Reflect the state after removal
-        const allValues = form.getFieldsValue(true);
-         // Ensure allValues reflects the removal
-        const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } };
-        onValuesChange(changedValues, updatedAllValues);
+      // Indicate that the type was removed. Sending the whole updated object might be simplest.
+      const changedValues = { hint: { types: updatedHintTypes } }; // Reflect the state after removal
+      const allValues = form.getFieldsValue(true);
+      // Ensure allValues reflects the removal
+      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } };
+      onValuesChange(changedValues, updatedAllValues);
     }
     // Note: We don't need to validate fields of removed items.
   };
@@ -271,7 +271,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 // Use field.key for managing raw input state map
                 const fieldKey = field.key;
                 return (
-                  <Space key={fieldKey} align="baseline" style={{ width: '100%'}}>
+                  <Space key={fieldKey} align="baseline" style={{ width: '100%' }}>
                     <Form.Item
                       {...restField}
                       name={name} // Use field.name for AntD Form binding
@@ -321,77 +321,77 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
       <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (
-            <Collapse.Panel
-              key={typeName}
-              header={`Type: ${typeName}`}
-              extra={ // Move remove button to panel extra
-                <Button
-                  danger
-                  size="small"
-                  onClick={(e) => { e.stopPropagation(); handleRemoveType(typeName); }} // Prevent collapse toggle on button click
-                  icon={<MinusCircleOutlined />}
-                  aria-label={`Remove ${typeName}`}
-                >
-                  Remove
-                </Button>}
-            >
-              {/* The existing Space containing Form Items */}
-              <Space key={typeName} direction="vertical" style={{ width: '100%' }}>
-                {/* Removed the div wrapper for header/button */}
-                <Form.Item
-                  label="Style CSS"
-                  name={['hint', 'types', typeName, 'style']} // Bind directly to form state path
-                  rules={[{ required: false }]} // Optional style
-                  style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
-                >
-                  <Input.TextArea
-                    rows={6}
-                    placeholder={`Enter the style css for ${typeName}`}
-                    value={rawStyleInputs[typeName] ?? ''}
-                    onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
-                    onBlur={() => handleRawStyleBlur(typeName)}
-                    style={{ width: '100%', maxWidth: '400px' }} // Adjust width as needed
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Z-Index"
-                  name={['hint', 'types', typeName, 'z_index']}
-                  rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
-                  style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
-                >
-                  <InputNumber
-                    placeholder="Enter Z-Index"
-                    style={{ width: '100px' }}
-                  />
-                </Form.Item>
-                <Form.Item
-                  label="Element Control Types"
-                  // Temporarily remove the name prop to prevent potential implicit onChange triggers
-                  // name={['hint', 'types', typeName, 'element_control_types']}
-                  // Rules might not work correctly without the name prop, relying on manual update/validation
-                  // Rules removed in user edit
-                  style={{ width: '100%', marginBottom: '0px' }} // Adjust spacing (last item)
-                >
-                  <Input
-                    placeholder="Enter types, comma-separated"
-                    value={rawElementControlTypesInputs[typeName] ?? ''}
-                    onChange={(e) => handleRawElementControlTypeChange(typeName, e.target.value)}
-                    onBlur={() => handleRawElementControlTypeBlur(typeName)}
-                    style={{ width: '100%', maxWidth: '300px' }} // Adjust width
-                  />
-                </Form.Item>
-              </Space>
-            </Collapse.Panel>
+          <Collapse.Panel
+            key={typeName}
+            header={`Type: ${typeName}`}
+            extra={ // Move remove button to panel extra
+              <Button
+                danger
+                size="small"
+                onClick={(e) => { e.stopPropagation(); handleRemoveType(typeName); }} // Prevent collapse toggle on button click
+                icon={<MinusCircleOutlined />}
+                aria-label={`Remove ${typeName}`}
+              >
+                Remove
+              </Button>}
+          >
+            {/* The existing Space containing Form Items */}
+            <Space key={typeName} direction="vertical" style={{ width: '100%' }}>
+              {/* Removed the div wrapper for header/button */}
+              <Form.Item
+                label="Style CSS"
+                name={['hint', 'types', typeName, 'style']} // Bind directly to form state path
+                rules={[{ required: false }]} // Optional style
+                style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
+              >
+                <Input.TextArea
+                  rows={6}
+                  placeholder={`Enter the style css for ${typeName}`}
+                  value={rawStyleInputs[typeName] ?? ''}
+                  onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
+                  onBlur={() => handleRawStyleBlur(typeName)}
+                  style={{ width: '100%', maxWidth: '400px' }} // Adjust width as needed
+                />
+              </Form.Item>
+              <Form.Item
+                label="Z-Index"
+                name={['hint', 'types', typeName, 'z_index']}
+                rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
+                style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
+              >
+                <InputNumber
+                  placeholder="Enter Z-Index"
+                  style={{ width: '100px' }}
+                />
+              </Form.Item>
+              <Form.Item
+                label="Element Control Types"
+                // Temporarily remove the name prop to prevent potential implicit onChange triggers
+                // name={['hint', 'types', typeName, 'element_control_types']}
+                // Rules might not work correctly without the name prop, relying on manual update/validation
+                // Rules removed in user edit
+                style={{ width: '100%', marginBottom: '0px' }} // Adjust spacing (last item)
+              >
+                <Input
+                  placeholder="Enter types, comma-separated"
+                  value={rawElementControlTypesInputs[typeName] ?? ''}
+                  onChange={(e) => handleRawElementControlTypeChange(typeName, e.target.value)}
+                  onBlur={() => handleRawElementControlTypeBlur(typeName)}
+                  style={{ width: '100%', maxWidth: '300px' }} // Adjust width
+                />
+              </Form.Item>
+            </Space>
+          </Collapse.Panel>
         ))}
       </Collapse>
 
       {/* Add New Hint Type Section */}
       <Space style={{ marginBottom: '32px' }}>
         <Input
-            placeholder="Enter new hint type name"
-            value={newTypeNameInput}
-            onChange={(e) => setNewTypeNameInput(e.target.value)}
-            style={{ width: '200px' }}
+          placeholder="Enter new hint type name"
+          value={newTypeNameInput}
+          onChange={(e) => setNewTypeNameInput(e.target.value)}
+          style={{ width: '200px' }}
         />
         <Button type="dashed" onClick={handleAddType} icon={<PlusOutlined />}>
           Add Hint Type

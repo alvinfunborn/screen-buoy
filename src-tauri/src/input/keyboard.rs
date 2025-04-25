@@ -207,7 +207,10 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
             let cmd_key = config::keybinding::GLOBAL_KEY_DOWN_KEYBINDINGS.clone();
             for (cmd, keys) in cmd_key {
                 if key_in_keys(current_key, &keys) {
-                    info!("[handle_keyboard_event] global_key_down cmd:{} triggered by key: {}", cmd, key);
+                    info!(
+                        "[handle_keyboard_event] global_key_down cmd:{} triggered by key: {}",
+                        cmd, key
+                    );
                     let mut executor = executor::Executor::new(app_handle, &configs, &mut state);
                     no_propagation = executor.execute(Some(cmd));
                 }

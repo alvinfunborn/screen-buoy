@@ -44,7 +44,7 @@ const recordToLeftRightMapList = (record: Record<string, LeftRightConfig>): Left
 const availableKeyListToRecord = (list: AvailableKeyItem[]): Record<string, number> => {
   return list.reduce((acc, { keyName, virtualKey }) => {
     if (keyName) { // Ensure keyName is not empty
-        acc[keyName] = virtualKey;
+      acc[keyName] = virtualKey;
     }
     return acc;
   }, {} as Record<string, number>);
@@ -52,9 +52,9 @@ const availableKeyListToRecord = (list: AvailableKeyItem[]): Record<string, numb
 
 const leftRightMapListToRecord = (list: LeftRightMapItem[]): Record<string, LeftRightConfig> => {
   return list.reduce((acc, { keyName, left, right }) => {
-     if (keyName) { // Ensure keyName is not empty
-        acc[keyName] = { left: left || null, right: right || null };
-     }
+    if (keyName) { // Ensure keyName is not empty
+      acc[keyName] = { left: left || null, right: right || null };
+    }
     return acc;
   }, {} as Record<string, LeftRightConfig>);
 };
@@ -71,8 +71,8 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
   useEffect(() => {
     const initialKeyboardConfig = form.getFieldValue('keyboard') as KeyboardConfig;
     if (initialKeyboardConfig && initialKeyboardConfig.available_key && initialKeyboardConfig.map_left_right) {
-        setAvailableKeyList(recordToAvailableKeyList(initialKeyboardConfig.available_key));
-        setLeftRightMapList(recordToLeftRightMapList(initialKeyboardConfig.map_left_right));
+      setAvailableKeyList(recordToAvailableKeyList(initialKeyboardConfig.available_key));
+      setLeftRightMapList(recordToLeftRightMapList(initialKeyboardConfig.map_left_right));
     }
     // Intentionally not depending on the lists themselves to avoid loops on initial set
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -85,31 +85,31 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
     let changedFieldName: 'available_key' | 'map_left_right' | null = null;
 
     if (newAvailableKeys) {
-        updatedKeyboardConfig.available_key = availableKeyListToRecord(newAvailableKeys);
-        changedFieldName = 'available_key';
+      updatedKeyboardConfig.available_key = availableKeyListToRecord(newAvailableKeys);
+      changedFieldName = 'available_key';
     }
     if (newLeftRightMap) {
-        updatedKeyboardConfig.map_left_right = leftRightMapListToRecord(newLeftRightMap);
-         changedFieldName = 'map_left_right';
+      updatedKeyboardConfig.map_left_right = leftRightMapListToRecord(newLeftRightMap);
+      changedFieldName = 'map_left_right';
     }
 
     const newKeyboardValue = {
-        ...currentKeyboardConfig,
-        ...updatedKeyboardConfig
+      ...currentKeyboardConfig,
+      ...updatedKeyboardConfig
     };
 
     form.setFieldsValue({
-        keyboard: newKeyboardValue
+      keyboard: newKeyboardValue
     });
 
     // Manually trigger the parent's onValuesChange after setting the value
     if (onValuesChange && changedFieldName) {
-        // Construct the arguments for onValuesChange
-        // changedValues should reflect what specifically changed
-        const changedValues = { keyboard: { [changedFieldName]: updatedKeyboardConfig[changedFieldName] } };
-        // allValues should be the complete, updated form state
-        const allValues = form.getFieldsValue(true);
-        onValuesChange(changedValues, allValues);
+      // Construct the arguments for onValuesChange
+      // changedValues should reflect what specifically changed
+      const changedValues = { keyboard: { [changedFieldName]: updatedKeyboardConfig[changedFieldName] } };
+      // allValues should be the complete, updated form state
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, allValues);
     }
   };
 
@@ -144,7 +144,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
   };
 
   // --- Handlers for Left Right Map ---
-   const handleLeftRightKeyNameChange = (id: number, newKeyName: string) => {
+  const handleLeftRightKeyNameChange = (id: number, newKeyName: string) => {
     const newList = leftRightMapList.map(item =>
       item.id === id ? { ...item, keyName: newKeyName.trim() } : item
     );
@@ -168,7 +168,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
     updateFormState(undefined, newList);
   };
 
-   const handleAddLeftRightMap = () => {
+  const handleAddLeftRightMap = () => {
     const newId = leftRightMapList.length ? Math.max(...leftRightMapList.map(i => i.id)) + 1 : 0;
     const newList = [...leftRightMapList, { id: newId, keyName: `NewMap${newId}`, left: null, right: null }];
     setLeftRightMapList(newList);
@@ -184,8 +184,8 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
 
   // Options for Propagation Modifier Select (needs available keys from local state now)
   const keyOptionsForSelect = availableKeyList.map(item => ({
-      label: item.keyName,
-      value: item.keyName
+    label: item.keyName,
+    value: item.keyName
   }));
 
   return (
@@ -257,35 +257,35 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
 
       <Collapse>
         <Panel header="Left Right Mapping" className="config-section-title" key="left_right_mapping">
-           {/* Render list manually based on local state */}
+          {/* Render list manually based on local state */}
           <List
             bordered
             dataSource={leftRightMapList}
-             rowKey="id"
+            rowKey="id"
             renderItem={(item) => (
               <List.Item key={item.id}>
                 <Space align="center">
-                   <Input
-                      addonBefore="Key"
-                      value={item.keyName}
-                      onChange={(e) => handleLeftRightKeyNameChange(item.id, e.target.value)}
-                      style={{ width: '130px' }}
-                      placeholder="Key Name"
-                    />
-                   <Input
-                      addonBefore="Left"
-                      value={item.left ?? ''}
-                      onChange={(e) => handleLeftRightLeftChange(item.id, e.target.value)}
-                       style={{ width: '130px' }}
-                      placeholder="(null)"
-                    />
-                    <Input
-                      addonBefore="Right"
-                      value={item.right ?? ''}
-                      onChange={(e) => handleLeftRightRightChange(item.id, e.target.value)}
-                      style={{ width: '130px' }}
-                      placeholder="(null)"
-                    />
+                  <Input
+                    addonBefore="Key"
+                    value={item.keyName}
+                    onChange={(e) => handleLeftRightKeyNameChange(item.id, e.target.value)}
+                    style={{ width: '130px' }}
+                    placeholder="Key Name"
+                  />
+                  <Input
+                    addonBefore="Left"
+                    value={item.left ?? ''}
+                    onChange={(e) => handleLeftRightLeftChange(item.id, e.target.value)}
+                    style={{ width: '130px' }}
+                    placeholder="(null)"
+                  />
+                  <Input
+                    addonBefore="Right"
+                    value={item.right ?? ''}
+                    onChange={(e) => handleLeftRightRightChange(item.id, e.target.value)}
+                    style={{ width: '130px' }}
+                    placeholder="(null)"
+                  />
                   <Button
                     danger
                     icon={<MinusCircleOutlined />}

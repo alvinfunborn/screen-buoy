@@ -124,10 +124,11 @@ pub fn collect_ui_elements_for_window(
             }
 
             // 获取元素类型和z_index
-            let (element_type, z_index) = match config::hint::HINT_CONTROL_TYPES_ID_Z_MAP.get(&control_type_id.0) {
-                Some((element_type, z_index)) => (element_type, z_index),
-                None => continue,
-            };
+            let (element_type, z_index) =
+                match config::hint::HINT_CONTROL_TYPES_ID_Z_MAP.get(&control_type_id.0) {
+                    Some((element_type, z_index)) => (element_type, z_index),
+                    None => continue,
+                };
 
             let ui_element = UIElement {
                 text: name.to_string(),

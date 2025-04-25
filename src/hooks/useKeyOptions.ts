@@ -18,11 +18,11 @@ export const useKeyOptions = (availableKeysData: Record<string, number> | undefi
         })) : [];
 
     return [
-        ...options,
-        { label: "HintKey", value: "HintKey" },
-        { label: "HintRightKey", value: "HintRightKey" },
-        { label: "HintLeftKey", value: "HintLeftKey" }
-        ];
+      ...options,
+      { label: "HintKey", value: "HintKey" },
+      { label: "HintRightKey", value: "HintRightKey" },
+      { label: "HintLeftKey", value: "HintLeftKey" }
+    ];
 
   }, [availableKeysData]); // Depend on the prop
 }; 

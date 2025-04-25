@@ -24,7 +24,7 @@ function App() {
         duration: 0,
       });
     });
-  
+
     return () => {
       window.removeEventListener('error', handleError);
       unlistenPanic.then(unlisten => unlisten());

@@ -40,7 +40,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
       scroll: [],
       drag: []
     };
-    
+
     // 确保所有必需的字段都存在
     const newStepConfig = {
       translate: currentStepConfig.translate || [],
@@ -57,21 +57,21 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     form.setFieldsValue({ mouse: newMouseValue });
 
     if (onValuesChange) {
-        // Find which step type actually changed for more precise changedValues
-        let changedKey: 'translate' | 'scroll' | 'drag' | null = null;
-        if (updatedSteps.translate) changedKey = 'translate';
-        else if (updatedSteps.scroll) changedKey = 'scroll';
-        else if (updatedSteps.drag) changedKey = 'drag';
+      // Find which step type actually changed for more precise changedValues
+      let changedKey: 'translate' | 'scroll' | 'drag' | null = null;
+      if (updatedSteps.translate) changedKey = 'translate';
+      else if (updatedSteps.scroll) changedKey = 'scroll';
+      else if (updatedSteps.drag) changedKey = 'drag';
 
-        if(changedKey) {
-            const changedValues = { mouse: { step: { [changedKey]: newStepConfig[changedKey] } } };
-            const allValues = form.getFieldsValue(true);
-            onValuesChange(changedValues, allValues);
-        } else { 
-            // Fallback if somehow no key is identified (should not happen in current logic)
-             const allValues = form.getFieldsValue(true);
-             onValuesChange({ mouse: newMouseValue }, allValues);
-        }
+      if (changedKey) {
+        const changedValues = { mouse: { step: { [changedKey]: newStepConfig[changedKey] } } };
+        const allValues = form.getFieldsValue(true);
+        onValuesChange(changedValues, allValues);
+      } else {
+        // Fallback if somehow no key is identified (should not happen in current logic)
+        const allValues = form.getFieldsValue(true);
+        onValuesChange({ mouse: newMouseValue }, allValues);
+      }
     }
   };
 
@@ -98,14 +98,14 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     if (!newSteps[index]) {
       newSteps[index] = { x: 0, y: 0, modifier: [] }; // Default structure if somehow missing
     }
-    
+
     // 确保 modifier 字段存在
     if (field === 'modifier' && value === undefined) {
       value = [];
     }
-    
-    newSteps[index] = { 
-      ...newSteps[index], 
+
+    newSteps[index] = {
+      ...newSteps[index],
       [field]: value,
       modifier: field === 'modifier' ? value : (newSteps[index].modifier || [])
     };
@@ -118,7 +118,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     let newSteps: MouseStep[] = [];
     let setSteps: React.Dispatch<React.SetStateAction<MouseStep[]>>;
 
-     switch (type) {
+    switch (type) {
       case 'translate':
         newSteps = [...translateSteps];
         setSteps = setTranslateSteps;
@@ -133,10 +133,10 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
         break;
     }
 
-    newSteps.push({ 
-      x: 1, 
-      y: 1, 
-      modifier: [] 
+    newSteps.push({
+      x: 1,
+      y: 1,
+      modifier: []
     }); // Add default new step with empty modifier array
 
     setSteps(newSteps); // Update local state
@@ -144,10 +144,10 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
   };
 
   const removeStep = (type: 'translate' | 'scroll' | 'drag', index: number) => {
-     let newSteps: MouseStep[] = [];
-     let setSteps: React.Dispatch<React.SetStateAction<MouseStep[]>>;
+    let newSteps: MouseStep[] = [];
+    let setSteps: React.Dispatch<React.SetStateAction<MouseStep[]>>;
 
-     switch (type) {
+    switch (type) {
       case 'translate':
         newSteps = [...translateSteps];
         setSteps = setTranslateSteps;
@@ -172,10 +172,10 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     // Determine the correct state array based on type
     let steps: MouseStep[];
     switch (type) {
-        case 'translate': steps = translateSteps; break;
-        case 'scroll': steps = scrollSteps; break;
-        case 'drag': steps = dragSteps; break;
-        default: steps = [];
+      case 'translate': steps = translateSteps; break;
+      case 'scroll': steps = scrollSteps; break;
+      case 'drag': steps = dragSteps; break;
+      default: steps = [];
     }
 
     return (
@@ -238,11 +238,11 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-      
+
       {renderStepList('translate', 'Movement Step')}
       {renderStepList('scroll', 'Scroll Step')}
       {renderStepList('drag', 'Drag Step')}
-      
+
     </Space>
   );
 }; 

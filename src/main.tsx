@@ -10,7 +10,7 @@ import {
   error,
   attachConsole,
   attachLogger,
-  } from '@tauri-apps/plugin-log';
+} from '@tauri-apps/plugin-log';
 
 // 初始化日志监听
 attachConsole().catch(console.error)
