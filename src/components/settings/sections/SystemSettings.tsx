@@ -15,7 +15,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
     try {
       await relaunch();
     } catch (error) {
-      console.error('重启失败:', error);
+      console.error('[handleRestart] Failed to restart:', error);
     }
   };
 
@@ -23,7 +23,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
     try {
       await exit(0);
     } catch (error) {
-      console.error('退出失败:', error);
+      console.error('[handleExit] Failed to exit:', error);
     }
   };
 

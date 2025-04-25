@@ -4,8 +4,6 @@ import type { Config } from '../types/config';
 
 // Hook now accepts availableKeys data directly
 export const useKeyOptions = (availableKeysData: Record<string, number> | undefined) => {
-  // Remove useWatch - data comes from prop
-  // const availableKeys = Form.useWatch('keyboard.available_key') as Record<string, number> | undefined;
 
   // 动态计算 keyOptions, based on the passed prop
   return useMemo(() => {

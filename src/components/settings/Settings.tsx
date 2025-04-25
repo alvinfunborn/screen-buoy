@@ -28,8 +28,8 @@ const Settings: React.FC = () => {
       setInitialConfig(config);
       setAvailableKeysState(config.keyboard?.available_key);
     } catch (err) {
-      message.error('加载配置失败');
-      console.error('加载配置失败:', err);
+      message.error('Failed to load config');
+      console.error('Failed to load config:', err);
     } finally {
       setLoading(false);
     }
@@ -40,8 +40,8 @@ const Settings: React.FC = () => {
       console.log("[Settings.tsx] Saving config:", JSON.stringify(values, null, 2));
       await invoke('save_config_for_frontend', { config: values });
     } catch (err) {
-      message.error('保存失败');
-      console.error('保存配置失败:', err);
+      message.error('Failed to save config');
+      console.error('Failed to save config:', err);
     }
   }, 500);
 

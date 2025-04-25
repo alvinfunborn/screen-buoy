@@ -111,7 +111,7 @@ impl<'a> Executor<'a> {
             get_hint_position_by_text(&self.state.pressed_hint_keys.clone().unwrap())
         {
             tauri::async_runtime::spawn(async move {
-                mouse::mouse_move(monitor_id, x, y);
+                mouse::mouse_move(monitor_id, x, y).await;
                 if exit {
                     hide_hints(app_handle_clone).await;
                 }
@@ -131,7 +131,7 @@ impl<'a> Executor<'a> {
         let app_handle_clone = self.app_handle.clone();
         if hold_duration < 300 {
             tauri::async_runtime::spawn(async move {
-                mouse::mouse_click_left();
+                mouse::mouse_click_left().await;
                 if exit {
                     hide_hints(app_handle_clone).await;
                 }
@@ -152,7 +152,7 @@ impl<'a> Executor<'a> {
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
                 tauri::async_runtime::spawn(async move {
-                    filter_hints(app_handle_clone, "removeAllHints".to_string());
+                    filter_hints(app_handle_clone, "_removeAllHints".to_string()).await;
                 });
             }
         } else {
@@ -160,9 +160,9 @@ impl<'a> Executor<'a> {
             let app_handle_clone = self.app_handle.clone();
             tauri::async_runtime::spawn(async move {
                 if is_dragging {
-                    mouse::mouse_drag_end();
+                    mouse::mouse_drag_end().await;
                 }
-                hide_hints(app_handle_clone);
+                hide_hints(app_handle_clone).await;
             });
         }
         true
@@ -175,14 +175,14 @@ impl<'a> Executor<'a> {
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                mouse::mouse_drag_end();
+                mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                mouse::mouse_move(monitor_id, x, y);
+                mouse::mouse_move(monitor_id, x, y).await;
             }
-            mouse::mouse_click_left();
+            mouse::mouse_click_left().await;
             if exit {
-                hide_hints(app_handle_clone);
+                hide_hints(app_handle_clone).await;
             }
         });
         true
@@ -195,14 +195,14 @@ impl<'a> Executor<'a> {
         let app_handle_clone = self.app_handle.clone();
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                mouse::mouse_drag_end();
+                mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                mouse::mouse_move(monitor_id, x, y);
+                mouse::mouse_move(monitor_id, x, y).await;
             }
-            mouse::mouse_click_right();
+            mouse::mouse_click_right().await;
             if exit {
-                hide_hints(app_handle_clone);
+                hide_hints(app_handle_clone).await;
             }
         });
         true
@@ -218,11 +218,11 @@ impl<'a> Executor<'a> {
                 let _ = mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                mouse::mouse_move(monitor_id, x, y);
+                mouse::mouse_move(monitor_id, x, y).await;
             }
-            mouse::mouse_click_middle();
+            mouse::mouse_click_middle().await;
             if exit {
-                hide_hints(app_handle_clone);
+                hide_hints(app_handle_clone).await;
             }
         });
         true
@@ -236,14 +236,14 @@ impl<'a> Executor<'a> {
         self.state.double_click_key_hold = true;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                let _ = mouse::mouse_drag_end().await;
+                mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
-                mouse::mouse_move(monitor_id, x, y);
+                mouse::mouse_move(monitor_id, x, y).await;
             }
-            mouse::mouse_double_click();
+            mouse::mouse_double_click().await;
             if exit {
-                hide_hints(app_handle_clone);
+                hide_hints(app_handle_clone).await;
             }
         });
         true
@@ -254,9 +254,9 @@ impl<'a> Executor<'a> {
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
-                let _ = mouse::mouse_drag_end().await;
+                mouse::mouse_drag_end().await;
             }
-            hide_hints(app_handle_clone);
+            hide_hints(app_handle_clone).await;
         });
         true
     }
@@ -281,7 +281,7 @@ impl<'a> Executor<'a> {
             let app_handle_clone = self.app_handle.clone();
             // 发送事件到前端更新显示
             tauri::async_runtime::spawn(async move {
-                move_hints(app_handle_clone, (dx, dy));
+                move_hints(app_handle_clone, (dx, dy)).await;
             });
             return true;
         }
@@ -306,7 +306,7 @@ impl<'a> Executor<'a> {
             calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             tauri::async_runtime::spawn(async move {
-                mouse::mouse_wheel_move(dx, dy);
+                mouse::mouse_wheel_move(dx, dy).await;
             });
             return true;
         }
@@ -339,11 +339,11 @@ impl<'a> Executor<'a> {
             tauri::async_runtime::spawn(async move {
                 if start_dragging {
                     if let Some((monitor_id, x, y)) = get_hint_position_by_text(&prefix_keys) {
-                        mouse::mouse_move(monitor_id, x, y);
+                        mouse::mouse_move(monitor_id, x, y).await;
                     }
-                    mouse::mouse_drag_start();
+                    mouse::mouse_drag_start().await;
                 }
-                mouse::mouse_move_relative(dx, dy);
+                mouse::mouse_move_relative(dx, dy).await;
             });
             return true;
         }

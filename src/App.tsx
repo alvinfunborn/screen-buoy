@@ -41,7 +41,7 @@ function App() {
       </Text>
       {error && (
         <div className="error-message">
-          错误: {error}
+          Error: {error}
         </div>
       )}
       <Settings />

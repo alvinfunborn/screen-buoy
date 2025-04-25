@@ -237,7 +237,9 @@ pub fn create_overlay_window(
     }
 
     let window = window.unwrap();
-    window.set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y));
+    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y)) {
+        error!("[create_overlay_window] set position failed: {}", e);
+    }
 
     // 设置窗口为鼠标穿透并确保在最顶层
     #[cfg(target_os = "windows")]

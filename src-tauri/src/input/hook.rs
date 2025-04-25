@@ -107,7 +107,6 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     if let Ok(app_handle_lock) = APP_HANDLE.lock() {
         if let Some(app_handle) = app_handle_lock.as_ref() {
             if handle_keyboard_event(app_handle, &key, is_down) {
-                debug!("[keyboard_hook_proc] event handled, not passing");
                 return LRESULT(1);
             }
         } else {

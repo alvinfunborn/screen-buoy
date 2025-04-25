@@ -73,7 +73,7 @@
         // import { invoke } from "@tauri-apps/api/tauri"; // v1
         import { invoke } from "@tauri-apps/api/core"; // v2
         import { listen, emit } from "@tauri-apps/api/event";
-        import { getCurrentWindow } from "@tauri-apps/api/window";
+        import { getCurrentWebview } from "@tauri-apps/api/webview";
         import {
             warn,
             debug,
@@ -84,14 +84,17 @@
             attachLogger,
         } from '@tauri-apps/plugin-log';
 
+        // 使用导入的 API 直接获取当前窗口
+        const currentWindow =getCurrentWebview();
+
         // 初始化日志系统
         async function initLogger() {
             try {
                 await attachConsole();
-                info('日志系统初始化成功');
+                info(`[initLogger] window: ${currentWindow.label} logger attached`);
                 return true;
             } catch (e) {
-                console.error('日志系统初始化失败:', e);
+                error(`[initLogger] window: ${currentWindow.label} failed to attach console: ${e}`);
                 return false;
             }
         }
@@ -115,7 +118,7 @@
                 hintElement.style.zIndex = z;
                 return hintElement;
             } catch (error) {
-                error(`[${document.title}] Error creating hint element: ${error.message}`);
+                error(`[createHintElement] window: ${currentWindow.label} Error creating hint element: ${error.message}`);
                 return null;
             }
         }
@@ -157,7 +160,7 @@
                 const styles = await invoke('get_hint_styles');
                 return styles;
             } catch (error) {
-                info('获取hint样式配置失败:', error);
+                info(`[getHintStyles] window: ${currentWindow.label} failed to get hint styles: ${error}`);
                 return null;
             }
         }
@@ -178,7 +181,7 @@
             const styleElement = document.createElement('style');
             styleElement.textContent = css;
             document.head.appendChild(styleElement);
-            info('已应用hint样式');
+            info(`[applyStyles] window: ${currentWindow.label} hint styles applied`);
         }
 
         // 主初始化函数
@@ -194,35 +197,20 @@
                     applyStyles(css);
                 }
 
-                // 使用导入的 API 直接获取当前窗口
-                info('正在获取当前窗口...');
-                let currentWindow = null;
-                let retryCount = 0;
-                const maxRetries = 5;
-
-                currentWindow = getCurrentWindow();
-                if (!currentWindow) {
-                    error('无法获取当前窗口对象');
-                    return;
-                }
-
                 // 设置 show-hints 事件监听
-                info('开始设置 show-hints 事件监听...');
                 const unlistenShow = await currentWindow.listen('show-hints', (event) => {
                     // 验证事件是否是发给当前窗口的
                     const payload = event.payload;
                     if (payload.windowLabel !== currentWindow.label) {
-                        info('忽略非本窗口的事件:', payload.windowLabel);
+                        info(`[listenShow] window: ${currentWindow.label} ignore event from other window: ${payload.windowLabel}`);
                         return;
                     }
                     
-                    info('收到show-hints事件, currentWindow.label:', currentWindow.label);
                     const hints = payload.hints;
                     if (!Array.isArray(hints)) {
-                        warn('警告: hints 不是数组:', hints);
                         return;
                     }
-                    info(`准备显示 ${hints.length} 个hints`);
+                    info(`[listenShow] window: ${currentWindow.label} received ${hints.length} hints`);
 
                     // 清除现有的 hints
                     const container = document.getElementById('hintsContainer');
@@ -236,24 +224,22 @@
                         }
                     });
                 });
-                info('show-hints 事件监听器设置成功');
+                info(`[listenShow] window: ${currentWindow.label} show-hints listener set`);
 
                 // 设置 show-hints2 事件监听
-                info('开始设置 show-hints2 事件监听...');
                 const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
                     // 验证事件是否是发给当前窗口的
                     const payload = event.payload;
                     if (payload.windowLabel !== currentWindow.label) {
-                        info('忽略非本窗口的事件:', payload.windowLabel);
+                        info(`[listenShow] window: ${currentWindow.label} ignore event from other window: ${payload.windowLabel}`);
                         return;
                     }
 
                     const hints = payload.hints;
                     if (!Array.isArray(hints)) {
-                        warn('警告: hints 不是数组:', hints);
                         return;
                     }
-                    info(`准备显示 ${hints.length} 个hints`);
+                    info(`[listenShow] window: ${currentWindow.label} received ${hints.length} hints`);
 
                     // 获取容器
                     const container = document.getElementById('hintsContainer');
@@ -265,38 +251,33 @@
                         }
                     });
                 });
-                info('show-hints2 事件监听器设置成功');
+                info(`[listenShow] window: ${currentWindow.label} show-hints2 listener set`);
 
                 // 设置 hide-hints 事件监听
-                info('开始设置 hide-hints 事件监听...');
                 const unlistenHide = await currentWindow.listen('hide-hints', (event) => {
-                    info('收到hide-hints事件');
+                    info(`[listenHide] window: ${currentWindow.label} received hide-hints event`);
                     clearHints();
                 });
-                info('hide-hints 事件监听器设置成功');
+                info(`[listenHide] window: ${currentWindow.label} hide-hints listener set`);
 
                 // 设置 hints-move 事件监听
-                info('开始设置 move-hints 事件监听...');
                 const unlistenMove = await currentWindow.listen('move-hints', (event) => {
-                    info('收到move-hints事件:', event.payload);
+                    info(`[listenMove] window: ${currentWindow.label} received move-hints event: ${event.payload}`);
                     const payload = event.payload;
                     if (payload && typeof payload === 'object' && 'x' in payload && 'y' in payload) {
                         const {x, y} = payload;
                         moveHints(x, y);
-                    } else {
-                        warn('无效的 move-hints payload:', payload);
                     }
                 });
-                info('move-hints 事件监听器设置成功');
+                info(`[listenMove] window: ${currentWindow.label} move-hints listener set`);
 
                 // 设置 hints-filter 事件监听
-                info('开始设置 filter-hints 事件监听...');
                 const unlistenFilter = await currentWindow.listen('filter-hints', (event) => {
-                    info('收到filter-hints事件');
+                    info(`[listenFilter] window: ${currentWindow.label} received filter-hints event: ${event.payload}`);
                     const letters = event.payload;
                     filterHints(letters);
                 });
-                info('filter-hints 事件监听器设置成功');
+                info(`[listenFilter] window: ${currentWindow.label} filter-hints listener set`);
 
                 // 设置清理函数
                 window.addEventListener('unload', () => {
@@ -306,36 +287,30 @@
                         unlistenHide();
                         unlistenMove();
                         unlistenFilter();
-                        info('事件监听器已清理');
+                        info(`[cleanup] window: ${currentWindow.label} listeners cleaned`);
                     } catch (error) {
-                        info('清理事件监听器时出错:', error);
+                        info(`[cleanup] window: ${currentWindow.label} failed to clean listeners: ${error}`);
                     }
                 });
-                info('清理函数设置成功');
 
             } catch (error) {
-                info('设置事件监听器时出错 - 详细信息:', {
-                    message: error.message,
-                    stack: error.stack,
-                    name: error.name
-                });
-                info('详细错误信息:', error);
+                error(`[initialize] window: ${currentWindow.label} failed to set listeners: ${error}`);
             }
 
             // 错误处理
             window.addEventListener('error', (event) => {
-                info('捕获到全局错误:', event.error);
+                error(`[initialize] window: ${currentWindow.label} caught global error: ${event.error}`);
             });
 
             window.addEventListener('unhandledrejection', (event) => {
-                info('捕获到未处理的Promise拒绝:', event.reason);
+                error(`[initialize] window: ${currentWindow.label} caught unhandled rejection: ${event.reason}`);
             });
         }
 
         // 等待 DOM 加载完成后再初始化
         document.addEventListener('DOMContentLoaded', () => {
             initialize().catch(error => {
-                info('初始化失败:', error);
+                error(`[initialize] failed: ${error}`);
             });
         });
     </script>
