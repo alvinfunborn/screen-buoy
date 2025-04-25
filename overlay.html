@@ -73,7 +73,7 @@
         // import { invoke } from "@tauri-apps/api/tauri"; // v1
         import { invoke } from "@tauri-apps/api/core"; // v2
         import { listen, emit } from "@tauri-apps/api/event";
-        import { getCurrent, WebviewWindow } from "@tauri-apps/api/window"; // 移除了 appWindow, getCurrent 就够了
+        import { getCurrentWindow } from "@tauri-apps/api/window";
         import {
             warn,
             debug,
@@ -82,8 +82,20 @@
             error,
             attachConsole,
             attachLogger,
-            } from '@tauri-apps/plugin-log';
-        
+        } from '@tauri-apps/plugin-log';
+
+        // 初始化日志系统
+        async function initLogger() {
+            try {
+                await attachConsole();
+                info('日志系统初始化成功');
+                return true;
+            } catch (e) {
+                console.error('日志系统初始化失败:', e);
+                return false;
+            }
+        }
+
         // 创建提示元素
         function createHintElement(hint) {
             try {
@@ -172,6 +184,9 @@
         // 主初始化函数
         async function initialize() {
             try {
+                // 确保日志系统初始化
+                await initLogger();
+                
                 // 获取并应用样式
                 const styles = await getHintStyles();
                 if (styles) {
@@ -181,21 +196,32 @@
 
                 // 使用导入的 API 直接获取当前窗口
                 info('正在获取当前窗口...');
-                const currentWindow = await getCurrent();
-                
-                if (!currentWindow) {
-                    throw new Error('无法获取当前窗口对象');
+                let currentWindow = null;
+                let retryCount = 0;
+                const maxRetries = 5;
+
+                while (!currentWindow && retryCount < maxRetries) {
+                    currentWindow = getCurrentWindow();
+                    if (!currentWindow) {
+                        info(`尝试获取窗口失败，等待重试... (${retryCount + 1}/${maxRetries})`);
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        retryCount++;
+                    }
                 }
-                
-                info('当前窗口获取成功:', {
-                    title: document.title,
-                    label: currentWindow.label
-                });
+
+                if (!currentWindow) {
+                    error('无法获取当前窗口对象');
+                    return;
+                }
+
+                info('当前窗口获取成功, label:', currentWindow.label);
+                info('当前窗口完整信息:', JSON.stringify(currentWindow));
 
                 // 设置 show-hints 事件监听
                 info('开始设置 show-hints 事件监听...');
                 const unlistenShow = await currentWindow.listen('show-hints', (event) => {
-                    const hints = event.payload; // payload 类型在 v2 中可能是 any 或 unknown
+                    info('收到show-hints事件, currentWindow.label:', currentWindow.label);
+                    const hints = event.payload;
                     if (!Array.isArray(hints)) {
                         warn('警告: hints 不是数组:', hints);
                         return;
@@ -216,11 +242,10 @@
                 });
                 info('show-hints 事件监听器设置成功');
 
-                
                 // 设置 show-hints2 事件监听
                 info('开始设置 show-hints2 事件监听...');
                 const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
-                    const hints = event.payload; // payload 类型在 v2 中可能是 any 或 unknown
+                    const hints = event.payload;
                     if (!Array.isArray(hints)) {
                         warn('警告: hints 不是数组:', hints);
                         return;
@@ -241,7 +266,7 @@
 
                 // 设置 hide-hints 事件监听
                 info('开始设置 hide-hints 事件监听...');
-                const unlistenHide = await currentWindow.listen('hide-hints', (_event) => { // v2 listener 回调可能带 event
+                const unlistenHide = await currentWindow.listen('hide-hints', (event) => {
                     info('收到hide-hints事件');
                     clearHints();
                 });
@@ -251,9 +276,9 @@
                 info('开始设置 move-hints 事件监听...');
                 const unlistenMove = await currentWindow.listen('move-hints', (event) => {
                     info('收到move-hints事件:', event.payload);
-                    const payload = event.payload; // 先获取 payload
+                    const payload = event.payload;
                     if (payload && typeof payload === 'object' && 'x' in payload && 'y' in payload) {
-                        const {x, y} = payload; // 确认属性存在后再解构
+                        const {x, y} = payload;
                         moveHints(x, y);
                     } else {
                         warn('无效的 move-hints payload:', payload);

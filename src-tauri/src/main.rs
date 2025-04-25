@@ -45,10 +45,6 @@ fn main() {
         // Setup main window
         let main_window = app_handle.get_webview_window("main").unwrap();
 
-        // Setup shortcuts
-        setup_shortcut(&app_handle, &config, main_window.clone())
-            .expect("Failed to setup shortcuts");
-
         if config.system.start_at_login {
             info!("[i] 开机自启动功能在 v2 中可能需要 tauri-plugin-autostart (待验证)");
         }
@@ -71,16 +67,6 @@ fn main() {
             }
         }
 
-        // Create overlay windows
-        let app_handle_clone = app_handle.clone();
-        tauri::async_runtime::spawn(async move {
-            info!("正在创建遮罩层窗口...");
-            match create_overlay_windows(app_handle_clone).await {
-                Ok(_) => info!("[✓] 遮罩层窗口创建成功"),
-                Err(e) => error!("[✗] 创建overlay窗口失败: {}", e),
-            }
-        });
-
         // Initialize input hook
         input::hook::init(app_handle.clone());
 
@@ -94,6 +80,16 @@ fn main() {
         // Setup UI collection
         element::setup_ui_collection(&config);
         info!("[✓] UI元素收集线程已启动");
+
+        // Create overlay windows
+        match create_overlay_windows(&app_handle) {
+            Ok(_) => info!("[✓] 遮罩层窗口创建成功"),
+            Err(e) => error!("[✗] 创建overlay窗口失败: {}", e),
+        }
+
+        // Setup shortcuts
+        setup_shortcut(&app_handle, &config, main_window.clone())
+            .expect("Failed to setup shortcuts");
 
         info!("=== 应用程序初始化完成 ===");
         Ok(())

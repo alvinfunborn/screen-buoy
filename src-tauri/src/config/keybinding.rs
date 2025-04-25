@@ -70,7 +70,10 @@ pub const DRAG_RIGHT_CMD: &str = "drag_right";
 
 pub static MODIFIERS: Lazy<HashSet<String>> = Lazy::new(|| {
     let mouse_config = super::get_config().unwrap().mouse;
-    mouse_config.get_modifiers()
+    let mut modifiers = mouse_config.get_modifiers();
+    let keyboard = super::get_config().unwrap().keyboard;
+    modifiers.extend(keyboard.propagation_modifier.iter().map(|s| s.to_string()));
+    modifiers
 });
 
 pub static GLOBAL_KEY_DOWN_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> =

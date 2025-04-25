@@ -18,8 +18,7 @@
     "antd": "^5.24.8",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tauri-plugin-log-api": "github:tauri-apps/tauri-plugin-log#v1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@tauri-apps/api": "^2.5.0",

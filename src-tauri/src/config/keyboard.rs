@@ -48,3 +48,19 @@ impl KeyboardConfig {
         }
     }
 }
+
+// 检查是否是键的右侧键
+pub fn is_right_key_of(key: &str, last_key: &str) -> bool {
+    let keyboard = &super::get_config().unwrap().keyboard;
+    keyboard
+        .get_right_key(last_key)
+        .map_or(false, |right_key| right_key == key)
+}
+
+// 检查是否是键的左侧键
+pub fn is_left_key_of(key: &str, last_key: &str) -> bool {
+    let keyboard = &super::get_config().unwrap().keyboard;
+    keyboard
+        .get_left_key(last_key)
+        .map_or(false, |left_key| left_key == key)
+}

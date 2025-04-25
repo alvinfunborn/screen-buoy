@@ -36,8 +36,14 @@ fn get_sorted_monitors(window: &WebviewWindow) -> Result<Vec<MonitorInfo>, Strin
         })
         .collect::<Vec<_>>();
 
-    // 按x坐标排序，确保显示器顺序稳定
-    monitors.sort_by_key(|m| m.x);
+    // 首先按y坐标排序，然后按x坐标排序
+    monitors.sort_by(|a, b| {
+        // 优先按y坐标排序
+        match a.y.cmp(&b.y) {
+            std::cmp::Ordering::Equal => a.x.cmp(&b.x), // y相同时按x排序
+            other => other,
+        }
+    });
 
     // 重新分配id
     for (index, monitor) in monitors.iter_mut().enumerate() {

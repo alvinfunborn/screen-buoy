@@ -8,11 +8,10 @@ pub mod monitor;
 mod utils;
 pub mod window;
 
-use std::str::FromStr;
-
 use config::{get_config_for_frontend, get_hint_styles, save_config_for_frontend};
-use hint::show_hints;
+use hint::{overlay::OVERLAY_HANDLES_STORAGE, show_hints};
 use log::{error, info};
+use std::str::FromStr;
 use tauri::{
     image::Image,
     menu::{MenuBuilder, MenuItemBuilder},
@@ -21,10 +20,18 @@ use tauri::{
 };
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_log::{Target, TargetKind};
+use windows::Win32::Foundation::HWND;
 
-pub fn init_plugins(app_handle: &AppHandle,) -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_plugins(app_handle: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     app_handle.plugin(tauri_plugin_process::init())?;
-    app_handle.plugin(tauri_plugin_log::Builder::new().build())?;
+    app_handle.plugin(
+        tauri_plugin_log::Builder::new()
+            .targets([
+                Target::new(TargetKind::Stdout),
+                Target::new(TargetKind::Webview),
+            ])
+            .build(),
+    )?;
     app_handle.plugin(tauri_plugin_positioner::init())?;
     Ok(())
 }
@@ -109,8 +116,7 @@ pub fn setup_shortcut(
                                 }
                             });
                         }
-                        ShortcutState::Released => {
-                        }
+                        ShortcutState::Released => {}
                     }
                 }
             })
@@ -139,4 +145,77 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
                 api.prevent_close();
             }
         })
+}
+
+pub fn create_overlay_window(
+    app_handle: &AppHandle,
+    window_label: &str,
+    monitor: &monitor::MonitorInfo,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // 如果已存在，先关闭
+    if let Some(existing_window) = app_handle.get_webview_window(&window_label) {
+        info!("关闭已存在的overlay窗口: {}", window_label);
+        existing_window.close().map_err(|e| e.to_string())?;
+    }
+
+    info!(
+        "创建overlay窗口 {} 在显示器 {}: 位置({}, {}), 大小{}x{}",
+        window_label, monitor.id, monitor.x, monitor.y, monitor.width, monitor.height
+    );
+
+    let window = tauri::WebviewWindow::builder(
+        app_handle,
+        window_label,
+        tauri::WebviewUrl::App("overlay.html".into()),
+    )
+    .title(window_label)
+    .transparent(true)
+    .decorations(false)
+    // .skip_taskbar(true)
+    .always_on_top(true)
+    .title(window_label)
+    .inner_size(monitor.width as f64, monitor.height as f64)
+    .focused(false)
+    .build()
+    .map_err(|e| format!("创建overlay窗口失败: {}", e))?;
+
+    window
+        .set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y))
+        .map_err(|e| e.to_string())?;
+
+    info!("overlay窗口创建成功，准备设置窗口属性");
+
+    // 设置窗口为鼠标穿透并确保在最顶层
+    #[cfg(target_os = "windows")]
+    unsafe {
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, WS_EX_TRANSPARENT,
+        };
+        if let Ok(hwnd) = window.hwnd() {
+            let hwnd_raw = hwnd.0;
+            let style = GetWindowLongW(HWND(hwnd_raw as *mut _), GWL_EXSTYLE);
+            SetWindowLongW(
+                HWND(hwnd_raw as *mut _),
+                GWL_EXSTYLE,
+                style | (WS_EX_TRANSPARENT.0 | WS_EX_LAYERED.0) as i32,
+            );
+
+            info!("设置窗口样式成功");
+
+            // 保存窗口句柄
+            if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
+                handles.insert(window_label.to_string(), hwnd_raw as i64);
+                info!("窗口句柄保存成功");
+            }
+        }
+    }
+
+    #[cfg(debug_assertions)]
+    {
+        info!("开发模式：打开devtools");
+        window.open_devtools();
+    }
+
+    info!("overlay窗口创建完成");
+    Ok(())
 }

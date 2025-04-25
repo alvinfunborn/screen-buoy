@@ -80,24 +80,6 @@ fn key_in_keys(key: &str, keys: &Vec<String>) -> bool {
     keys.contains(&key.to_string())
 }
 
-// 检查是否是末尾hint键的右侧键
-fn is_right_key_of(key: &str, last_key: &str) -> bool {
-    let configs = config::get_config().unwrap();
-    let keyboard = &configs.keyboard;
-    keyboard
-        .get_right_key(last_key)
-        .map_or(false, |right_key| right_key == key)
-}
-
-// 检查是否是末尾hint键的左侧键
-fn is_left_key_of(key: &str, last_key: &str) -> bool {
-    let configs = config::get_config().unwrap();
-    let keyboard = &configs.keyboard;
-    keyboard
-        .get_left_key(last_key)
-        .map_or(false, |left_key| left_key == key)
-}
-
 fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {
     let prefix = state.pressed_hint_keys.clone().unwrap();
     let app_handle_clone = app_handle.clone();
@@ -258,9 +240,9 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                 if current_key == last_key {
                     // 是当前holding的末尾hint键, 不传递
                     return true;
-                } else if is_right_key_of(key, last_key) {
+                } else if config::keyboard::is_right_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_RIGHT_KEY;
-                } else if is_left_key_of(key, last_key) {
+                } else if config::keyboard::is_left_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_LEFT_KEY;
                 }
             }
