@@ -166,14 +166,13 @@ pub fn create_overlay_window(
     let window = tauri::WebviewWindow::builder(
         app_handle,
         window_label,
-        tauri::WebviewUrl::App("overlay.html".into()),
+        tauri::WebviewUrl::App(format!("overlay.html?window_label={}", window_label).into()),
     )
     .title(window_label)
     .transparent(true)
     .decorations(false)
-    // .skip_taskbar(true)
+    .skip_taskbar(true)
     .always_on_top(true)
-    .title(window_label)
     .inner_size(monitor.width as f64, monitor.height as f64)
     .focused(false)
     .build()

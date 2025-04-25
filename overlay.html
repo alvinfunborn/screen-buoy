@@ -200,28 +200,24 @@
                 let retryCount = 0;
                 const maxRetries = 5;
 
-                while (!currentWindow && retryCount < maxRetries) {
-                    currentWindow = getCurrentWindow();
-                    if (!currentWindow) {
-                        info(`尝试获取窗口失败，等待重试... (${retryCount + 1}/${maxRetries})`);
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                        retryCount++;
-                    }
-                }
-
+                currentWindow = getCurrentWindow();
                 if (!currentWindow) {
                     error('无法获取当前窗口对象');
                     return;
                 }
 
-                info('当前窗口获取成功, label:', currentWindow.label);
-                info('当前窗口完整信息:', JSON.stringify(currentWindow));
-
                 // 设置 show-hints 事件监听
                 info('开始设置 show-hints 事件监听...');
                 const unlistenShow = await currentWindow.listen('show-hints', (event) => {
+                    // 验证事件是否是发给当前窗口的
+                    const payload = event.payload;
+                    if (payload.windowLabel !== currentWindow.label) {
+                        info('忽略非本窗口的事件:', payload.windowLabel);
+                        return;
+                    }
+                    
                     info('收到show-hints事件, currentWindow.label:', currentWindow.label);
-                    const hints = event.payload;
+                    const hints = payload.hints;
                     if (!Array.isArray(hints)) {
                         warn('警告: hints 不是数组:', hints);
                         return;
@@ -245,7 +241,14 @@
                 // 设置 show-hints2 事件监听
                 info('开始设置 show-hints2 事件监听...');
                 const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
-                    const hints = event.payload;
+                    // 验证事件是否是发给当前窗口的
+                    const payload = event.payload;
+                    if (payload.windowLabel !== currentWindow.label) {
+                        info('忽略非本窗口的事件:', payload.windowLabel);
+                        return;
+                    }
+
+                    const hints = payload.hints;
                     if (!Array.isArray(hints)) {
                         warn('警告: hints 不是数组:', hints);
                         return;

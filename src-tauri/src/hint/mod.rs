@@ -34,7 +34,10 @@ pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
     for (window_label, hints) in &monitor_hints {
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             overlay_window
-                .emit("show-hints", hints)
+                .emit("show-hints", json!({
+                    "windowLabel": window_label,
+                    "hints": hints
+                }))
                 .map_err(|e| e.to_string())?;
         }
         // 保存 hints 到存储
@@ -47,7 +50,10 @@ pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
     for (window_label, hints) in &monitor_hints {
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             overlay_window
-                .emit("show-hints2", hints)
+                .emit("show-hints2", json!({
+                    "windowLabel": window_label,
+                    "hints": hints
+                }))
                 .map_err(|e| e.to_string())?;
         }
         // 保存 hints 到存储
@@ -61,17 +67,11 @@ pub async fn show_hints(window: WebviewWindow) -> Result<(), String> {
 
 pub async fn hide_hints(app_handle: tauri::AppHandle) -> Result<(), String> {
     // 获取所有overlay窗口并发送hide-hints事件
-    let windows = app_handle.webview_windows();
-
-    for (label, window) in windows {
-        if label.starts_with(OVERLAY_WINDOW_PREFIX) {
-            window.emit("hide-hints", ()).map_err(|e| e.to_string())?;
-        }
-    }
+    let window = app_handle.get_webview_window("main").unwrap();
+    window.emit("hide-hints", ()).map_err(|e| e.to_string())?;
 
     // 设置键盘状态为不可见
     input::keyboard::switch_keyboard_ctrl(false, Some(&app_handle));
-
     // 清空 hints 数据
     clear_hints();
     Ok(())
@@ -82,29 +82,18 @@ pub async fn move_hints(
     move_direction: (i32, i32),
 ) -> Result<(), String> {
     update_hints_offset(move_direction.0, move_direction.1);
-    let windows = app_handle.webview_windows();
-    for (label, window) in windows {
-        if label.starts_with(OVERLAY_WINDOW_PREFIX) {
-            println!("发送move-hints事件到窗口: {}", label);
-            let json = json!({
-                "x": move_direction.0,
-                "y": move_direction.1
-            });
-            window.emit("move-hints", json).map_err(|e| e.to_string())?;
-        }
-    }
+    let window = app_handle.get_webview_window("main").unwrap();
+    let json = json!({
+        "x": move_direction.0,
+        "y": move_direction.1
+    });
+    window.emit("move-hints", json).map_err(|e| e.to_string())?;
     Ok(())
 }
 
 pub async fn filter_hints(app_handle: tauri::AppHandle, letters: String) -> Result<(), String> {
-    let windows = app_handle.webview_windows();
-    for (label, window) in windows {
-        if label.starts_with(OVERLAY_WINDOW_PREFIX) {
-            println!("发送filter-hints事件到窗口: {}", label);
-            window
-                .emit("filter-hints", letters.clone())
-                .map_err(|e| e.to_string())?;
-        }
-    }
+    let window = app_handle.get_webview_window("main").unwrap();
+    window.emit("filter-hints", letters.clone()).map_err(|e| e.to_string())?;
     Ok(())
 }
+
