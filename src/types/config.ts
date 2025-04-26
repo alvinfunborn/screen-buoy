@@ -9,6 +9,15 @@ export interface HintConfig {
   charset_extra: string[];
   style: string;
   types: Record<string, HintType>;
+  grid: GridConfig;
+}
+
+export interface GridConfig {
+  rows: number;
+  columns: number;
+  show_at_rows: number[];
+  show_at_columns: number[];
+  hint_type: string;
 }
 
 export interface LeftRightConfig {

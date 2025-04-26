@@ -66,7 +66,7 @@ charsets = [
 charset_extra = [
     "=",
     "-",
-    "\\",
+    '\',
 ]
 style = """
 {
@@ -198,6 +198,22 @@ style = """
 """
 z_index = 5
 element_control_types = [50032]
+
+[hint.grid]
+rows = 3
+columns = 5
+show_at_rows = [
+    1,
+    2,
+    3,
+]
+show_at_columns = [
+    1,
+    2,
+    3,
+    4,
+]
+hint_type = "tab"
 
 [keybinding]
 hotkey_buoy = "Alt+H"

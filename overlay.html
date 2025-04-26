@@ -243,6 +243,7 @@
                     const container = document.getElementById('hintsContainer');
                     // 创建新的 hints
                     hints.forEach((hint, index) => {
+                        info(`[listenShow] window: ${currentWindow.label} hint: ${hint.text}`);
                         const hintElement = createHintElement(hint);
                         if (hintElement) {
                             container.appendChild(hintElement);

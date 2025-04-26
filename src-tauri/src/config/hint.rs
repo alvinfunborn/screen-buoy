@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
@@ -8,6 +10,7 @@ pub struct HintConfig {
     pub charset_extra: Vec<char>,
     pub style: String,
     pub types: IndexMap<String, HintType>,
+    pub grid: GridConfig,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -17,9 +20,27 @@ pub struct HintType {
     pub element_control_types: Vec<i32>,
 }
 
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct GridConfig {
+    pub rows: i32,
+    pub columns: i32,
+    pub show_at_rows: Vec<i32>,
+    pub show_at_columns: Vec<i32>,
+    pub hint_type: String,
+}
+
 pub static HAS_EXTRA_CHARSET: Lazy<bool> = Lazy::new(|| {
     let config = super::get_config().unwrap().hint;
     !config.charset_extra.is_empty()
+});
+
+pub static HINT_TYPE_ID_MAP: Lazy<HashMap<String, usize>> = Lazy::new(|| {
+    let config = super::get_config().unwrap().hint;
+    let mut map = HashMap::new();
+    for (i, (name, _)) in config.types.iter().enumerate() {
+        map.insert(name.clone(), i);
+    }
+    map
 });
 
 pub static HINT_CONTROL_TYPES_ID_Z_MAP: Lazy<IndexMap<i32, (usize, i32)>> = Lazy::new(|| {

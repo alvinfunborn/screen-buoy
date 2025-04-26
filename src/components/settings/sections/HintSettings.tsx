@@ -30,6 +30,10 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   // State for the input field when adding a new hint type name
   const [newTypeNameInput, setNewTypeNameInput] = useState<string>('');
 
+  // 新增：Hint Grid 配置相关 state
+  const [rawShowAtRowsInput, setRawShowAtRowsInput] = useState<string>('');
+  const [rawShowAtColumnsInput, setRawShowAtColumnsInput] = useState<string>('');
+
   // Initialize states from form values on mount or when form instance changes
   useEffect(() => {
     const initialHintConfig = form.getFieldValue('hint');
@@ -78,6 +82,11 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     } else {
       setRawDefaultStyle('');
     }
+
+    // useEffect 初始化 grid 字段
+    const grid = form.getFieldValue(['hint', 'grid']) || {};
+    setRawShowAtRowsInput(Array.isArray(grid.show_at_rows) ? grid.show_at_rows.join(', ') : '');
+    setRawShowAtColumnsInput(Array.isArray(grid.show_at_columns) ? grid.show_at_columns.join(', ') : '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]); // Rerun if form instance changes
 
@@ -285,6 +294,31 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     // Note: We don't need to validate fields of removed items.
   };
 
+  // 失焦时 parse 并 setFieldValue
+  const handleShowAtRowsBlur = () => {
+    const arr = rawShowAtRowsInput
+      .split(',')
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => !isNaN(n));
+    form.setFieldValue(['hint', 'grid', 'show_at_rows'], arr);
+    if (onValuesChange) {
+      const changedValues = { hint: { grid: { show_at_rows: arr } } };
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_rows: arr } } });
+    }
+  };
+  const handleShowAtColumnsBlur = () => {
+    const arr = rawShowAtColumnsInput
+      .split(',')
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => !isNaN(n));
+    form.setFieldValue(['hint', 'grid', 'show_at_columns'], arr);
+    if (onValuesChange) {
+      const changedValues = { hint: { grid: { show_at_columns: arr } } };
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_columns: arr } } });
+    }
+  };
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
@@ -342,6 +376,56 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
           onBlur={handleRawExtraCharsetBlur}
         />
       </Form.Item>
+
+      {/* Hint Grid Section */}
+      <Paragraph className="config-section-title">Hint Grid</Paragraph>
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Form.Item
+          label="Rows"
+          layout="horizontal"
+          name={['hint', 'grid', 'rows']}
+          rules={[{ type: 'number', min: 0, message: 'Please enter the number of rows' }]}
+          style={{ marginBottom: 8 }}
+        >
+          <InputNumber min={1} style={{ width: 100 }} />
+        </Form.Item>
+        <Form.Item
+          label="Columns"
+          layout="horizontal"
+          name={['hint', 'grid', 'columns']}
+          rules={[{ type: 'number', min: 0, message: 'Please enter the number of columns' }]}
+          style={{ marginBottom: 8 }}
+        >
+          <InputNumber min={1} style={{ width: 100 }} />
+        </Form.Item>
+        <Form.Item label="Show At Rows" layout="horizontal" style={{ marginBottom: 8 }}>
+          <Input
+            placeholder="Enter the rows, separated by commas"
+            value={rawShowAtRowsInput}
+            onChange={e => setRawShowAtRowsInput(e.target.value)}
+            onBlur={handleShowAtRowsBlur}
+            style={{ width: 200 }}
+          />
+        </Form.Item>
+        <Form.Item label="Show At Columns" layout="horizontal" style={{ marginBottom: 8 }}>
+          <Input
+            placeholder="Enter the columns, separated by commas"
+            value={rawShowAtColumnsInput}
+            onChange={e => setRawShowAtColumnsInput(e.target.value)}
+            onBlur={handleShowAtColumnsBlur}
+            style={{ width: 200 }}
+          />
+        </Form.Item>
+        <Form.Item
+          label="Hint Type"
+          layout="horizontal"
+          name={['hint', 'grid', 'hint_type']}
+          rules={[{ message: 'Please enter the type' }]}
+          style={{ marginBottom: 0 }}
+        >
+          <Input style={{ width: 200 }} />
+        </Form.Item>
+      </Space>
 
       {/* Default Style Section */}
       <Form.Item

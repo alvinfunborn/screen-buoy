@@ -1,5 +1,5 @@
 use crate::{
-    config,
+    config::{self, hint::HINT_TYPE_ID_MAP},
     element::{UIElement, WINDOWS_UI_ELEMENTS_MAP_STORAGE},
     monitor::{MonitorInfo, MONITORS_STORAGE},
     utils::Rect,
@@ -81,6 +81,43 @@ impl HintsGenerator {
             windows_covered_areas,
             ui_elements,
         }
+    }
+
+    pub fn generate_hints_grid(
+        &self,
+        hints_count: &mut i32,
+    ) -> HashMap<String, Vec<Hint>> {
+        let mut monitor_hints = HashMap::new();
+        let config = config::get_config().unwrap();
+        let grid_row = config.hint.grid.rows;
+        let grid_column = config.hint.grid.columns;
+        let show_at_row = config.hint.grid.show_at_rows;
+        let show_at_column = config.hint.grid.show_at_columns;
+        let hint_type = config.hint.grid.hint_type;
+        let hint_z = config.hint.types.get(&hint_type).unwrap().z_index;
+        for (index, monitor) in self.monitors.iter().enumerate() {
+            let mut hints = Vec::new();
+            for row in show_at_row.iter() {
+                for column in show_at_column.iter() {
+                    // 检查是否超出范围
+                    if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
+                        return monitor_hints;
+                    }
+                    let hint = Hint {
+                        text: HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone(),
+                        x: (((*column as f64) - 0.5) * monitor.width as f64 / grid_column as f64 / monitor.scale_factor) as i32,
+                        y: (((*row as f64) - 0.5) * monitor.height as f64 / grid_row as f64 / monitor.scale_factor) as i32,
+                        z: hint_z,
+                        scale: monitor.scale_factor,
+                        hint_type: HINT_TYPE_ID_MAP.get(&hint_type).unwrap().clone(),
+                    };
+                    hints.push(hint);
+                    *hints_count += 1;
+                }
+            }
+            monitor_hints.insert(format!("{}{}", OVERLAY_WINDOW_PREFIX, index), hints);
+        }
+        monitor_hints
     }
 
     pub fn generate_hints_batch1(

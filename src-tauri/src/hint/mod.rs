@@ -4,8 +4,7 @@ pub mod overlay;
 
 use crate::hint::generator::HintsGenerator;
 use crate::input;
-use log::error;
-use log::info;
+use log::{debug, error, info};
 use overlay::ensure_all_overlays_topmost;
 use serde_json::json;
 use std::collections::HashSet;
@@ -29,10 +28,17 @@ pub async fn show_hints(window: WebviewWindow) {
     let mut position_set = HashSet::new();
     let mut hints_count = 0;
 
-    // 设置键盘状态为可见
+    // 设置键盘状态为监听
     input::keyboard::switch_keyboard_ctrl(true, Some(&app_handle));
-
-    let monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
+    let monitor_grid_hints = hints_generator.generate_hints_grid(&mut hints_count);
+    let mut monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
+    for (window_label, grid_hints) in &monitor_grid_hints {
+        if let Some(hints) = monitor_hints.get_mut(window_label) {
+            hints.extend(grid_hints.clone());
+        } else {
+            monitor_hints.insert(window_label.clone(), grid_hints.clone());
+        }
+    }
     for (window_label, hints) in &monitor_hints {
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             if let Err(e) = overlay_window.emit(
