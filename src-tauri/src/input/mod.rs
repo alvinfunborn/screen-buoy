@@ -1,4 +1,4 @@
-pub mod executor;
+mod executor;
+mod mouse;
 pub mod hook;
 pub mod keyboard;
-pub mod mouse;

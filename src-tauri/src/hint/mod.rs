@@ -1,6 +1,6 @@
-pub mod generator;
+mod generator;
+pub mod hint;
 pub mod overlay;
-pub mod storage;
 
 use crate::hint::generator::HintsGenerator;
 use crate::input;
@@ -9,9 +9,9 @@ use log::info;
 use overlay::ensure_all_overlays_topmost;
 use serde_json::json;
 use std::collections::HashSet;
-use storage::clear_hints;
-use storage::save_hints;
-use storage::update_hints_offset;
+use hint::clear_hints;
+use hint::save_hints;
+use hint::update_hints_offset;
 use tauri::Emitter;
 use tauri::{Manager, WebviewWindow};
 

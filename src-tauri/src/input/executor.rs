@@ -2,7 +2,7 @@ use log::{error, info};
 
 use crate::{
     config,
-    hint::{filter_hints, hide_hints, move_hints, storage::get_hint_position_by_text},
+    hint::{filter_hints, hide_hints, move_hints, hint::get_hint_position_by_text},
 };
 
 use super::{keyboard::KeyboardState, mouse};

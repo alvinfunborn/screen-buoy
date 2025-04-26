@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 pub struct HintConfig {
     pub charsets: Vec<Vec<char>>,
     pub charset_extra: Vec<char>,
+    pub style: String,
     pub types: IndexMap<String, HintType>,
 }
 
@@ -33,7 +34,14 @@ pub static HINT_CONTROL_TYPES_ID_Z_MAP: Lazy<IndexMap<i32, (usize, i32)>> = Lazy
 });
 
 #[tauri::command]
-pub async fn get_hint_styles(
+pub async fn get_hint_default_style(
+    state: tauri::State<'_, crate::config::Config>,
+) -> Result<String, String> {
+    Ok(state.hint.style.clone())
+}
+
+#[tauri::command]
+pub async fn get_hint_types_styles(
     state: tauri::State<'_, crate::config::Config>,
 ) -> Result<Vec<String>, String> {
     let mut styles: Vec<String> = Vec::new();

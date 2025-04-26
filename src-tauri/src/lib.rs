@@ -8,7 +8,7 @@ pub mod monitor;
 mod utils;
 pub mod window;
 
-use config::{get_config_for_frontend, get_hint_styles, save_config_for_frontend};
+use config::{get_config_for_frontend, get_hint_types_styles, hint::get_hint_default_style, save_config_for_frontend};
 use hint::{overlay::OVERLAY_HANDLES_STORAGE, show_hints};
 use log::{error, info};
 use std::{panic, str::FromStr};
@@ -22,6 +22,11 @@ use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_log::{Target, TargetKind};
 use windows::Win32::Foundation::HWND;
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, 
+    WS_EX_TRANSPARENT, 
+};
+use time;
 
 pub fn setup_tray(
     app_handle: &AppHandle,
@@ -173,17 +178,33 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
                     Target::new(TargetKind::Stdout),
                     Target::new(TargetKind::Webview),
                 ])
+                .format(|out, message, record| {
+                    let time = time::OffsetDateTime::now_local()
+                        .unwrap_or_else(|_| time::OffsetDateTime::now_utc());
+                    out.finish(format_args!(
+                        "[{}][{:02}:{:02}:{:02}.{:03}][{}][{}] {}",
+                        time.date(),
+                        time.hour(),
+                        time.minute(),
+                        time.second(),
+                        time.millisecond(),
+                        record.target(),
+                        record.level(),
+                        message
+                    ))
+                })
                 .build(),
         )
         .plugin(tauri_plugin_positioner::init())
-        .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app
                 .get_webview_window("main")
                 .expect("no main window")
                 .set_focus();
         }))
         .invoke_handler(tauri::generate_handler![
-            get_hint_styles,
+            get_hint_default_style,
+            get_hint_types_styles,
             get_config_for_frontend,
             save_config_for_frontend,
         ])
@@ -222,9 +243,6 @@ pub fn create_overlay_window(
     )
     .title(window_label)
     .transparent(true)
-    .decorations(false)
-    .skip_taskbar(true)
-    .always_on_top(true)
     .inner_size(monitor.width as f64, monitor.height as f64)
     .focused(false)
     .build();
@@ -237,29 +255,40 @@ pub fn create_overlay_window(
     }
 
     let window = window.unwrap();
-    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(monitor.x, monitor.y)) {
+    // 确保窗口位置正确
+    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(monitor.x - 12, monitor.y)) {
         error!("[create_overlay_window] set position failed: {}", e);
     }
-
-    // 设置窗口为鼠标穿透并确保在最顶层
-    #[cfg(target_os = "windows")]
-    unsafe {
-        use windows::Win32::UI::WindowsAndMessaging::{
-            GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, WS_EX_TRANSPARENT,
-        };
-        if let Ok(hwnd) = window.hwnd() {
-            let hwnd_raw = hwnd.0;
-            let style = GetWindowLongW(HWND(hwnd_raw as *mut _), GWL_EXSTYLE);
-            SetWindowLongW(
-                HWND(hwnd_raw as *mut _),
-                GWL_EXSTYLE,
-                style | (WS_EX_TRANSPARENT.0 | WS_EX_LAYERED.0) as i32,
-            );
-
-            // 保存窗口句柄
-            if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
-                handles.insert(window_label.to_string(), hwnd_raw as i64);
-            }
+    // 设置窗口样式
+    if let Ok(hwnd) = window.hwnd() {
+        let hwnd_raw = hwnd.0;
+        if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
+            handles.insert(window_label.to_string(), hwnd_raw as i64);
         }
+        set_overlay_style(&window, hwnd_raw as i64);
+    }
+}
+
+fn set_overlay_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
+    // 设置无任务栏图标并确保在最顶层
+    if let Err(e) = window.set_decorations(false) {
+        error!("[set_overlay_style] disable decorations failed: {}", e);
+    }
+    if let Err(e) = window.set_skip_taskbar(true) {
+        error!("[set_overlay_style] set skip taskbar failed: {}", e);
+    }
+    if let Err(e) = window.set_always_on_top(true) {
+        error!("[set_overlay_style] set always on top failed: {}", e);
+    }
+
+    // 设置扩展窗口样式
+    unsafe {
+        let style = GetWindowLongW(HWND(hwnd_raw as *mut _), GWL_EXSTYLE);
+        // 确保WS_EX_TRANSPARENT样式被正确设置
+        SetWindowLongW(
+            HWND(hwnd_raw as *mut _),
+            GWL_EXSTYLE,
+            style | (WS_EX_TRANSPARENT.0 | WS_EX_LAYERED.0) as i32,
+        );
     }
 }

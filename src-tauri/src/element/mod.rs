@@ -1,10 +1,11 @@
+mod ui_automation;
 pub mod element;
 
-pub use element::{UIElement, WINDOWS_UI_ELEMENTS_MAP_STORAGE};
+pub use ui_automation::UIElement;
+pub use element::WINDOWS_UI_ELEMENTS_MAP_STORAGE;
 
 use crate::config;
 use element::collect_ui_elements;
-use log::info;
 use std::time::Duration;
 
 pub fn setup_ui_collection(config: &config::Config) {

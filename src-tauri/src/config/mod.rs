@@ -5,7 +5,7 @@ pub mod mouse;
 pub mod system;
 pub mod ui_automation;
 
-pub use hint::{get_hint_styles, HintConfig};
+pub use hint::{get_hint_types_styles, HintConfig};
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
 use log::{error, info};

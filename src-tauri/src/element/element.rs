@@ -1,179 +1,71 @@
-use crate::{config, window::WindowElement};
-use log::{error, info};
+use crate::window::WindowElement;
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use tokio::time::Instant;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
-use std::time::Instant;
-use windows::{
-    core::GUID,
-    Win32::{Foundation::*, System::Com::*, UI::Accessibility::*},
-};
+use super::ui_automation::{clean_expired_cache, get_cached_elements_for_window, UIAutomationRequest, UIElement};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UIElement {
-    pub text: String,
-    pub is_enabled: bool,
-    pub x: i32,
-    pub y: i32,
-    pub z: i32,
-    pub width: i32,
-    pub height: i32,
-    pub window_handle: i64,
-    pub control_type: i32,
-    // element_type: 0-default, 1-window, 2-pane, 3-tab, 4-button, 5-scrollbar
-    pub element_type: usize,
+static PROCESSING_WINDOWS: Lazy<Mutex<HashSet<i64>>> = Lazy::new(|| Mutex::new(HashSet::new()));
+
+pub static WINDOWS_UI_ELEMENTS_MAP_STORAGE: Lazy<Mutex<HashMap<WindowElement, Vec<UIElement>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+
+fn queue_collect_for_window(window: WindowElement) {
+    let hwnd = window.window_handle;
+    {
+        let mut set = PROCESSING_WINDOWS.lock().unwrap();
+        if set.contains(&hwnd) {
+            return; // 已有任务在跑
+        }
+        set.insert(hwnd);
+    }
+    // 派发异步任务
+    std::thread::spawn(move || {
+        let elements = get_cached_elements_for_window(&window);
+        if let Some(elements) = elements {
+            let mut map = WINDOWS_UI_ELEMENTS_MAP_STORAGE.lock().unwrap();
+            map.insert(window, elements);
+        }
+        PROCESSING_WINDOWS.lock().unwrap().remove(&hwnd);
+    });
 }
 
-pub static WINDOWS_UI_ELEMENTS_MAP_STORAGE: Lazy<Mutex<HashMap<WindowElement, Vec<UIElement>>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
-
-fn init_ui_automation() -> (IUIAutomation, IUIAutomationCondition) {
-    let automation = unsafe {
-        match CoCreateInstance::<_, IUIAutomation>(&CUIAutomation as *const GUID, None, CLSCTX_ALL)
-        {
-            Ok(automation) => automation,
-            Err(e) => {
-                panic!("[init_ui_automation] create UI Automation failed: {:?}", e);
+fn cache_ui_elements_for_windows(windows: &[WindowElement], real_time: bool) {
+    if real_time {
+        let ui_automation = UIAutomationRequest::new();
+        for window in windows.iter() {
+            let elements = ui_automation.get_elements_for_window(window);
+            if let Some(elements) = elements {
+                let mut map = WINDOWS_UI_ELEMENTS_MAP_STORAGE.lock().unwrap();
+                map.insert(window.clone(), elements);
             }
         }
-    };
-    let condition = unsafe {
-        match automation.CreateTrueCondition() {
-            Ok(condition) => condition,
-            Err(e) => {
-                panic!("[init_ui_automation] create condition failed: {:?}", e);
-            }
-        }
-    };
-
-    (automation, condition)
-}
-
-pub fn collect_ui_elements_for_window(
-    automation: &IUIAutomation,
-    condition: &IUIAutomationCondition,
-    window: &WindowElement,
-) -> Vec<UIElement> {
-    let mut position_map: HashMap<(i32, i32), UIElement> = HashMap::new();
-    let hwnd = HWND(window.window_handle as *mut _);
-
-    unsafe {
-        let root_element = match automation.ElementFromHandle(hwnd) {
-            Ok(element) => element,
-            Err(_) => {
-                error!("[collect_ui_elements_for_window] element from handle failed");
-                return Vec::new();
-            }
-        };
-
-        let all_elements = match root_element.FindAll(TreeScope_Subtree, condition) {
-            Ok(elements) => elements,
-            Err(_) => {
-                error!("[collect_ui_elements_for_window] find all elements failed");
-                return Vec::new();
-            }
-        };
-
-        let count = match all_elements.Length() {
-            Ok(len) => len,
-            Err(_) => {
-                error!("[collect_ui_elements_for_window] get all elements length failed");
-                return Vec::new();
-            }
-        };
-
-        for i in 0..count {
-            let element = match all_elements.GetElement(i) {
-                Ok(e) => e,
-                Err(_) => {
-                    error!("[collect_ui_elements_for_window] get element failed");
-                    continue;
-                }
-            };
-
-            // 获取基本属性
-            let (name, control_type_id, is_enabled, is_offscreen) = match (
-                element.CurrentName(),
-                element.CurrentControlType(),
-                element.CurrentIsEnabled(),
-                element.CurrentIsOffscreen(),
-            ) {
-                (Ok(n), Ok(id), Ok(e), Ok(o)) => (n, id, e, o),
-                _ => {
-                    error!("[collect_ui_elements_for_window] get basic properties failed");
-                    continue;
-                }
-            };
-
-            // 检查可见性和启用状态
-            if !is_enabled.as_bool() || is_offscreen.as_bool() {
-                continue;
-            }
-
-            // 获取位置和类名
-            let rect = match element.CurrentBoundingRectangle() {
-                Ok(r) => r,
-                _ => continue,
-            };
-
-            // 检查元素是否有效大小
-            let has_valid_size = (rect.right - rect.left) > 0 && (rect.bottom - rect.top) > 0;
-            if !has_valid_size {
-                continue;
-            }
-
-            // 获取元素类型和z_index
-            let (element_type, z_index) =
-                match config::hint::HINT_CONTROL_TYPES_ID_Z_MAP.get(&control_type_id.0) {
-                    Some((element_type, z_index)) => (element_type, z_index),
-                    None => continue,
-                };
-
-            let ui_element = UIElement {
-                text: name.to_string(),
-                is_enabled: true,
-                x: (rect.right + rect.left) / 2,
-                y: (rect.bottom + rect.top) / 2,
-                z: *z_index,
-                width: rect.right - rect.left,
-                height: rect.bottom - rect.top,
-                window_handle: window.window_handle,
-                control_type: control_type_id.0,
-                element_type: *element_type,
-            };
-
-            let position = (rect.left, rect.top);
-            match position_map.get(&position) {
-                Some(old_element) => {
-                    if old_element.z < *z_index as i32 {
-                        position_map.insert(position, ui_element);
-                    }
-                }
-                None => {
-                    position_map.insert(position, ui_element);
-                }
-            }
+    } else {
+        for window in windows.iter() {
+            queue_collect_for_window(window.clone());
         }
     }
-    position_map.values().cloned().collect()
 }
 
 pub fn collect_ui_elements() {
+    let start_time = Instant::now();
+    clean_expired_cache();
     let windows = crate::window::window::get_all_windows();
-    let (automation, condition) = init_ui_automation();
+    let top_windows = crate::window::window::calculate_top_windows(&windows);
 
+    let mut top_level_windows = Vec::new();
+    let mut visible_windows = Vec::new();
     for window in windows.iter() {
-        if !window.visible {
-            continue;
-        }
-        let window_elements = collect_ui_elements_for_window(&automation, &condition, window);
-        if window_elements.is_empty() {
-            continue;
-        }
-
-        if let Ok(mut map) = WINDOWS_UI_ELEMENTS_MAP_STORAGE.lock() {
-            map.insert(window.clone(), window_elements);
+        if top_windows.contains(window) { 
+            // 顶层窗口获取实时元素
+            top_level_windows.push(window.clone());
+        } else if window.visible {
+            // 可见窗口获取缓存元素由任务队列处理
+            visible_windows.push(window.clone());
         }
     }
+    cache_ui_elements_for_windows(&top_level_windows, true);
+    cache_ui_elements_for_windows(&visible_windows, false);
+
+    debug!("[collect_ui_elements] collect ui elements time: {:?}", start_time.elapsed());
 }

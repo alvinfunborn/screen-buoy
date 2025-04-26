@@ -3336,6 +3336,7 @@ dependencies = [
  "tauri-plugin-process",
  "tauri-plugin-single-instance",
  "thread_local",
+ "time",
  "tokio",
  "toml",
  "windows",

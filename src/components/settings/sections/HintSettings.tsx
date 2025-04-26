@@ -21,6 +21,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   const [rawStyleInputs, setRawStyleInputs] = useState<Record<string, string>>({});
   const [rawCharsetInputs, setRawCharsetInputs] = useState<Record<number, string>>({});
   const [rawExtraCharsetInput, setRawExtraCharsetInput] = useState<string>('');
+  const [rawDefaultStyle, setRawDefaultStyle] = useState<string>('');
   // State for element_control_types raw input
   const [rawElementControlTypesInputs, setRawElementControlTypesInputs] = useState<Record<string, string>>({});
 
@@ -70,6 +71,12 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       setRawExtraCharsetInput(Array.isArray(initialHintConfig.charset_extra) ? initialHintConfig.charset_extra.join(', ') : '');
     } else {
       setRawExtraCharsetInput('');
+    }
+
+    if (initialHintConfig?.style) {
+      setRawDefaultStyle(initialHintConfig.style);
+    } else {
+      setRawDefaultStyle('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]); // Rerun if form instance changes
@@ -146,6 +153,26 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       const allValues = form.getFieldsValue(true);
       // Ensure allValues reflects the change
       const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charset_extra: newArrayValue } };
+      onValuesChange(changedValues, updatedAllValues);
+      form.validateFields([fieldPath]);
+    } else {
+      form.validateFields([fieldPath]);
+    }
+  };
+
+  const handleRawDefaultStyleChange = (value: string) => {
+    setRawDefaultStyle(value);
+  };
+
+  const handleRawDefaultStyleBlur = () => {
+    const rawValue = rawDefaultStyle ?? '';
+    const fieldPath: NamePath = ['hint', 'style'];
+    form.setFieldValue(fieldPath, rawValue);
+
+    if (onValuesChange) {
+      const changedValues = { hint: { style: rawValue } };
+      const allValues = form.getFieldsValue(true);
+      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), style: rawValue } };
       onValuesChange(changedValues, updatedAllValues);
       form.validateFields([fieldPath]);
     } else {
@@ -316,8 +343,22 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         />
       </Form.Item>
 
-      <Paragraph className="config-section-title">Hint Types</Paragraph>
+      {/* Default Style Section */}
+      <Form.Item
+        label="Hint Default Style"
+        className="config-section-title"
+        name={['hint', 'style']}
+      >
+        <Input.TextArea
+          rows={10}
+          placeholder="Enter the default style"
+          value={rawDefaultStyle}
+          onChange={(e) => handleRawDefaultStyleChange(e.target.value)}
+          onBlur={handleRawDefaultStyleBlur}
+        />
+      </Form.Item>
 
+      <Paragraph className="config-section-title">Hint Types</Paragraph>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
       <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (

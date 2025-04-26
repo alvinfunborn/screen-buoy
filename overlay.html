@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,38 +21,14 @@
             left: 0;
         }
 
-        .hint-container.hidden {
-            display:none;
-        }
-
         .hints-container {
-            position: fixed;
+            position: absolute;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
             transform: translate(0px, 0px);
-            transition: transform 0.1s ease-out;
-        }
-
-        .hint {
-            position: absolute;
-            display: none; /* 默认隐藏 */
-            opacity: 0;
-            transition: opacity 0.15s ease-out;
-            align-items: center;
-            justify-content: center;
-            padding: 0 2px;
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: bold;
-            -webkit-user-select: none;
-            user-select: none;
-            transform: translate(-50%, 0);
-            z-index: -2147483646; 
-            border: 1px solid #fff;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
 
         .hint.visible {
@@ -65,6 +42,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="hints-container" id="hintsContainer">
         <!-- hints will be added here -->
@@ -85,7 +63,7 @@
         } from '@tauri-apps/plugin-log';
 
         // 使用导入的 API 直接获取当前窗口
-        const currentWindow =getCurrentWebview();
+                    const currentWindow = getCurrentWebview();
 
         // 初始化日志系统
         async function initLogger() {
@@ -106,12 +84,12 @@
                     throw new Error('Invalid hint data');
                 }
 
-                const {x, y, z, scale, text, hint_type} = hint;
+                const { x, y, z, text, hint_type } = hint;
 
                 const hintElement = document.createElement('div');
                 hintElement.className = 'hint visible hint-style' + hint.hint_type;
                 hintElement.textContent = text;
-                
+
                 // 直接使用相对坐标
                 hintElement.style.left = x + 'px';
                 hintElement.style.top = y + 'px';
@@ -138,7 +116,7 @@
                 .match(/translate\((-?\d+)px,\s*(-?\d+)px\)/)
                 ?.slice(1)
                 .map(Number) || [0, 0];
-            
+
             container.style.transform = `translate(${currentX + x}px, ${currentY + y}px)`;
         }
 
@@ -154,19 +132,34 @@
             });
         }
 
+                            // 获取hint默认样式配置
+                            async function getHintDefaultStyle() {
+                                try {
+                                    const style = await invoke('get_hint_default_style');
+                                    return style;
+                                } catch (error) {
+                                    info(`[getHintDefaultStyle] window: ${currentWindow.label} failed to get hint default style: ${error}`);
+                                    return null;
+                                }
+                            }
         // 获取hint样式配置
-        async function getHintStyles() {
+                            async function getHintTypesStyles() {
             try {
-                const styles = await invoke('get_hint_styles');
+                const styles = await invoke('get_hint_types_styles');
                 return styles;
             } catch (error) {
-                info(`[getHintStyles] window: ${currentWindow.label} failed to get hint styles: ${error}`);
+                info(`[getHintTypesStyles] window: ${currentWindow.label} failed to get hint types styles: ${error}`);
                 return null;
             }
         }
 
-        // 生成CSS样式
-        function generateHintStyles(styles) {
+                            // 生成默认css
+                            function generateHintDefaultStyle(style) {
+                                return `.hint ${style}`
+                            }
+
+                            // 生成自定义css
+                            function generateHintTypesStyles(styles) {
             let css = ``;
             for (let i = 0; i < styles.length; i++) {
                 css += `
@@ -189,11 +182,16 @@
             try {
                 // 确保日志系统初始化
                 await initLogger();
-                
+
                 // 获取并应用样式
-                const styles = await getHintStyles();
+                const style = await getHintDefaultStyle();
+                if (style) {
+                    const css = generateHintDefaultStyle(style);
+                    applyStyles(css);
+                }
+                const styles = await getHintTypesStyles();
                 if (styles) {
-                    const css = generateHintStyles(styles);
+                    const css = generateHintTypesStyles(styles);
                     applyStyles(css);
                 }
 
@@ -205,7 +203,7 @@
                         info(`[listenShow] window: ${currentWindow.label} ignore event from other window: ${payload.windowLabel}`);
                         return;
                     }
-                    
+
                     const hints = payload.hints;
                     if (!Array.isArray(hints)) {
                         return;
@@ -265,7 +263,7 @@
                     info(`[listenMove] window: ${currentWindow.label} received move-hints event: ${event.payload}`);
                     const payload = event.payload;
                     if (payload && typeof payload === 'object' && 'x' in payload && 'y' in payload) {
-                        const {x, y} = payload;
+                        const { x, y } = payload;
                         moveHints(x, y);
                     }
                 });
@@ -315,4 +313,5 @@
         });
     </script>
 </body>
+
 </html>

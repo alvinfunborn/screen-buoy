@@ -18,9 +18,9 @@ fn main() {
     unsafe {
         let result = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         if result.is_err() {
-            error!("COM 初始化失败: {:?}", result.message());
+            error!("COM initialize failed: {:?}", result.message());
         } else {
-            info!("COM 初始化成功 (APARTMENTTHREADED)");
+            info!("COM initialized (APARTMENTTHREADED)");
         }
     }
 
@@ -57,16 +57,18 @@ fn main() {
 
         // Initialize panic handler
         setup_panic_handler(app_handle.clone());
+        info!("[✓] panic handler initialized");
 
         // Initialize input hook
         input::hook::init(app_handle.clone());
+        info!("[✓] input hook initialized");
 
         // Initialize hints
         hint::init_hint_text_list_storage();
-        info!("[✓] hints initialized successfully");
+        info!("[✓] hints text list storage initialized");
 
         monitor::init_monitors(&main_window);
-        info!("[✓] monitors initialized successfully");
+        info!("[✓] monitors initialized");
 
         // Setup UI collection
         element::setup_ui_collection(&config);
@@ -74,18 +76,18 @@ fn main() {
 
         // Create overlay windows
         create_overlay_windows(&app_handle);
-        info!("[✓] overlay windows created successfully");
+        info!("[✓] overlay windows created");
 
         // Setup shortcuts
         setup_shortcut(&app_handle, &config, main_window.clone())
             .expect("Failed to setup shortcuts");
-        info!("[✓] shortcuts setup successfully");
+        info!("[✓] shortcuts setup");
 
         // set autostart
         set_auto_start(&app_handle, &config).expect("Failed to setup auto start");
-        info!("[✓] auto start setup successfully");
+        info!("[✓] auto start setup");
 
-        info!("=== application initialized successfully ===");
+        info!("=== application initialized ===");
         Ok(())
     });
 

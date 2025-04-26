@@ -7,6 +7,7 @@ export interface HintType {
 export interface HintConfig {
   charsets: string[][];
   charset_extra: string[];
+  style: string;
   types: Record<string, HintType>;
 }
 

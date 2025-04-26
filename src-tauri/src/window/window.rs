@@ -30,20 +30,19 @@ pub struct WindowElement {
 impl Hash for WindowElement {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.window_handle.hash(state);
-        self.class_name.hash(state);
     }
 }
 
 impl PartialEq for WindowElement {
     fn eq(&self, other: &Self) -> bool {
-        self.window_handle == other.window_handle && self.class_name == other.class_name
+        self.window_handle == other.window_handle
     }
 }
 
 impl Eq for WindowElement {}
 
 pub fn get_all_windows() -> Vec<WindowElement> {
-    let mut windows = Vec::new();
+    let mut windows: Vec<WindowElement> = Vec::new();
     unsafe {
         if let Err(e) = EnumWindows(
             Some(enum_window_proc),
@@ -52,6 +51,9 @@ pub fn get_all_windows() -> Vec<WindowElement> {
             error!("[get_all_windows] enumerate windows failed: {:?}", e);
         }
     }
+    // 按Z序从高到低排序窗口（z_index越大越靠近顶层）
+    windows = windows.iter().filter(|w| w.visible).cloned().collect();
+    windows.sort_by_key(|w: &WindowElement| -w.z_index);
     windows
 }
 
@@ -142,13 +144,42 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
     BOOL(1)
 }
 
+pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElement> {
+    let mut uncovered_windows = HashSet::new();
+
+    // 从顶层窗口开始遍历
+    for (i, window) in windows.iter().enumerate() {
+        let window_rect = Rect::new(window.x, window.y, window.width, window.height);
+
+        let mut has_covered = false;
+        // 检查上层窗口的遮挡
+        for upper_window in windows.iter().take(i) {
+            if upper_window.title.is_empty() {
+                // 如果是被系统窗口如Shell_TrayWnd遮挡，则不考虑
+                continue;
+            }
+            let upper_rect = Rect::new(
+                upper_window.x,
+                upper_window.y,
+                upper_window.width,
+                upper_window.height,
+            );
+
+            // 如果有重叠，添加遮挡区域
+            if window_rect.intersects(&upper_rect) {
+                has_covered = true;
+                break;
+            }
+        }
+        if !has_covered {
+            uncovered_windows.insert(window.clone());
+        }
+    }
+    uncovered_windows
+}
+
 pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
-    let mut windows = get_all_windows();
-
-    // 按Z序从高到低排序窗口（z_index越大越靠近顶层）
-    windows = windows.iter().filter(|w| w.visible).cloned().collect();
-    windows.sort_by_key(|w: &WindowElement| -w.z_index);
-
+    let windows = get_all_windows();
     let mut uncovered_windows = HashSet::new();
     let mut covered_areas: IndexMap<WindowElement, Vec<Rect>> = IndexMap::new();
 
