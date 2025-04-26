@@ -243,6 +243,7 @@ pub fn create_overlay_window(
     )
     .title(window_label)
     .transparent(true)
+    .decorations(false)
     .inner_size(monitor.width as f64, monitor.height as f64)
     .focused(false)
     .build();
@@ -271,9 +272,6 @@ pub fn create_overlay_window(
 
 fn set_overlay_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
     // 设置无任务栏图标并确保在最顶层
-    if let Err(e) = window.set_decorations(false) {
-        error!("[set_overlay_style] disable decorations failed: {}", e);
-    }
     if let Err(e) = window.set_skip_taskbar(true) {
         error!("[set_overlay_style] set skip taskbar failed: {}", e);
     }
