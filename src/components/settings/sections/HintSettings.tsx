@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Space, Typography, Spin, Input, Button, InputNumber, Collapse } from 'antd';
+import { Form, Space, Typography, Spin, Input, Button, InputNumber, Collapse, Select } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
@@ -89,6 +89,14 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     setRawShowAtColumnsInput(Array.isArray(grid.show_at_columns) ? grid.show_at_columns.join(', ') : '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]); // Rerun if form instance changes
+
+  const [gridRows, setGridRows] = useState<number>(form.getFieldValue(['hint', 'grid', 'rows']) || 3);
+  const [gridColumns, setGridColumns] = useState<number>(form.getFieldValue(['hint', 'grid', 'columns']) || 3);
+
+  useEffect(() => {
+    setGridRows(form.getFieldValue(['hint', 'grid', 'rows']) || 3);
+    setGridColumns(form.getFieldValue(['hint', 'grid', 'columns']) || 3);
+  }, [form.getFieldValue(['hint', 'grid', 'rows']), form.getFieldValue(['hint', 'grid', 'columns'])]);
 
   // --- Event Handlers ---
 
@@ -320,6 +328,35 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     }
   };
 
+  const handleGridRowsChange = (value: number | null) => {
+    if (typeof value !== 'number' || isNaN(value)) return;
+    setGridRows(value);
+    form.setFieldValue(['hint', 'grid', 'rows'], value);
+    // 修正 show_at_rows
+    const current = form.getFieldValue(['hint', 'grid', 'show_at_rows']) || [];
+    const filtered = current.filter((n: number) => n >= 1 && n <= value);
+    form.setFieldValue(['hint', 'grid', 'show_at_rows'], filtered);
+    if (onValuesChange) {
+      const changedValues = { hint: { grid: { rows: value, show_at_rows: filtered } } };
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), rows: value, show_at_rows: filtered } } });
+    }
+  };
+  const handleGridColumnsChange = (value: number | null) => {
+    if (typeof value !== 'number' || isNaN(value)) return;
+    setGridColumns(value);
+    form.setFieldValue(['hint', 'grid', 'columns'], value);
+    // 修正 show_at_columns
+    const current = form.getFieldValue(['hint', 'grid', 'show_at_columns']) || [];
+    const filtered = current.filter((n: number) => n >= 1 && n <= value);
+    form.setFieldValue(['hint', 'grid', 'show_at_columns'], filtered);
+    if (onValuesChange) {
+      const changedValues = { hint: { grid: { columns: value, show_at_columns: filtered } } };
+      const allValues = form.getFieldsValue(true);
+      onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), columns: value, show_at_columns: filtered } } });
+    }
+  };
+
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       {/* Hint Charsets Section (Existing) */}
@@ -382,48 +419,62 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Form.Item
           label="Rows"
-          layout="horizontal"
           name={['hint', 'grid', 'rows']}
-          rules={[{ type: 'number', min: 0, message: 'Please enter the number of rows' }]}
           style={{ marginBottom: 8 }}
         >
-          <InputNumber min={1} style={{ width: 100 }} />
+          <InputNumber min={1} value={gridRows} onChange={handleGridRowsChange} style={{ width: 100 }} />
         </Form.Item>
         <Form.Item
           label="Columns"
-          layout="horizontal"
           name={['hint', 'grid', 'columns']}
-          rules={[{ type: 'number', min: 0, message: 'Please enter the number of columns' }]}
           style={{ marginBottom: 8 }}
         >
-          <InputNumber min={1} style={{ width: 100 }} />
+          <InputNumber min={1} value={gridColumns} onChange={handleGridColumnsChange} style={{ width: 100 }} />
         </Form.Item>
-        <Form.Item label="Show At Rows" layout="horizontal" style={{ marginBottom: 8 }}>
-          <Input
-            placeholder="Enter the rows, separated by commas"
-            value={rawShowAtRowsInput}
-            onChange={e => setRawShowAtRowsInput(e.target.value)}
-            onBlur={handleShowAtRowsBlur}
+        <Form.Item label="Show At Rows" style={{ marginBottom: 8 }}>
+          <Select
+            mode="multiple"
+            value={form.getFieldValue(['hint', 'grid', 'show_at_rows']) || []}
+            options={Array.from({ length: gridRows }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+            onChange={vals => {
+              form.setFieldValue(['hint', 'grid', 'show_at_rows'], vals);
+              if (onValuesChange) {
+                const changedValues = { hint: { grid: { show_at_rows: vals } } };
+                const allValues = form.getFieldsValue(true);
+                onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_rows: vals } } });
+              }
+            }}
             style={{ width: 200 }}
+            placeholder="选择行"
           />
         </Form.Item>
-        <Form.Item label="Show At Columns" layout="horizontal" style={{ marginBottom: 8 }}>
-          <Input
-            placeholder="Enter the columns, separated by commas"
-            value={rawShowAtColumnsInput}
-            onChange={e => setRawShowAtColumnsInput(e.target.value)}
-            onBlur={handleShowAtColumnsBlur}
+        <Form.Item label="Show At Columns" style={{ marginBottom: 8 }}>
+          <Select
+            mode="multiple"
+            value={form.getFieldValue(['hint', 'grid', 'show_at_columns']) || []}
+            options={Array.from({ length: gridColumns }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+            onChange={vals => {
+              form.setFieldValue(['hint', 'grid', 'show_at_columns'], vals);
+              if (onValuesChange) {
+                const changedValues = { hint: { grid: { show_at_columns: vals } } };
+                const allValues = form.getFieldsValue(true);
+                onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_columns: vals } } });
+              }
+            }}
             style={{ width: 200 }}
+            placeholder="选择列"
           />
         </Form.Item>
         <Form.Item
           label="Hint Type"
-          layout="horizontal"
           name={['hint', 'grid', 'hint_type']}
-          rules={[{ message: 'Please enter the type' }]}
           style={{ marginBottom: 0 }}
         >
-          <Input style={{ width: 200 }} />
+          <Select
+            options={hintTypeNames.map(name => ({ value: name, label: name }))}
+            style={{ width: 200 }}
+            placeholder="选择类型"
+          />
         </Form.Item>
       </Space>
 
