@@ -21,6 +21,14 @@ export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ onVa
       >
         <InputNumber min={50} max={10000} step={50} />
       </Form.Item>
+      <Form.Item
+        layout="horizontal"
+        label="Cache TTL (ms)"
+        name={['ui_automation', 'cache_ttl']}
+        tooltip="Time to live for cached UI element data in milliseconds"
+      >
+        <InputNumber min={100} max={1000000} step={100} />
+      </Form.Item>
     </Space>
   );
 };

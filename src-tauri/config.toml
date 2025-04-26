@@ -564,3 +564,4 @@ start_at_login = true
 
 [ui_automation]
 collect_interval = 1000
+cache_ttl = 60000

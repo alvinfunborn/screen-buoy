@@ -8,8 +8,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use crate::config;
 use crate::window::WindowElement;
 
-const DEFAULT_TTL: u64 = 60; // 缓存过期时间（秒）
-
 pub struct UIAutomationRequest {
     pub automation: IUIAutomation,
     pub condition: IUIAutomationCondition,
@@ -30,7 +28,7 @@ pub struct UIElement {
     pub element_type: usize,
 }
 
-static ELEMENTS_CACHE_WITH_EXPIRATION: Lazy<Mutex<HashMap<i64, (Vec<UIElement>, u64)>>> = 
+static ELEMENTS_CACHE_WITH_EXPIRATION: Lazy<Mutex<HashMap<i64, (Vec<UIElement>, u128)>>> = 
     Lazy::new(|| Mutex::new(HashMap::new()));
 
 impl UIAutomationRequest {
@@ -51,7 +49,7 @@ impl UIAutomationRequest {
             let root_element = self.automation.ElementFromHandle(HWND(window.window_handle as *mut _)).ok()?;
             match root_element.FindAll(TreeScope_Subtree, &self.condition) {
                 Ok(elements) => {
-                let expire_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() + DEFAULT_TTL;
+                let expire_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() + config::get_config().unwrap().ui_automation.cache_ttl as u128;
                 let window_handle = window.window_handle;
                 let elements = convert_ui_automation(elements, window_handle);
                 ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().insert(window_handle, (elements.clone(), expire_at));
@@ -68,7 +66,7 @@ impl UIAutomationRequest {
     pub fn get_cached_elements_for_window(&self, window: &WindowElement) -> Option<Vec<UIElement>> {
         let window_handle = window.window_handle;
         if let Some((elements, expire_at)) = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().get(&window_handle) {
-            if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs() <= *expire_at {
+            if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() <= *expire_at {
                 return Some(elements.clone());
             }
             ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().remove(&window_handle);
@@ -159,7 +157,7 @@ unsafe fn convert_ui_automation(all_elements: IUIAutomationElementArray, window_
 
 // 定时清理过期key的方法
 pub fn clean_expired_cache() {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     let mut cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
     cache.retain(|_, (_, expire_at)| *expire_at > now);
 }

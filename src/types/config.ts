@@ -92,6 +92,7 @@ export interface SystemConfig {
 
 export interface UiAutomationConfig {
   collect_interval: number;
+  cache_ttl: number;
 }
 
 export interface Config {
