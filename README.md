@@ -235,11 +235,3 @@ element_control_types = [50021, 50026, ...]
 
 - [Fluent Search](https://www.fluentsearch.net/)  
 - [mousemaster](https://github.com/petoncle/mousemaster)  
-
----
-
-## License
-
-MIT
-
----
