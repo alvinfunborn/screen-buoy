@@ -31,6 +31,7 @@ fn queue_collect_for_window(window: WindowElement) {
 }
 
 fn cache_ui_elements_for_windows(windows: &[WindowElement], real_time: bool) {
+    debug!("[cache_ui_elements_for_windows] cache ui elements for {} windows, real_time: {}", windows.len(), real_time);
     if real_time {
         let ui_automation = UIAutomationRequest::new();
         for window in windows.iter() {
@@ -64,6 +65,7 @@ pub fn collect_ui_elements() {
             visible_windows.push(window.clone());
         }
     }
+    debug!("[collect_ui_elements] windows: {:?}, top_level_windows: {:?}, visible_windows: {:?}", windows, top_level_windows, visible_windows);
     cache_ui_elements_for_windows(&top_level_windows, true);
     cache_ui_elements_for_windows(&visible_windows, false);
 

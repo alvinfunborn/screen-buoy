@@ -55,6 +55,7 @@ pub fn get_all_windows() -> Vec<WindowElement> {
     // 按Z序从高到低排序窗口（z_index越大越靠近顶层）
     windows = windows.iter().filter(|w| w.visible).cloned().collect();
     windows.sort_by_key(|w: &WindowElement| -w.z_index);
+    debug!("[get_all_windows] windows: {:?}", windows);
     windows
 }
 
@@ -100,6 +101,8 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
         // 检查窗口是否有效
         let has_valid_size = (rect.right - rect.left) > 0 && (rect.bottom - rect.top) > 0;
 
+        debug!("[enum_window_proc] title:{} class_name:{} is_task_bar:{} is_enabled:{} is_tool_window:{} is_transparent:{} is_system_window:{} has_valid_size:{}",
+            title, class_name, is_task_bar, is_enabled, is_tool_window, is_transparent, is_system_window, has_valid_size);
         // 如果窗口符合所有条件，则添加到列表中
         // 对任务栏窗口特殊处理，即使没有标题也允许
         if is_task_bar

@@ -88,6 +88,8 @@ export interface SystemConfig {
   start_in_tray: boolean;
   show_tray_icon: boolean;
   start_at_login: boolean;
+  logging_level: string;
+  debug_mode: boolean;
 }
 
 export interface UiAutomationConfig {

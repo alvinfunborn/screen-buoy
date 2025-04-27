@@ -16,7 +16,6 @@
     "core:window:allow-set-title",
     "core:image:default",
     "core:webview:default",
-    "log:default",
     "process:default",
     "autostart:default"
   ]

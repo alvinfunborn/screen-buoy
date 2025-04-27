@@ -1,7 +1,8 @@
 use indexmap::IndexMap;
+use log::info;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct KeybindingConfig {
@@ -109,6 +110,7 @@ impl KeybindingConfig {
             keybindings.insert(TRANSLATE_LEFT_CMD, self.global.translate.left.clone());
             keybindings.insert(TRANSLATE_RIGHT_CMD, self.global.translate.right.clone());
         }
+        info!("[get_global_keybindings] is key_down: {}, keybindings: {:?}", key_down, keybindings);
         keybindings
     }
 
@@ -142,6 +144,7 @@ impl KeybindingConfig {
         keybindings.insert(SCROLL_DOWN_CMD, self.at_hint.scroll.down.clone());
         keybindings.insert(SCROLL_LEFT_CMD, self.at_hint.scroll.left.clone());
         keybindings.insert(SCROLL_RIGHT_CMD, self.at_hint.scroll.right.clone());
+        info!("[get_at_hint_keybindings] keybindings: {:?}", keybindings);
         keybindings
     }
 }

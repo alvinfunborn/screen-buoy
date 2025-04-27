@@ -5,12 +5,12 @@ pub mod element;
 pub mod hint;
 pub mod input;
 pub mod monitor;
-mod utils;
+pub mod utils;
 pub mod window;
 
 use config::{get_config_for_frontend, get_hint_types_styles, hint::get_hint_default_style, save_config_for_frontend};
 use hint::{ overlay::OVERLAY_HANDLES_STORAGE, show_hints};
-use log::{error, info};
+use log::{error, info, warn};
 use std::{panic, str::FromStr};
 use tauri::{
     image::Image,
@@ -20,13 +20,11 @@ use tauri::{
 };
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
-use tauri_plugin_log::{Target, TargetKind};
 use windows::Win32::{Foundation::HWND, Graphics::Dwm::DWMWINDOWATTRIBUTE};
 use windows::Win32::UI::WindowsAndMessaging::{
     GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, 
     WS_EX_TRANSPARENT, 
 };
-use time;
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
 pub fn setup_tray(
@@ -94,12 +92,14 @@ pub fn setup_shortcut(
     let main_shortcut: Shortcut = FromStr::from_str(&hotkey_buoy)?;
     let main_window_clone = main_window.clone();
 
+    info!("[setup_shortcut] main_shortcut: {}", hotkey_buoy);
     app_handle.plugin(
         tauri_plugin_global_shortcut::Builder::new()
             .with_handler(move |_app, shortcut, event| {
                 if shortcut == &main_shortcut {
                     match event.state() {
                         ShortcutState::Pressed => {
+                            info!("[setup_shortcut] main shortcut pressed");
                             let window_clone = main_window_clone.clone();
                             tauri::async_runtime::spawn(async move {
                                 show_hints(window_clone).await;
@@ -125,6 +125,7 @@ pub fn set_auto_start(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let auto_start = config.system.start_at_login;
     let autostart_manager = app_handle.autolaunch();
+    info!("[set_auto_start] auto start: {}", auto_start);
     if auto_start {
         let _ = autostart_manager.enable();
     } else {
@@ -173,29 +174,6 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             None,
         ))
         .plugin(tauri_plugin_process::init())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .targets([
-                    Target::new(TargetKind::Stdout),
-                    Target::new(TargetKind::Webview),
-                ])
-                .format(|out, message, record| {
-                    let time = time::OffsetDateTime::now_local()
-                        .unwrap_or_else(|_| time::OffsetDateTime::now_utc());
-                    out.finish(format_args!(
-                        "[{}][{:02}:{:02}:{:02}.{:03}][{}][{}] {}",
-                        time.date(),
-                        time.hour(),
-                        time.minute(),
-                        time.second(),
-                        time.millisecond(),
-                        record.target(),
-                        record.level(),
-                        message
-                    ))
-                })
-                .build(),
-        )
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app
@@ -224,6 +202,7 @@ pub fn create_overlay_window(
 ) {
     // 如果已存在，先关闭
     if let Some(existing_window) = app_handle.get_webview_window(&window_label) {
+        warn!("[create_overlay_window] close existing window: {}", window_label);
         if let Err(e) = existing_window.close() {
             error!(
                 "[create_overlay_window] close existing window failed: {}",
@@ -280,13 +259,14 @@ pub fn create_overlay_window(
                 &preference as *const _ as _,
                 std::mem::size_of_val(&preference) as u32,
             );
-            set_window_transparent_style(&window, hwnd_raw as i64);
+            if !config::get_config().unwrap().system.debug_mode {
+                set_window_transparent_style(&window, hwnd_raw as i64);
+            }
         }
         if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
             handles.insert(window_label.to_string(), hwnd_raw as i64);
         }
     }
-
 }
 
 fn set_window_transparent_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {

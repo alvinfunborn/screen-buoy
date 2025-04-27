@@ -8,7 +8,7 @@ pub mod ui_automation;
 pub use hint::{get_hint_types_styles, HintConfig};
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
-use log::{error, info};
+use log::{debug, error, info};
 pub use mouse::MouseConfig;
 pub use system::SystemConfig;
 pub use ui_automation::UiAutomationConfig;
@@ -85,6 +85,7 @@ pub fn get_config_for_frontend() -> Config {
 pub fn save_config_for_frontend(config: Config) {
     // 重排序 keyboard.available_key
     let mut config = config;
+    debug!("[save_config_for_frontend] save config: {:?}", config);
     let mut available_keys_vec = config
         .keyboard
         .available_key

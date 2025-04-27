@@ -568,6 +568,8 @@ right = "1"
 start_in_tray = true
 show_tray_icon = true
 start_at_login = true
+logging_level = "info"
+debug_mode = false
 
 [ui_automation]
 collect_interval = 1000

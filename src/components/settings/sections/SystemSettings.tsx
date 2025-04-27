@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Switch, Space, Typography, Spin, Button } from 'antd';
+import { Form, Switch, Space, Typography, Spin, Button, Select } from 'antd';
 import { relaunch, exit } from '@tauri-apps/plugin-process';
 import { Config } from '@/types/config';
 import '../../../styles/global.css';
@@ -29,6 +29,29 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
+      <Form.Item
+        label="Logging Level"
+        name={['system', 'logging_level']}
+        style={{ width: '200px' }}
+        layout="horizontal"
+      >
+        <Select>
+          <Select.Option value="debug">debug</Select.Option>
+          <Select.Option value="info">info</Select.Option>
+          <Select.Option value="warn">warn</Select.Option>
+          <Select.Option value="error">error</Select.Option>
+        </Select>
+      </Form.Item>
+
+      <Form.Item
+        label="Debug Mode"
+        name={['system', 'debug_mode']}
+        valuePropName="checked"
+        layout="horizontal"
+      >
+        <Switch />
+      </Form.Item>
+
       <Form.Item
         label="Start in System Tray"
         name={['system', 'start_in_tray']}

@@ -1,6 +1,6 @@
 use crate::hint::generator::Hint;
 use crate::hint::overlay::get_overlay_monitor_id;
-use log::{error, info};
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -24,6 +24,8 @@ pub fn get_hint_position_by_text(hint_text: &str) -> Option<(usize, i32, i32)> {
         // 遍历所有 hints，查找匹配的文本
         for (window_label, hints) in hints_map.iter() {
             if let Some(hint) = hints.get(hint_text) {
+                debug!("[get_hint_position_by_text] get hint position: ({},{}) with offset: ({},{})",
+                    hint.x, hint.y, offset.0, offset.1);
                 return Some((
                     get_overlay_monitor_id(window_label),
                     hint.x + offset.0,
@@ -41,6 +43,8 @@ pub fn get_hint_position_by_text(hint_text: &str) -> Option<(usize, i32, i32)> {
 // 更新 hints 的偏移量
 pub fn update_hints_offset(dx: i32, dy: i32) {
     if let Ok(mut offset) = HINTS_OFFSET_STORAGE.lock() {
+        debug!("[update_hints_offset] update hints offset: ({},{}) with dx: {}, dy: {}",
+            offset.0, offset.1, dx, dy);
         offset.0 += dx;
         offset.1 += dy;
     }
@@ -49,6 +53,7 @@ pub fn update_hints_offset(dx: i32, dy: i32) {
 // 重置 hints 的偏移量
 fn reset_hints_offset() {
     if let Ok(mut offset) = HINTS_OFFSET_STORAGE.lock() {
+        debug!("[reset_hints_offset] reset hints offset: ({},{})", offset.0, offset.1);
         *offset = (0, 0);
     }
 }
@@ -56,6 +61,7 @@ fn reset_hints_offset() {
 // 保存 hints 信息
 pub async fn save_hints(window_label: String, hints: Vec<Hint>) {
     if let Ok(mut hints_map) = ACTIVE_HINTS_STORAGE.lock() {
+        debug!("[save_hints] save {} hints to ACTIVE_HINTS_STORAGE: {}", hints.len(), window_label);
         if hints_map.contains_key(&window_label) {
             hints.iter().for_each(|hint| {
                 hints_map
@@ -80,6 +86,7 @@ pub async fn save_hints(window_label: String, hints: Vec<Hint>) {
 // 清空所有 hints 信息
 pub fn clear_hints() {
     if let Ok(mut hints_map) = ACTIVE_HINTS_STORAGE.lock() {
+        debug!("[clear_hints] clear ACTIVE_HINTS_STORAGE");
         hints_map.clear();
     } else {
         error!("[clear_hints] failed to get ACTIVE_HINTS_STORAGE lock");

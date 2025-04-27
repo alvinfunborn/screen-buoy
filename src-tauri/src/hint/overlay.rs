@@ -1,6 +1,6 @@
 use crate::create_overlay_window;
 use crate::monitor::MONITORS_STORAGE;
-use log::{error, info};
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -42,9 +42,10 @@ pub fn create_overlay_windows(app_handle: &tauri::AppHandle) {
 // 确保所有overlay窗口都在最顶层，直接使用保存的窗口句柄
 pub fn ensure_all_overlays_topmost() {
     if let Ok(handles) = OVERLAY_HANDLES_STORAGE.lock() {
-        for (label, &hwnd_raw) in handles.iter() {
+        for (_label, &hwnd_raw) in handles.iter() {
             #[cfg(target_os = "windows")]
             unsafe {
+                debug!("[ensure_all_overlays_topmost] set overlay window topmost: {}", hwnd_raw);
                 let _ = SetWindowPos(
                     HWND(hwnd_raw as *mut _),
                     Some(HWND(HWND_TOPMOST.0)),

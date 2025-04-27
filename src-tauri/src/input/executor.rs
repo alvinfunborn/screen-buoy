@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::{debug, error, info};
 
 use crate::{
     config,
@@ -130,6 +130,7 @@ impl<'a> Executor<'a> {
 
         let app_handle_clone = self.app_handle.clone();
         if hold_duration < 300 {
+            debug!("[execute_quick_click] execute quick click since hold_duration: {} < 300", hold_duration);
             tauri::async_runtime::spawn(async move {
                 mouse::mouse_click_left().await;
                 if exit {
@@ -143,6 +144,7 @@ impl<'a> Executor<'a> {
 
     fn execute_hold_at_hint(&mut self) -> bool {
         if !self.state.final_hint_key_hold {
+            debug!("[execute_hold_at_hint] enter hold state");
             self.state.final_hint_key_hold = true;
             self.state.final_hint_key_hold_start = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -151,12 +153,14 @@ impl<'a> Executor<'a> {
             let app_handle_clone = self.app_handle.clone();
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
+                debug!("[execute_hold_at_hint] no final hint, directly to hold state, filter hints");
                 tauri::async_runtime::spawn(async move {
                     filter_hints(app_handle_clone, "_removeAllHints".to_string()).await;
                 });
             }
         } else {
             let is_dragging = self.state.is_dragging;
+            debug!("[execute_hold_at_hint] already in hold state, hide hints, currently is_dragging: {}", is_dragging);
             let app_handle_clone = self.app_handle.clone();
             tauri::async_runtime::spawn(async move {
                 if is_dragging {
@@ -254,6 +258,7 @@ impl<'a> Executor<'a> {
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
+                debug!("[execute_exit] end dragging and exit");
                 mouse::mouse_drag_end().await;
             }
             hide_hints(app_handle_clone).await;
@@ -387,5 +392,6 @@ pub fn calculate_direction_delta(
             }
         }
     });
+    debug!("[calculate_direction_delta] dx: {}, dy: {}", dx, dy);
     (dx, dy)
 }

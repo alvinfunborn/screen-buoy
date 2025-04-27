@@ -1,7 +1,7 @@
 use crate::config;
 use crate::hint::{filter_hints, hide_hints};
 use crate::input::{executor, mouse};
-use log::{error, info};
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -51,6 +51,7 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
         if old_visible != visible {
             if !visible {
                 // 重置状态
+                debug!("[switch_keyboard_ctrl] reset state");
                 state.pressed_hint_keys = Some("".to_string());
                 state.final_hint_key = Some("".to_string());
                 state.final_hint_key_hold = false;
@@ -78,6 +79,7 @@ fn key_in_keys(key: &str, keys: &Vec<String>) -> bool {
 
 fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {
     let prefix = state.pressed_hint_keys.clone().unwrap();
+    debug!("[filter_hints_by_state] prefix: {}", prefix);
     let app_handle_clone = app_handle.clone();
     tauri::async_runtime::spawn(async move {
         filter_hints(app_handle_clone, prefix).await;
@@ -87,6 +89,7 @@ fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandl
 fn hide_hints_when_session_end(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {
     let app_handle_clone = app_handle.clone();
     let is_dragging = state.is_dragging;
+    debug!("[hide_hints_when_session_end] is_dragging: {}", is_dragging);
     tauri::async_runtime::spawn(async move {
         if is_dragging {
             mouse::mouse_drag_end().await;
@@ -140,6 +143,7 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
             if let Some(pressed) = state.hold_keys.get(modifier_key) {
                 if *pressed {
                     // 如果传播修饰键是按住的状态，则不处理
+                    debug!("[handle_keyboard_event] propagation_modifier: {} is_down: {}", modifier_key, is_down);
                     return false;
                 }
             }
@@ -171,9 +175,12 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                     }
                     if start_by_extra || start_by_charset {
                         // 读取到首字母
+                        debug!("[handle_keyboard_event] read first hint char: {}, start_by_extra: {}, start_by_charset: {}, hint_length: {}",
+                            key_char, start_by_extra, start_by_charset, state.hint_length);
                         state.pressed_hint_keys = Some(key.to_string());
                         if state.hint_length == 1 {
                             // hint一共只有一位
+                            debug!("[handle_keyboard_event] hint_length == 1");
                             state.final_hint_key = Some(key.to_string());
                             current_key = config::keyboard::HINT_KEY;
                         }
@@ -196,6 +203,7 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                         state.pressed_hint_keys = Some(new_prefix.clone());
                         if new_prefix.len() == state.hint_length {
                             // 达到完整长度
+                            debug!("[handle_keyboard_event] reach hint_length: {} with prefix:{}, key:{}", state.hint_length, new_prefix, key);
                             state.final_hint_key = Some(key.to_string());
                             current_key = config::keyboard::HINT_KEY;
                         }
@@ -234,11 +242,13 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                     return true;
                 } else if config::keyboard::is_right_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_RIGHT_KEY;
+                    debug!("[handle_keyboard_event] current_key: {} is_right_key_of: {}", current_key, last_key);
                     if state.hold_keys.contains_key(key) {
                         state.hold_keys.remove(key);
                     }
                 } else if config::keyboard::is_left_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_LEFT_KEY;
+                    debug!("[handle_keyboard_event] current_key: {} is_left_key_of: {}", current_key, last_key);
                     if state.hold_keys.contains_key(key) {
                         state.hold_keys.remove(key);
                     }

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use indexmap::IndexMap;
+use log::info;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
@@ -58,7 +59,9 @@ pub static HINT_CONTROL_TYPES_ID_Z_MAP: Lazy<IndexMap<i32, (usize, i32)>> = Lazy
 pub async fn get_hint_default_style(
     state: tauri::State<'_, crate::config::Config>,
 ) -> Result<String, String> {
-    Ok(state.hint.style.clone())
+    let style = state.hint.style.clone();
+    info!("[get_hint_default_style] style: {:?}", style);
+    Ok(style)
 }
 
 #[tauri::command]
@@ -69,5 +72,6 @@ pub async fn get_hint_types_styles(
     for (_, hint_type) in state.hint.types.iter() {
         styles.push(hint_type.style.clone());
     }
+    info!("[get_hint_types_styles] styles: {:?}", styles);
     Ok(styles)
 }

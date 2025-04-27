@@ -16,7 +16,6 @@ pub struct UIAutomationRequest {
 #[derive(Clone)]
 pub struct UIElement {
     pub text: String,
-    pub is_enabled: bool,
     pub x: i32,
     pub y: i32,
     pub z: i32,
@@ -53,6 +52,7 @@ impl UIAutomationRequest {
                 let window_handle = window.window_handle;
                 let elements = convert_ui_automation(elements, window_handle);
                 ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().insert(window_handle, (elements.clone(), expire_at));
+                debug!("[get_elements_for_window] get {} elements for window: {}", elements.len(), window_handle);
                 Some(elements)
             }
                 Err(e) => {
@@ -67,9 +67,11 @@ impl UIAutomationRequest {
         let window_handle = window.window_handle;
         if let Some((elements, expire_at)) = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().get(&window_handle) {
             if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() <= *expire_at {
+                debug!("[get_cached_elements_for_window] get cached {} elements for window: {}", elements.len(), window_handle);
                 return Some(elements.clone());
             }
             ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().remove(&window_handle);
+            debug!("[get_cached_elements_for_window] remove expired elements for window: {}", window_handle);
         }
         self.get_elements_for_window(window)
     }
@@ -127,9 +129,10 @@ unsafe fn convert_ui_automation(all_elements: IUIAutomationElementArray, window_
             Err(_) => continue,
         };
 
+        debug!("[convert_ui_automation] get element with control_type: {}, element_type: {}, z_index: {}, rect: {:?}, window_handle: {}", 
+            control_type_id.0, element_type, z_index, rect, window_handle);
         let ui_element = UIElement {
             text: "".to_string(),
-            is_enabled: true,
             x: (rect.right + rect.left) / 2,
             y: (rect.bottom + rect.top) / 2,
             z: *z_index,
@@ -144,6 +147,8 @@ unsafe fn convert_ui_automation(all_elements: IUIAutomationElementArray, window_
         match position_map.get(&position) {
             Some(old_element) => {
                 if old_element.z < *z_index as i32 {
+                    debug!("[convert_ui_automation] overwrite element at z:{} from window:{} with z_index:{}", 
+                        old_element.z, old_element.window_handle, *z_index);
                     position_map.insert(position, ui_element);
                 }
             }

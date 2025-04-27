@@ -40,6 +40,7 @@ pub fn init_hint_text_list_storage() {
             generate_n_digit_hints(&hint_config.charsets, prefix, 0, &mut list);
         }
     }
+    info!("[init_hint_text_list_storage] init hint text list storage: {}", list.len());
     *HINT_TEXT_LIST_STORAGE.lock().unwrap() = list;
 }
 
@@ -117,6 +118,7 @@ impl HintsGenerator {
             }
             monitor_hints.insert(format!("{}{}", OVERLAY_WINDOW_PREFIX, index), hints);
         }
+        debug!("[generate_hints_grid] generate {} hints: {:?}", monitor_hints.len(), monitor_hints);
         monitor_hints
     }
 
@@ -139,6 +141,7 @@ impl HintsGenerator {
                 );
             }
         }
+        debug!("[generate_hints_batch1] generate hints for {} windows", monitor_hints.len());
         monitor_hints
     }
 
@@ -160,6 +163,7 @@ impl HintsGenerator {
                 );
             }
         }
+        debug!("[generate_hints_batch2] generate hints for {} windows", monitor_hints.len());
         monitor_hints
     }
 
@@ -201,6 +205,8 @@ impl HintsGenerator {
                 if !is_covered {
                     // 检查是否超出范围
                     if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
+                        debug!("[generator] skip hint:{}:({},{}) due to hint text is out of use",
+                            hint.text, hint.x, hint.y);
                         return;
                     }
 

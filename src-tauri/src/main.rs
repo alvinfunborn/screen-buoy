@@ -4,6 +4,7 @@ use screen_buoy::config;
 use screen_buoy::element;
 use screen_buoy::hint;
 use screen_buoy::hint::create_overlay_windows;
+use screen_buoy::utils::logger::init_logger;
 use screen_buoy::input;
 use screen_buoy::monitor::monitor;
 use screen_buoy::set_auto_start;
@@ -14,6 +15,14 @@ use tauri::Manager;
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
 
 fn main() {
+    // Initialize config first
+    config::init_config();
+    let config = config::get_config().unwrap();
+    let config_for_manage = config.clone();
+
+    // Initialize logger
+    let _ = init_logger(config.system.logging_level.clone());
+    
     // Initialize COM
     unsafe {
         let result = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
@@ -24,11 +33,7 @@ fn main() {
         }
     }
 
-    // Initialize config first
-    config::init_config();
-    let config = config::get_config().unwrap();
-    let config_for_manage = config.clone();
-
+    // Initialize app
     let mut builder = screen_buoy::create_app_builder();
     // Setup application
     builder = builder.setup(move |app| {
