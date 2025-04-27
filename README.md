@@ -1,48 +1,245 @@
-一个exe实现屏幕点击功能, 类似fluent search的屏幕搜索
+# Screen Buoy
 
-为什么不使用fluent search
-1. 因为fluent search没法一次性搜索所有屏幕, 需要点击shift切换屏幕
-1. fluent search只能定位到可点击元素, 通常情况下我不想直接点击可点击元素, 仅仅想要切换焦点, 因此我想要在大片的没有hint的空白区域也添加一些hint
-1. fluent search的hint输入只有左键点击操作, 比如一个屏幕元素的hint是qk, 我在输入q, k之后, 直接点击了这个位置; 我想要在输入q之后有不同的处理, 当长按k后松开时仅移动鼠标当此位置不点击, 当按住k并点击k左侧的l按键时执行鼠标右键点击, 当点击k时执行鼠标左键点击, 当双击k时执行鼠标双击, 当按住k时可以通过键盘esdf键基于此位置来移动鼠标位置, 当按住k时可以通过键盘上下左右键模拟鼠标滚轮的上下左右滑动
+[English](./README.md) | [中文](./README_zh.md)
 
-### 使用方法
-安装依赖
+> A cross-screen, fully interactive screen hint navigation and automation tool.  
+> Inspired by Fluent Search and mousemaster, with enhanced multi-monitor and advanced interaction support.
+
+---
+
+## Background & Motivation
+
+Typical scenarios:
+- Quickly switch focus across multiple monitors
+- Generate hints anywhere on the screen, not just on clickable elements
+- Support for advanced interactions: long-press, combo keys, arrow keys, scrolling, dragging, etc.
+
+---
+
+## Key Features
+
+- 🖥️ Global hint navigation across multiple monitors
+- 🟦 Hints can appear in blank areas, not just on clickable elements
+- ⌨️ Rich keyboard interactions: long-press, combos, arrow keys, scroll, drag, etc.
+- 🛠️ Fully configurable hint styles, types, and behaviors
+- 🪟 Window occlusion detection for smarter hint ordering
+- 🏁 One-click launch, tray management, auto-start on boot
+- 🧩 High performance: Tauri + React + Rust
+
+---
+
+## Demo
+
+- **Multi-monitor hint navigation**  
+  ![image](./docs/hints.png)
+
+- **Move hints**
+  ![image](./docs/move.gif)
+
+- **Advanced interactions**
+  - Right click  
+    ![image](./docs/right_click.gif)
+  - Double click  
+    ![image](./docs/double_click.gif)
+  - Scroll  
+    ![image](./docs/scroll.gif)
+  - Drag  
+    ![image](./docs/drag.gif)
+
+- **Start advanced interaction at cursor without hint**
+  ![image](./docs/space.gif)
+
+---
+
+## How It Works
+
+Screen Buoy is powered by Windows UI Automation — the official Microsoft API for enumerating and interacting with all UI controls (buttons, textboxes, windows, menus, etc.) across processes and windows.
+
+The backend (Tauri, Rust) integrates UI Automation as follows:
+
+- Uses the Rust `windows` crate to call UI Automation COM interfaces and enumerate all desktop windows and controls
+- Retrieves each control's type (ControlType), name, visibility, interactivity, screen coordinates, window z-order, etc.
+- Applies custom control type mapping and filtering rules to generate hint candidates
+- Supports multi-monitor, multi-window, and occlusion detection
+- Passes control and hint data to the frontend/overlay for rendering and interaction
+
+With UI Automation, Screen Buoy can precisely capture and operate on all visible windows and controls, providing a robust foundation for global hint navigation and automation.
+
+---
+
+## Installation & Usage
+
+#### Method 1: Download (Recommended)
+
+1. Go to the [Releases page](https://github.com/alvinfunborn/screen-buoy/releases) and download the latest `ScreenBuoy.exe` and `config.toml`.
+2. Place both files in the same directory.
+3. Double-click `ScreenBuoy.exe` to launch. The ScreenBuoy tray icon will appear.
+4. To customize, edit `config.toml` in the same directory and restart the program.
+
+- **Tray icon**: Double-click to open settings
+- **Auto-start**: Can be enabled in settings
+- **Configuration**: See `config.toml`
+
+#### Method 2: Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/alvinfunborn/screen-buoy.git
+cd screen-buoy
+
+# Install dependencies
 npm install
-cd src-tauri && cargo build
 
-开发模式
+# Build the Tauri backend
+cd src-tauri
+cargo build
+
+# Start in development mode
+cd ..
 npm run tauri dev
+```
 
-### tip
-windows ui控件类型https://learn.microsoft.com/zh-cn/windows/win32/winauto/uiauto-controltype-ids
+- **Tray icon**: Double-click to open settings
+- **Auto-start**: Can be enabled in settings
+- **Configuration**: See `src-tauri/config.toml`
 
-### todo
-1. [ ] 元素过滤, 部分收起的列表项也展示了hint?
-1. [x] 任务栏hint
-1. [x] 元素缓存
-1. [ ] 文本分隔/图像识别: 一个页面元素根据文本拆分成多个
-1. [x] 生成grid hint
-1. [x] 窗口hint生成顺序: 窗口z序并不能反映多显示器下的窗口顺序, 需要计算窗口被遮挡数量来决定hint的顺序
-1. [ ] 多向按键, 两个按键按下时前一个按键不会再上报键盘按下事件
-1. [x] 双击键不放开可以修饰拖拽
-1. [x] 实现退格键
-1. [x] leftmap和rightmap也配置化
-1. [x] 前端配置化
-1. [x] 开机启动
-1. [x] 只能启动一个实例
-1. [x] 双击托盘图标打开设置
-1. [x] ctrl-type-id 配置化
-1. [x] 可以按照window-label过滤event? 那直接修改listen和emit的topic即可
-1. [x] overlay有超出屏幕的白边
-1. [x] 优化hint样式
-1. [ ] release to set windows top most
+---
 
-### 步骤二, 实现按键交互
-1. 所有hint都是大写字母, 首先有一份数据记录A-Z每个按键的右侧按键是什么, 比如a的右侧是s, b的右侧是n
-1. 页面上展示hint后, 键盘拦截所有A-Z输入, 还有P键,L键,M键的右侧按键的输入, 还有方向键输入
-1. 只要hint还没有全消失, 按方向键就可以丝滑移动所有hint位置
-1. 以某个hint为例, 比如这个hint是"QK", 那么输入q后, 屏幕上所有非q开头的hint都隐藏, 只保留q开头的hint, q也有已经输入了的样式状态
-    1. 按q后 按一次k键, 这代表鼠标移动到hint所在位置并左键点击一次, 结束
-    1. 按q后 按住k键不放, 按k键右侧的L键一次, 这代表鼠标移动到hint所在位置并右键点击一次, 结束
-    1. 按q后 按住k键不放, 此时ijkl或esdf键代表在hint所在位置上下左右滑动, 因为此时k键和L键不属于esdf键, 但是属于ijkl键, 所以此时仅esdf键可以滑动, 释放k键结束
-    1. 按q后 按住k键不放, 此时按方向键代表鼠标移动到hint所在位置按住拖动, 释放k键结束
+## Default Key Bindings
+
+- When running:
+  - `Alt+H`: Show hints
+- When hints are visible:
+  - `Esc`: Exit hint mode
+  - Short press `HintKey`: Left click at hint and exit
+  - Long press `HintKey`: Enter Hold mode at hint
+  - Short press `Space`: Left click at cursor and exit
+  - Long press `Space`: Enter Hold mode at cursor
+  - Arrow keys: Move hints
+- In Hold mode:
+  - `Esc`: Exit hint mode
+  - `LShift`: Left click
+  - `HintLeftKey`: Left click and exit
+  - `Enter`: Double click
+  - `RShift`: Right click
+  - `HintRightKey`: Right click and exit
+  - Arrow keys: Drag
+  - `ESDF`/`IJKL`: Scroll
+
+---
+
+## Advanced Configuration
+
+#### 1. HintKey, HintRightKey, HintLeftKey
+
+- **HintKey**: The main hint trigger key (usually the last character of the hint), used to activate, move to, or left-click at the hint.
+- **HintRightKey**: When held with HintKey, triggers right-click or other extended actions.
+- **HintLeftKey**: When held with HintKey, triggers left-click or other custom actions.
+
+All these keys can be customized in the `keybinding` section.
+
+#### 2. Keyboard Configuration
+
+- **propagation_modifier**: Modifier keys (Ctrl, Alt, Win, etc.) that are passed through when hints are active.
+- **available_key**: All available keys and their codes for custom binding.
+- **map_left_right**: Define left/right mapping for certain keys for flexible combos.
+
+Example:
+```toml
+[keyboard]
+propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin"]
+[keyboard.available_key]
+Back = 8
+Tab = 9
+...
+[keyboard.map_left_right.K]
+right = "L"
+```
+
+#### 3. Keybinding Configuration
+
+**keybinding** defines all shortcut bindings for Screen Buoy operations. You can flexibly configure behaviors for different scenarios.
+
+###### Hold At Hint
+
+**Hold At Hint** is a core interaction:  
+After entering a hint, long-pressing the HintKey (the last character of the hint) enters Hold mode, allowing advanced actions (drag, scroll, right-click, etc.) at the hint.  
+You can also long-press Space (or other custom keys) to enter Hold mode at the current cursor position.  
+All entry methods for Hold mode can be customized via the `hold_at_hint` setting.
+
+###### Structure
+
+- **global**: Shortcuts when no hint is selected (e.g., show hint, exit, enter Hold mode, etc.)
+- **at_hint**: Shortcuts in Hold mode (e.g., left click, right click, double click, drag, scroll, etc.)
+
+Example:
+```toml
+[keybinding.global]
+move_to_hint = ["HintKey"]
+exit = ["Esc"]
+hold_at_hint = ["HintKey", "Space"]
+
+[keybinding.at_hint]
+left_click = ["LShift"]
+right_click_exit = ["RShift", "HintRightKey"]
+double_click = ["Enter"]
+```
+You can add, remove, or modify these bindings as needed for a personalized experience.
+
+#### 4. Hint Grid Configuration
+
+- **rows/columns**: Number of grid rows and columns.
+- **show_at_rows/show_at_columns**: Which rows/columns to show hints in.
+- **hint_type**: The type of hint for this grid (links to style/behavior).
+
+Example:
+```toml
+[hint.grid]
+rows = 4
+columns = 5
+show_at_rows = [1, 2, 3, 4]
+show_at_columns = [1, 2, 3, 4, 5]
+hint_type = "default"
+```
+
+#### 5. Hint Style Configuration
+
+- **style**: Custom CSS for each hint type (background, font, border, etc.)
+- **z_index**: Layer order for different hint types
+- **element_control_types**: Control types associated with this hint type
+
+Example:
+```toml
+[hint.types.button]
+style = """
+{
+  background-color: rgba(122, 164, 243, 1); 
+  color: #111111; 
+  font-size: 11px;
+}
+"""
+z_index = 4
+element_control_types = [50021, 50026, ...]
+```
+
+---
+
+## Appendix
+
+- [Windows Virtual Key Codes](https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)
+- [Windows UI Automation Element Control Types Ids](https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-controltype-ids)
+
+---
+
+## References
+
+- [Fluent Search](https://www.fluentsearch.net/)  
+- [mousemaster](https://github.com/petoncle/mousemaster)  
+
+---
+
+## License
+
+MIT
+
+---

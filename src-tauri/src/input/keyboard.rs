@@ -228,11 +228,20 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
                 // 先处理动态热键, 动态热键会覆盖配置的静态热键
                 if current_key == last_key {
                     // 是当前holding的末尾hint键, 不传递
+                    if state.hold_keys.contains_key(key) {
+                        state.hold_keys.remove(key);
+                    }
                     return true;
                 } else if config::keyboard::is_right_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_RIGHT_KEY;
+                    if state.hold_keys.contains_key(key) {
+                        state.hold_keys.remove(key);
+                    }
                 } else if config::keyboard::is_left_key_of(key, last_key) {
                     current_key = config::keyboard::HINT_LEFT_KEY;
+                    if state.hold_keys.contains_key(key) {
+                        state.hold_keys.remove(key);
+                    }
                 }
             }
             for (cmd, keys) in cmd_key {

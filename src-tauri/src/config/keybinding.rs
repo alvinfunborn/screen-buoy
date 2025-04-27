@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -76,25 +77,25 @@ pub static MODIFIERS: Lazy<HashSet<String>> = Lazy::new(|| {
     modifiers
 });
 
-pub static GLOBAL_KEY_DOWN_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> =
+pub static GLOBAL_KEY_DOWN_KEYBINDINGS: Lazy<IndexMap<&'static str, Vec<String>>> =
     Lazy::new(|| {
         let keybindings = super::get_config().unwrap().keybinding;
         keybindings.get_global_keybindings(true)
     });
 
-pub static GLOBAL_KEY_UP_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> = Lazy::new(|| {
+pub static GLOBAL_KEY_UP_KEYBINDINGS: Lazy<IndexMap<&'static str, Vec<String>>> = Lazy::new(|| {
     let keybindings = super::get_config().unwrap().keybinding;
     keybindings.get_global_keybindings(false)
 });
 
-pub static AT_HINT_KEYBINDINGS: Lazy<HashMap<&'static str, Vec<String>>> = Lazy::new(|| {
+pub static AT_HINT_KEYBINDINGS: Lazy<IndexMap<&'static str, Vec<String>>> = Lazy::new(|| {
     let keybindings = super::get_config().unwrap().keybinding;
     keybindings.get_at_hint_keybindings()
 });
 
 impl KeybindingConfig {
-    fn get_global_keybindings(&self, key_down: bool) -> HashMap<&'static str, Vec<String>> {
-        let mut keybindings = HashMap::new();
+    fn get_global_keybindings(&self, key_down: bool) -> IndexMap<&'static str, Vec<String>> {
+        let mut keybindings = IndexMap::new();
         if !key_down {
             keybindings.insert(HOLD_AT_HINT_CMD, self.global.hold_at_hint.clone());
             keybindings.insert(LEFT_CLICK_EXIT_CMD, self.global.left_click_exit.clone());
@@ -111,8 +112,8 @@ impl KeybindingConfig {
         keybindings
     }
 
-    fn get_at_hint_keybindings(&self) -> HashMap<&'static str, Vec<String>> {
-        let mut keybindings = HashMap::new();
+    fn get_at_hint_keybindings(&self) -> IndexMap<&'static str, Vec<String>> {
+        let mut keybindings = IndexMap::new();
         keybindings.insert(HOLD_AT_HINT_CMD, self.global.hold_at_hint.clone());
         keybindings.insert(EXIT_CMD, self.at_hint.exit.clone());
         keybindings.insert(LEFT_CLICK_CMD, self.at_hint.left_click.clone());
