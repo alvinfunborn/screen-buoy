@@ -6,8 +6,7 @@ use windows::Win32::{
     Foundation::{LPARAM, LRESULT, WPARAM},
     UI::{
         Input::KeyboardAndMouse::{
-            GetKeyboardState, ToUnicode, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6,
-            VK_OEM_7, VK_OEM_8, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS,
+            GetKeyboardState, ToUnicode, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS
         },
         WindowsAndMessaging::{
             CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HHOOK, KBDLLHOOKSTRUCT,
@@ -94,13 +93,13 @@ pub unsafe extern "system" fn keyboard_hook_proc(
             x if x == VK_OEM_MINUS.0 => "-".to_string(),
             x if x == VK_OEM_COMMA.0 => ",".to_string(),
             x if x == VK_OEM_PERIOD.0 => ".".to_string(),
+            x if x == VK_OEM_1.0 => ";".to_string(),
             x if x == VK_OEM_2.0 => "/".to_string(),
             x if x == VK_OEM_3.0 => "`".to_string(),
             x if x == VK_OEM_4.0 => "[".to_string(),
             x if x == VK_OEM_5.0 => "\\".to_string(),
             x if x == VK_OEM_6.0 => "]".to_string(),
             x if x == VK_OEM_7.0 => "'".to_string(),
-            x if x == VK_OEM_8.0 => ";".to_string(),
             _ => return CallNextHookEx(None, code, wparam, lparam),
         };
     }

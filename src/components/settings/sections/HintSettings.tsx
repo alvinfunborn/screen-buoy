@@ -422,14 +422,14 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
           name={['hint', 'grid', 'rows']}
           style={{ marginBottom: 8 }}
         >
-          <InputNumber min={1} value={gridRows} onChange={handleGridRowsChange} style={{ width: 100 }} />
+          <InputNumber min={0} style={{ width: 100 }} />
         </Form.Item>
         <Form.Item
           label="Columns"
           name={['hint', 'grid', 'columns']}
           style={{ marginBottom: 8 }}
         >
-          <InputNumber min={1} value={gridColumns} onChange={handleGridColumnsChange} style={{ width: 100 }} />
+          <InputNumber min={0} style={{ width: 100 }} />
         </Form.Item>
         <Form.Item label="Show At Rows" style={{ marginBottom: 8 }}>
           <Select

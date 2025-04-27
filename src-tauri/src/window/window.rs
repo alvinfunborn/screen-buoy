@@ -25,6 +25,7 @@ pub struct WindowElement {
     pub z_index: i32,
     pub window_handle: i64,
     pub visible: bool,
+    pub is_task_bar: bool,
 }
 
 impl Hash for WindowElement {
@@ -55,10 +56,6 @@ pub fn get_all_windows() -> Vec<WindowElement> {
     windows = windows.iter().filter(|w| w.visible).cloned().collect();
     windows.sort_by_key(|w: &WindowElement| -w.z_index);
     windows
-}
-
-pub fn focus_to_window(x: i32, y: i32) {
-    // todo: focus to window at point (x,y)
 }
 
 unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
@@ -92,8 +89,9 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
             class_name == "Windows.UI.Core.CoreWindow" || class_name == "Progman";
 
         // 特别标记任务栏窗口
-        let is_taskbar = class_name == "Shell_TrayWnd" || class_name == "Shell_SecondaryTrayWnd";
-        let is_tray = class_name == "TopLevelWindowForOverflowXamlIsland"
+        let is_task_bar = class_name == "Shell_TrayWnd" 
+            || class_name == "Shell_SecondaryTrayWnd" 
+            || class_name == "TopLevelWindowForOverflowXamlIsland"
             || class_name == "NotifyIconOverflowWindow"
             || class_name == "SysPager"
             || class_name == "ToolbarWindow32"
@@ -104,8 +102,7 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
 
         // 如果窗口符合所有条件，则添加到列表中
         // 对任务栏窗口特殊处理，即使没有标题也允许
-        if is_taskbar
-            || is_tray
+        if is_task_bar
             || !title.is_empty()
                 && is_enabled
                 && !is_tool_window
@@ -135,6 +132,7 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
                 z_index: z_order,
                 window_handle: hwnd.0 as i64,
                 visible: !is_iconic,
+                is_task_bar: is_task_bar,
             };
 
             (*elements).push(window_element);
@@ -149,9 +147,13 @@ pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElem
 
     // 从顶层窗口开始遍历
     for (i, window) in windows.iter().enumerate() {
-        let window_rect = Rect::new(window.x, window.y, window.width, window.height);
-
+        if window.is_task_bar {
+            uncovered_windows.insert(window.clone());
+            continue;
+        }
+        
         let mut has_covered = false;
+        let window_rect = Rect::new(window.x, window.y, window.width, window.height);
         // 检查上层窗口的遮挡
         for upper_window in windows.iter().take(i) {
             if upper_window.title.is_empty() {
