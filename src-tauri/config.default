@@ -8,7 +8,6 @@ charsets = [
     "F",
     "G",
     "H",
-    "I",
     "J",
     "K",
     "L",
@@ -29,7 +28,6 @@ charsets = [
     "4",
     "6",
     "7",
-    "8",
     "9",
 ],
     [
@@ -40,7 +38,6 @@ charsets = [
     "F",
     "G",
     "H",
-    "I",
     "J",
     "K",
     "L",
@@ -61,20 +58,36 @@ charsets = [
     "4",
     "6",
     "7",
-    "8",
     "9",
 ],
 ]
 charset_extra = [
-    "=",
     "-",
+    "=",
+    '\',
 ]
+style = """
+{
+  position: absolute;
+  padding: 1px 4px;
+  font-family: 'Segoe UI', 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #E0E0E0;
+  background-color: rgba(30, 30, 30, 0.85);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: translate(-50%, 0);
+  z-index: 2147483647;
+}
+"""
 
 [hint.types.button]
 style = """
 {
-  background-color: rgba(66, 133, 244, 1); 
-  color: black; 
+  background-color: rgba(0, 122, 204, 0.9); 
+  color: #111111; 
   font-size: 11px;
 }
 """
@@ -124,9 +137,9 @@ element_control_types = []
 [hint.types.pane]
 style = """
 {
-  background-color: rgba(67, 7, 231, 1); 
-  color: white; 
-  font-size: 12px;
+  background-color: rgba(80, 80, 80, 0.85); 
+  color: #cccccc; 
+  font-size: 11px;
 }
 """
 z_index = 1
@@ -175,13 +188,31 @@ element_control_types = []
 [hint.types.window]
 style = """
 {
-  background-color: rgba(223, 8, 252, 1); 
-  color: white; 
+  background-color: rgba(255, 193, 7, 0.9);
+  color: black; 
   font-size: 13px;
+  font-weight: 700
 }
 """
 z_index = 5
 element_control_types = [50032]
+
+[hint.grid]
+rows = 3
+columns = 5
+show_at_rows = [
+    1,
+    2,
+    3,
+]
+show_at_columns = [
+    1,
+    2,
+    3,
+    4,
+    5,
+]
+hint_type = "tab"
 
 [keybinding]
 hotkey_buoy = "Alt+H"
@@ -532,3 +563,4 @@ start_at_login = true
 
 [ui_automation]
 collect_interval = 1000
+cache_ttl = 60000

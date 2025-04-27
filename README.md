@@ -33,8 +33,8 @@ windows ui控件类型https://learn.microsoft.com/zh-cn/windows/win32/winauto/ui
 1. [x] 双击托盘图标打开设置
 1. [x] ctrl-type-id 配置化
 1. [x] 可以按照window-label过滤event? 那直接修改listen和emit的topic即可
-1. [ ] overlay有超出屏幕的白边
-1. [ ] 优化hint样式
+1. [x] overlay有超出屏幕的白边
+1. [x] 优化hint样式
 1. [ ] release to set windows top most
 
 ### 步骤二, 实现按键交互
