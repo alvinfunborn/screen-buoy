@@ -9,7 +9,7 @@ mod utils;
 pub mod window;
 
 use config::{get_config_for_frontend, get_hint_types_styles, hint::get_hint_default_style, save_config_for_frontend};
-use hint::{overlay::OVERLAY_HANDLES_STORAGE, show_hints};
+use hint::{ overlay::OVERLAY_HANDLES_STORAGE, show_hints};
 use log::{error, info};
 use std::{panic, str::FromStr};
 use tauri::{
@@ -21,12 +21,13 @@ use tauri::{
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 use tauri_plugin_log::{Target, TargetKind};
-use windows::Win32::Foundation::HWND;
+use windows::Win32::{Foundation::HWND, Graphics::Dwm::DWMWINDOWATTRIBUTE};
 use windows::Win32::UI::WindowsAndMessaging::{
     GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, 
     WS_EX_TRANSPARENT, 
 };
 use time;
+use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
 
 pub fn setup_tray(
     app_handle: &AppHandle,
@@ -231,12 +232,15 @@ pub fn create_overlay_window(
         }
     }
 
+    let width = monitor.width as f64 / monitor.scale_factor;
+    let height = monitor.height as f64 / monitor.scale_factor;
+    let position_x = monitor.x;
+    let position_y = monitor.y;
     info!(
-        "[create_overlay_window] create overlay window {} on monitor {}: position({}, {}), size{}x{}",
-        window_label, monitor.id, monitor.x, monitor.y, monitor.width, monitor.height
+        "[create_overlay_window] create overlay window {}: position({}, {}), size{}x{}",
+        window_label, position_x, position_y, width, height
     );
-
-    let window = tauri::WebviewWindow::builder(
+    let window = tauri::WebviewWindowBuilder::new(
         app_handle,
         window_label,
         tauri::WebviewUrl::App(format!("overlay.html?window_label={}", window_label).into()),
@@ -244,7 +248,10 @@ pub fn create_overlay_window(
     .title(window_label)
     .transparent(true)
     .decorations(false)
-    .inner_size(monitor.width as f64, monitor.height as f64)
+    // must disable shadow, otherwise the window will be offset
+    .shadow(false)
+    .resizable(true)
+    .inner_size(width, height)
     .focused(false)
     .build();
 
@@ -254,23 +261,35 @@ pub fn create_overlay_window(
             e
         );
     }
-
+    
     let window = window.unwrap();
-    // 确保窗口位置正确
-    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(monitor.x - 12, monitor.y)) {
+    if let Err(e) = window.set_position(tauri::PhysicalPosition::new(position_x, position_y)) {
         error!("[create_overlay_window] set position failed: {}", e);
     }
-    // 设置窗口样式
+    // 确保窗口位置正确
     if let Ok(hwnd) = window.hwnd() {
         let hwnd_raw = hwnd.0;
+        const DWMWA_WINDOW_CORNER_PREFERENCE: DWMWINDOWATTRIBUTE = DWMWINDOWATTRIBUTE(33);
+        const DWMWCP_DONOTROUND: u32 = 1;
+        let preference: u32 = DWMWCP_DONOTROUND;
+        unsafe {
+            // 去掉 Windows 11 圆角
+            let _ = DwmSetWindowAttribute(
+                HWND(hwnd_raw as *mut _),
+                DWMWA_WINDOW_CORNER_PREFERENCE,
+                &preference as *const _ as _,
+                std::mem::size_of_val(&preference) as u32,
+            );
+            set_window_transparent_style(&window, hwnd_raw as i64);
+        }
         if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
             handles.insert(window_label.to_string(), hwnd_raw as i64);
         }
-        set_overlay_style(&window, hwnd_raw as i64);
     }
+
 }
 
-fn set_overlay_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
+fn set_window_transparent_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
     // 设置无任务栏图标并确保在最顶层
     if let Err(e) = window.set_skip_taskbar(true) {
         error!("[set_overlay_style] set skip taskbar failed: {}", e);

@@ -212,6 +212,7 @@ show_at_columns = [
     2,
     3,
     4,
+    5,
 ]
 hint_type = "tab"
 
