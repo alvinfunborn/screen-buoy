@@ -59,7 +59,7 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
                 if let Some(app_handle) = app_handle {
                     let app_handle_clone = app_handle.clone();
                     tauri::async_runtime::spawn(async move {
-                        hide_hints(app_handle_clone);
+                        hide_hints(app_handle_clone).await;
                     });
                 }
             }
@@ -80,7 +80,7 @@ fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandl
     let prefix = state.pressed_hint_keys.clone().unwrap();
     let app_handle_clone = app_handle.clone();
     tauri::async_runtime::spawn(async move {
-        filter_hints(app_handle_clone, prefix);
+        filter_hints(app_handle_clone, prefix).await;
     });
 }
 
@@ -89,9 +89,9 @@ fn hide_hints_when_session_end(state: &mut KeyboardState, app_handle: &tauri::Ap
     let is_dragging = state.is_dragging;
     tauri::async_runtime::spawn(async move {
         if is_dragging {
-            mouse::mouse_drag_end();
+            mouse::mouse_drag_end().await;
         }
-        hide_hints(app_handle_clone);
+        hide_hints(app_handle_clone).await;
     });
 }
 
