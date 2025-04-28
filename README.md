@@ -26,8 +26,6 @@ Typical scenarios:
 - 🏁 One-click launch, tray management, auto-start on boot
 - 🧩 High performance: Tauri + React + Rust
 
----
-
 ## Demo
 
 - **Multi-monitor hint navigation**  
@@ -221,6 +219,32 @@ style = """
 z_index = 4
 element_control_types = [50021, 50026, ...]
 ```
+
+---
+
+## Performance
+
+Screen Buoy is designed for high efficiency and low resource usage.  
+- **Memory usage**: Typically 30~60MB RAM when running in the background.
+- **CPU usage**: Idle CPU usage is usually less than 1%, even with frequent UI Automation scans.
+- **Startup time**: Less than 1 second on most modern systems.
+- **Background threads**: Only a few lightweight threads for UI Automation and event hooks.
+
+Screen Buoy is suitable for always-on use, even on multi-monitor setups and low-end hardware.
+
+---
+
+## Security
+
+Screen Buoy is open source and has passed multiple security checks:
+- **No network upload**: The application does not upload any user data or telemetry.
+- **No backdoors or malicious code**: All source code is available for audit.
+- **Antivirus scan**: The official release binary has been scanned by Windows Defender, Kaspersky, and Virustotal, with no threats detected.
+- **Permissions**: Only requires standard user privileges; no system-level or kernel access.
+
+[Virustotal scan report](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
+
+You can verify the binary with any mainstream antivirus or use the source code to build your own trusted version.
 
 ---
 

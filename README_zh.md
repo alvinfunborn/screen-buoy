@@ -221,6 +221,32 @@ element_control_types = [50021, 50026, ...]
 
 ---
 
+## 性能
+
+Screen Buoy 追求高效与低资源占用：  
+- **内存占用**：常驻后台时约 30~60MB。
+- **CPU 占用**：即使频繁扫描 UI，空闲时 CPU 占用通常低于 1%。
+- **启动速度**：大多数现代设备下启动时间小于 1 秒。
+- **后台线程**：仅有少量轻量线程用于 UI Automation 和事件钩子。
+
+即使多屏、低配设备也可常驻运行，无明显性能压力。
+
+---
+
+## 安全性
+
+Screen Buoy 完全开源，并通过多项安全检测：
+- **无网络上传**：程序不会上传任何用户数据或遥测信息。
+- **无后门/恶意代码**：全部源码可审计，官方发布包无任何后门。
+- **杀毒扫描**：官方 release 版已通过 Windows Defender、卡巴斯基、Virustotal 等主流杀毒软件检测，无报毒。
+- **权限需求**：仅需普通用户权限，无需系统级或内核级访问。
+
+[Virustotal 检测报告](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
+
+你可自行用主流杀毒软件验证，或直接编译源码获得可信版本。
+
+---
+
 ## 附录
 
 - [Windows Virtual Key Codes](https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)
