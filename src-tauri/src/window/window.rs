@@ -9,9 +9,7 @@ use windows::core::BOOL;
 use windows::Win32::Foundation::{HWND, LPARAM, RECT};
 use windows::Win32::UI::Input::KeyboardAndMouse::IsWindowEnabled;
 use windows::Win32::UI::WindowsAndMessaging::{
-    EnumWindows, GetClassNameW, GetTopWindow, GetWindow, GetWindowLongW, GetWindowRect,
-    GetWindowTextW, IsIconic, IsWindowVisible, GWL_EXSTYLE, GW_HWNDNEXT, WS_EX_TOOLWINDOW,
-    WS_EX_TRANSPARENT,
+    EnumWindows, GetClassNameW, GetClientRect, GetTopWindow, GetWindow, GetWindowLongW, GetWindowRect, GetWindowTextW, IsIconic, IsWindowVisible, GWL_EXSTYLE, GW_HWNDNEXT, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -125,11 +123,15 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
                     GetWindow(current_hwnd, GW_HWNDNEXT).unwrap_or(HWND(ptr::null_mut()));
             }
 
+            let mut client_rect = RECT::default();
+            if let Err(e) = GetClientRect(hwnd, &mut client_rect) {
+                error!("[enum_window_proc] GetClientRect failed: {:?}", e);
+            }
             let window_element = WindowElement {
                 x: rect.left,
                 y: rect.top,
-                width: rect.right - rect.left,
-                height: rect.bottom - rect.top,
+                width: client_rect.right - client_rect.left,
+                height: client_rect.bottom - client_rect.top,
                 title: title.clone(),
                 class_name: class_name.clone(),
                 z_index: z_order,
@@ -159,7 +161,7 @@ pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElem
         let window_rect = Rect::new(window.x, window.y, window.width, window.height);
         // 检查上层窗口的遮挡
         for upper_window in windows.iter().take(i) {
-            if upper_window.title.is_empty() {
+            if upper_window.is_task_bar {
                 // 如果是被系统窗口如Shell_TrayWnd遮挡，则不考虑
                 continue;
             }
@@ -172,6 +174,9 @@ pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElem
 
             // 如果有重叠，添加遮挡区域
             if window_rect.intersects(&upper_rect) {
+                debug!("[calculate_top_windows] window:{}:{}:({},{},{},{}) is covered by window:{}:{}:({},{},{},{})",
+                    window.title, window.class_name, window.x, window.y, window.width, window.height,
+                    upper_window.title, upper_window.class_name, upper_window.x, upper_window.y, upper_window.width, upper_window.height);
                 has_covered = true;
                 break;
             }
@@ -211,6 +216,9 @@ pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElem
             if window_rect.intersects(&upper_rect) {
                 if let Some(intersection) = window_rect.intersection(&upper_rect) {
                     // 检查这个新的遮挡区域是否与已有的遮挡区域重叠
+                    debug!("[calculate_covered_areas] window:{}:{}:({},{},{},{}) is covered by window:{}:{}:({},{},{},{}) with intersection:{:?}",
+                        window.title, window.class_name, window.x, window.y, window.width, window.height,
+                        upper_window.title, upper_window.class_name, upper_window.x, upper_window.y, upper_window.width, upper_window.height, intersection);
                     let new_covered_area = intersection.clone();
                     let mut is_new_area = true;
 

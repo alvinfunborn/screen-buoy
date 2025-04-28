@@ -129,7 +129,7 @@ pub async fn mouse_double_click() {
         error!("[mouse_double_click] failed: {}", e);
     }
     // 等待15毫秒，这是Windows默认双击间隔的一小部分
-    tokio::time::sleep(tokio::time::Duration::from_millis(15)).await;
+    tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
     if let Err(e) = click_left() {
         error!("[mouse_double_click] failed: {}", e);
     }
@@ -164,3 +164,11 @@ pub async fn mouse_wheel_move(delta_x: i32, delta_y: i32) {
         error!("[mouse_wheel_move] failed: {}", e);
     }
 }
+
+pub async fn hide_cursor() {
+}
+
+pub async fn show_cursor() {
+}
+
+

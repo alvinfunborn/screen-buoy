@@ -60,9 +60,14 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
                 if let Some(app_handle) = app_handle {
                     let app_handle_clone = app_handle.clone();
                     tauri::async_runtime::spawn(async move {
+                        mouse::show_cursor().await;
                         hide_hints(app_handle_clone).await;
                     });
                 }
+            } else {
+                tauri::async_runtime::spawn(async move {
+                    mouse::hide_cursor().await;
+                });
             }
         }
     }

@@ -37,10 +37,8 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     let is_down = wparam.0 == WM_KEYDOWN as usize;
     let vk_code = key_info.vkCode as u16;
 
-    let config = config::get_config().unwrap();
-    let keyboard_config = &config.keyboard;
     let key: String;
-    if let Some(key_config) = keyboard_config.get_key_by_virtual_key(vk_code) {
+    if let Some(key_config) = config::keyboard::VIRTUAL_KEY_MAP.lock().unwrap().get(&vk_code) {
         debug!("[keyboard_hook_proc] read keyboard config key: {}, vk_code: {}", key_config, vk_code);
         key = key_config.to_string();
     } else {

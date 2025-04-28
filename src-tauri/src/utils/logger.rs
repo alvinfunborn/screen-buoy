@@ -12,11 +12,10 @@ pub fn init_logger(log_level: String) -> Result<(), Box<dyn std::error::Error>> 
         .format(|writer, now, record| {
             write!(
                 writer,
-                "[{}][{}][{}][{}:{}] {}",
+                "[{}][{}][{}:{}] {}",
                 now.format("%Y-%m-%d %H:%M:%S%.3f"),
-                record.target(),
                 record.level(),
-                record.file().unwrap_or("unknown"),
+                record.target(),
                 record.line().unwrap_or(0),
                 &record.args()
             )

@@ -112,6 +112,7 @@ impl<'a> Executor<'a> {
         {
             tauri::async_runtime::spawn(async move {
                 mouse::mouse_move(monitor_id, x, y).await;
+                mouse::show_cursor().await;
                 if exit {
                     hide_hints(app_handle_clone).await;
                 }
@@ -147,14 +148,15 @@ impl<'a> Executor<'a> {
             debug!("[execute_hold_at_hint] enter hold state");
             self.state.final_hint_key_hold = true;
             self.state.final_hint_key_hold_start = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
                 .as_millis() as u64;
             let app_handle_clone = self.app_handle.clone();
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
                 debug!("[execute_hold_at_hint] no final hint, directly to hold state, filter hints");
                 tauri::async_runtime::spawn(async move {
+                    mouse::show_cursor().await;
                     filter_hints(app_handle_clone, "_removeAllHints".to_string()).await;
                 });
             }

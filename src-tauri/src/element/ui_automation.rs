@@ -65,12 +65,22 @@ impl UIAutomationRequest {
     
     pub fn get_cached_elements_for_window(&self, window: &WindowElement) -> Option<Vec<UIElement>> {
         let window_handle = window.window_handle;
-        if let Some((elements, expire_at)) = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().get(&window_handle) {
-            if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() <= *expire_at {
-                debug!("[get_cached_elements_for_window] get cached {} elements for window: {}", elements.len(), window_handle);
-                return Some(elements.clone());
+        let expired = {
+            let cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
+            if let Some((elements, expire_at)) = cache.get(&window_handle) {
+                if SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis() <= *expire_at {
+                    debug!("[get_cached_elements_for_window] get cached {} elements for window: {}", elements.len(), window_handle);
+                    return Some(elements.clone());
+                }
+                true
+            } else {
+                false
             }
-            ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap().remove(&window_handle);
+        };
+        // 这里锁已经释放
+        if expired {
+            let mut cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
+            cache.remove(&window_handle);
             debug!("[get_cached_elements_for_window] remove expired elements for window: {}", window_handle);
         }
         self.get_elements_for_window(window)
@@ -129,12 +139,14 @@ unsafe fn convert_ui_automation(all_elements: IUIAutomationElementArray, window_
             Err(_) => continue,
         };
 
-        debug!("[convert_ui_automation] get element with control_type: {}, element_type: {}, z_index: {}, rect: {:?}, window_handle: {}", 
-            control_type_id.0, element_type, z_index, rect, window_handle);
+        let x = (rect.right + rect.left) / 2;
+        let y = (rect.bottom + rect.top) / 2;
+        debug!("[convert_ui_automation] get element:({},{}) with control_type: {}, element_type: {}, z_index: {}, rect: {:?}, window_handle: {}", 
+            x, y, control_type_id.0, element_type, z_index, rect, window_handle);
         let ui_element = UIElement {
             text: "".to_string(),
-            x: (rect.right + rect.left) / 2,
-            y: (rect.bottom + rect.top) / 2,
+            x,
+            y,
             z: *z_index,
             width: rect.right - rect.left,
             height: rect.bottom - rect.top,
@@ -143,7 +155,7 @@ unsafe fn convert_ui_automation(all_elements: IUIAutomationElementArray, window_
             element_type: *element_type,
         };
 
-        let position = (rect.left, rect.top);
+        let position = (x, y);
         match position_map.get(&position) {
             Some(old_element) => {
                 if old_element.z < *z_index as i32 {

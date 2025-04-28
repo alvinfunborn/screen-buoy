@@ -1,4 +1,7 @@
+use std::sync::Mutex;
+
 use indexmap::IndexMap;
+use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -18,16 +21,15 @@ pub const HINT_KEY: &str = "HintKey";
 pub const HINT_RIGHT_KEY: &str = "HintRightKey";
 pub const HINT_LEFT_KEY: &str = "HintLeftKey";
 
-impl KeyboardConfig {
-    pub fn get_key_by_virtual_key(&self, virtual_key: u16) -> Option<&str> {
-        for (key, vk) in &self.available_key {
-            if *vk == virtual_key {
-                return Some(key);
-            }
-        }
-        None
+pub static VIRTUAL_KEY_MAP: Lazy<Mutex<IndexMap<u16, String>>> = Lazy::new(|| Mutex::new({
+    let mut map = IndexMap::new();
+    for (key, vk) in &super::get_config().unwrap().keyboard.available_key {
+        map.insert(*vk, key.clone());
     }
+    map
+}));
 
+impl KeyboardConfig {
     pub fn get_left_key(&self, key: &str) -> Option<&str> {
         let config = self.map_left_right.get(key)?;
         if let Some(left) = &config.left {

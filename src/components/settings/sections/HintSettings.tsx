@@ -444,7 +444,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_rows: vals } } });
               }
             }}
-            style={{ width: 200 }}
+            style={{ width: 400 }}
             placeholder="选择行"
           />
         </Form.Item>
@@ -461,7 +461,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_columns: vals } } });
               }
             }}
-            style={{ width: 200 }}
+            style={{ width: 400 }}
             placeholder="选择列"
           />
         </Form.Item>

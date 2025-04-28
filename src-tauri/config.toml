@@ -62,6 +62,9 @@ charsets = [
 ],
 ]
 charset_extra = [
+    "Q",
+    "A",
+    "Z",
     ";",
     "-",
     "=",

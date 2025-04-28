@@ -15,6 +15,7 @@ fn queue_collect_for_window(window: WindowElement) {
     {
         let mut set = PROCESSING_WINDOWS.lock().unwrap();
         if set.contains(&hwnd) {
+            debug!("[queue_collect_for_window] window:{:?} already has windowtask running", window);
             return; // 已有任务在跑
         }
         set.insert(hwnd);
