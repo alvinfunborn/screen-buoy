@@ -105,8 +105,12 @@
             const hints = document.querySelectorAll('.hint.visible');
             requestAnimationFrame(() => {
                 hints.forEach(hint => {
-                    if (!hint.textContent.startsWith(letters)) {
+                    const text = hint.textContent;
+                    const char = letters.charAt(letters.length - 1);
+                    if (!text.startsWith(char)) {
                         hint.classList.add('filtered');
+                    } else {
+                        hint.textContent = text.substring(1);
                     }
                 });
             });

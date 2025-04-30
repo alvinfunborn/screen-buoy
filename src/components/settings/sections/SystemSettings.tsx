@@ -40,6 +40,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
           <Select.Option value="info">info</Select.Option>
           <Select.Option value="warn">warn</Select.Option>
           <Select.Option value="error">error</Select.Option>
+          <Select.Option value="none">none</Select.Option>
         </Select>
       </Form.Item>
 

@@ -83,7 +83,6 @@ style = """
   border-radius: 6px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   transform: translate(-50%, 0);
-  z-index: 2147483647;
 }
 """
 
@@ -142,7 +141,7 @@ element_control_types = []
 style = """
 {
   background-color: rgba(255, 0, 160, 1); 
-  color: #black; 
+  color: white; 
   font-size: 11px;
 }
 """
@@ -199,9 +198,8 @@ element_control_types = []
 style = """
 {
   background-color: rgba(214, 0, 255, 1);
-  color: black; 
+  color: white; 
   font-size: 13px;
-  font-weight: 700
 }
 """
 z_index = 5
@@ -570,10 +568,10 @@ right = "1"
 [system]
 start_in_tray = true
 show_tray_icon = true
-start_at_login = true
-logging_level = "info"
+start_at_login = false
+logging_level = "none"
 debug_mode = false
 
 [ui_automation]
-collect_interval = 1000
+collect_interval = 100
 cache_ttl = 60000

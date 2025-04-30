@@ -79,6 +79,7 @@ pub fn setup_tray(
                 _ => {}
             }
         })
+        .show_menu_on_left_click(true)
         .build(app_handle)?;
     Ok(())
 }
