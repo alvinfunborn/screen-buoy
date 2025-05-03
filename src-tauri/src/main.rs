@@ -13,8 +13,17 @@ use screen_buoy::setup_shortcut;
 use screen_buoy::setup_tray;
 use tauri::Manager;
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
+use std::env;
 
 fn main() {
+    // 自动切换到 exe 所在目录, 为了解决windows自动启动时workding directory读取不到配置文件的问题
+    if !cfg!(debug_assertions) {
+        if let Ok(exe_path) = std::env::current_exe() {
+            if let Some(exe_dir) = exe_path.parent() {
+                let _ = std::env::set_current_dir(exe_dir);
+            }
+        }
+    }
     // Initialize config first
     config::init_config();
     let config = config::get_config().unwrap();

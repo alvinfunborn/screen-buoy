@@ -1,5 +1,5 @@
 identifier = "com.screen-buoy.dev"
-version = "0.0.1"
+version = "0.1.0"
 productName = "screen-buoy"
 
 [build]
@@ -36,6 +36,7 @@ height = 800
 resizable = true
 fullscreen = false
 center = true
+visible = false
 # decorations = true # 根据需要设置
 # transparent = false # 根据需要设置
 
