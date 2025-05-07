@@ -33,12 +33,6 @@ function App() {
 
   return (
     <div className="container">
-      <Title level={3} style={{ marginTop: '24px', marginBottom: '8px', fontWeight: 'bold' }}>
-        Settings
-      </Title>
-      <Text type="secondary" style={{ display: 'block' }}>
-        Restart to apply changes
-      </Text>
       {error && (
         <div className="error-message">
           Error: {error}

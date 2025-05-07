@@ -4,6 +4,7 @@ import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import '../../../styles/global.css';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 
@@ -15,6 +16,7 @@ interface HintSettingsProps {
 const generateTempKey = () => `new_type_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
 export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) => {
+  const { t } = useTranslation();
   const form = Form.useFormInstance<Config>(); // Get form instance from context
 
   // States for raw input values (comma-separated strings)
@@ -360,7 +362,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       {/* Hint Charsets Section (Existing) */}
-      <Form.Item label="Hint Charsets" className="config-section-title" tooltip="Characters used for hints. The first character of each hint comes from the first charset row, the second from the second row, and so on.">
+      <Form.Item label={t('hint.charsets')} className="config-section-title" tooltip={t('hint.charsetsTooltip')}>
         <Form.List name={['hint', 'charsets']}>
           {(fields, { add, remove }) => (
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -391,7 +393,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 );
               })}
               <Button type="dashed" onClick={() => add([])} block icon={<PlusOutlined />}>
-                Add Charset
+                {t('hint.addCharset')}
               </Button>
             </Space>
           )}
@@ -400,13 +402,13 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
 
       {/* Hint Charset Extra Section */}
       <Form.Item
-        label="Hint Charset Extra"
+        label={t('hint.charsetExtra')}
         className="config-section-title"
-        tooltip="When the number of hints exceeds the available characters, these extra characters will be used. Extra characters are added as the first character of the hint; subsequent characters cycle through the main charsets."
-        name={['hint', 'charset_extra']} // Bind to form state
+        tooltip={t('hint.charsetExtraTooltip')}
+        name={['hint', 'charset_extra']}
       >
         <Input
-          placeholder="Enter the extra charset, separated by commas"
+          placeholder={t('hint.placeholderCharsetExtra')}
           // Value comes from local raw state
           value={rawExtraCharsetInput}
           onChange={(e) => handleRawExtraCharsetChange(e.target.value)}
@@ -416,25 +418,25 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       </Form.Item>
 
       {/* Hint Grid Section */}
-      <Paragraph className="config-section-title">Hint Grid</Paragraph>
+      <Paragraph className="config-section-title">{t('hint.grid')}</Paragraph>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Form.Item
-          label="Rows"
-          tooltip="Number of rows to divide the screen into for displaying hints at fixed positions."
+          label={t('hint.rows')}
+          tooltip={t('hint.rowsTooltip')}
           name={['hint', 'grid', 'rows']}
           style={{ marginBottom: 8 }}
         >
           <InputNumber min={0} style={{ width: 100 }} />
         </Form.Item>
         <Form.Item
-          label="Columns"
-          tooltip="Number of columns to divide the screen into for displaying hints at fixed positions."
+          label={t('hint.columns')}
+          tooltip={t('hint.columnsTooltip')}
           name={['hint', 'grid', 'columns']}
           style={{ marginBottom: 8 }}
         >
           <InputNumber min={0} style={{ width: 100 }} />
         </Form.Item>
-        <Form.Item label="Show At Rows" tooltip="After dividing the screen into rows, show hints only at the specified rows." style={{ marginBottom: 8 }}>
+        <Form.Item label={t('hint.showAtRows')} tooltip={t('hint.showAtRowsTooltip')} style={{ marginBottom: 8 }}>
           <Select
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_rows']) || []}
@@ -448,10 +450,10 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               }
             }}
             style={{ width: 400 }}
-            placeholder="选择行"
+            placeholder={t('hint.placeholderRows')}
           />
         </Form.Item>
-        <Form.Item label="Show At Columns" tooltip="After dividing the screen into columns, show hints only at the specified columns." style={{ marginBottom: 8 }}>
+        <Form.Item label={t('hint.showAtColumns')} tooltip={t('hint.showAtColumnsTooltip')} style={{ marginBottom: 8 }}>
           <Select
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_columns']) || []}
@@ -465,40 +467,40 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               }
             }}
             style={{ width: 400 }}
-            placeholder="选择列"
+            placeholder={t('hint.placeholderColumns')}
           />
         </Form.Item>
         <Form.Item
-          label="Hint Type"
+          label={t('hint.hintType')}
           name={['hint', 'grid', 'hint_type']}
-          tooltip="The hint type used for grid-generated hints, controls the style of these hints."
+          tooltip={t('hint.hintTypeTooltip')}
           style={{ marginBottom: 0 }}
         >
           <Select
             options={hintTypeNames.map(name => ({ value: name, label: name }))}
             style={{ width: 200 }}
-            placeholder="选择类型"
+            placeholder={t('hint.hintType')}
           />
         </Form.Item>
       </Space>
 
       {/* Default Style Section */}
       <Form.Item
-        label="Hint Default Style"
+        label={t('hint.defaultStyle')}
         className="config-section-title"
-        tooltip="Default CSS style for hints."
+        tooltip={t('hint.defaultStyleTooltip')}
         name={['hint', 'style']}
       >
         <Input.TextArea
           rows={10}
-          placeholder="Enter the default style"
+          placeholder={t('hint.placeholderStyle')}
           value={rawDefaultStyle}
           onChange={(e) => handleRawDefaultStyleChange(e.target.value)}
           onBlur={handleRawDefaultStyleBlur}
         />
       </Form.Item>
 
-      <Paragraph className="config-section-title">Hint Types</Paragraph>
+      <Paragraph className="config-section-title">{t('hint.types')}</Paragraph>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
       <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (
@@ -520,48 +522,44 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
             <Space key={typeName} direction="vertical" style={{ width: '100%' }}>
               {/* Removed the div wrapper for header/button */}
               <Form.Item
-                label="Style CSS"
-                name={['hint', 'types', typeName, 'style']} // Bind directly to form state path
-                tooltip="Custom CSS style for this hint type."
-                rules={[{ required: false }]} // Optional style
-                style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
+                label={t('hint.styleCss')}
+                name={['hint', 'types', typeName, 'style']}
+                tooltip={t('hint.styleCssTooltip')}
+                rules={[{ required: false }]}
+                style={{ width: '100%', marginBottom: '10px' }}
               >
                 <Input.TextArea
                   rows={6}
-                  placeholder={`Enter the style css for ${typeName}`}
+                  placeholder={t('hint.placeholderTypeStyle', { typeName })}
                   value={rawStyleInputs[typeName] ?? ''}
                   onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
                   onBlur={() => handleRawStyleBlur(typeName)}
-                  style={{ width: '100%', maxWidth: '400px' }} // Adjust width as needed
+                  style={{ width: '100%', maxWidth: '400px' }}
                 />
               </Form.Item>
               <Form.Item
-                label="Z-Index"
+                label={t('hint.zIndex')}
                 name={['hint', 'types', typeName, 'z_index']}
-                tooltip="z-index for this hint type. Controls stacking order when hints overlap."
+                tooltip={t('hint.zIndexTooltip')}
                 rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
-                style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
+                style={{ width: '100%', marginBottom: '10px' }}
               >
                 <InputNumber
-                  placeholder="Enter Z-Index"
+                  placeholder={t('hint.zIndex')}
                   style={{ width: '100px' }}
                 />
               </Form.Item>
               <Form.Item
-                label="Element Control Types"
-                // Temporarily remove the name prop to prevent potential implicit onChange triggers
-                // name={['hint', 'types', typeName, 'element_control_types']}
-                // Rules might not work correctly without the name prop, relying on manual update/validation
-                // Rules removed in user edit
-                tooltip="Element control types associated with this hint type. See Windows UI Automation control type IDs."
-                style={{ width: '100%', marginBottom: '0px' }} // Adjust spacing (last item)
+                label={t('hint.elementControlTypes')}
+                tooltip={t('hint.elementControlTypesTooltip')}
+                style={{ width: '100%', marginBottom: '0px' }}
               >
                 <Input
-                  placeholder="Enter types, comma-separated"
+                  placeholder={t('hint.placeholderElementTypes')}
                   value={rawElementControlTypesInputs[typeName] ?? ''}
                   onChange={(e) => handleRawElementControlTypeChange(typeName, e.target.value)}
                   onBlur={() => handleRawElementControlTypeBlur(typeName)}
-                  style={{ width: '100%', maxWidth: '300px' }} // Adjust width
+                  style={{ width: '100%', maxWidth: '300px' }}
                 />
               </Form.Item>
             </Space>
@@ -572,13 +570,13 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       {/* Add New Hint Type Section */}
       <Space style={{ marginBottom: '32px' }}>
         <Input
-          placeholder="Enter new hint type name"
+          placeholder={t('hint.placeholderNewType')}
           value={newTypeNameInput}
           onChange={(e) => setNewTypeNameInput(e.target.value)}
           style={{ width: '200px' }}
         />
         <Button type="dashed" onClick={handleAddType} icon={<PlusOutlined />}>
-          Add Hint Type
+          {t('hint.addHintType')}
         </Button>
       </Space>
 

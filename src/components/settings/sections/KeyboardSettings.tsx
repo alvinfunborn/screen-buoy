@@ -3,6 +3,7 @@ import { Form, Space, Typography, Button, Input, List, Spin, Collapse, Select, I
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Config, KeyboardConfig, LeftRightConfig } from '../../../types/config';
 import '../../../styles/global.css';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
@@ -60,6 +61,7 @@ const leftRightMapListToRecord = (list: LeftRightMapItem[]): Record<string, Left
 };
 
 export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChange }) => {
+  const { t } = useTranslation();
   const form = Form.useFormInstance<Config>();
   const [availableKeyList, setAvailableKeyList] = useState<AvailableKeyItem[]>([]);
   const [leftRightMapList, setLeftRightMapList] = useState<LeftRightMapItem[]>([]);
@@ -192,28 +194,28 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
     <Space direction="vertical" style={{ width: '100%' }}>
       {/* Propagation Modifier */}
       <Form.Item
-        label="Propagation Modifier"
-        tooltip="Modifier keys (e.g. Alt, Ctrl, Shift, Win) that will be ignored by the app, allowing their events to pass through to other windows."
+        label={t('keyboard.propagationModifier')}
+        tooltip={t('keyboard.propagationModifierTooltip')}
         className="config-section-title"
         name={['keyboard', 'propagation_modifier']}
       >
         <Select
           mode="multiple"
-          placeholder="Select modifiers"
+          placeholder={t('keyboard.selectModifiers')}
           style={{ width: '100%' }}
-          options={keyOptionsForSelect} // Use state-derived options
+          options={keyOptionsForSelect}
         />
       </Form.Item>
 
       <Collapse>
-        <Panel header={<Tooltip title="Define all keys that can be used for custom keybindings. Each key is mapped to its Windows virtual key code.">Available Keys</Tooltip>} className="config-section-title" key="available_keys">
+        <Panel header={<Tooltip title={t('keyboard.availableKeysTooltip')}>{t('keyboard.availableKeys')}</Tooltip>} className="config-section-title" key="available_keys">
           <Space direction="vertical" style={{ width: '100%', marginBottom: 8 }}>
             <List
               bordered
               dataSource={[
-                { keyName: 'HintKey', virtualKey: '-', tooltip: 'The physical key corresponding to the last character of the current hint.' },
-                { keyName: 'HintRightKey', virtualKey: '-', tooltip: 'The physical key immediately to the right of HintKey, as defined in the leftRightMapping table below.' },
-                { keyName: 'HintLeftKey', virtualKey: '-', tooltip: 'The physical key immediately to the left of HintKey, as defined in the leftRightMapping table below.' },
+                { keyName: 'HintKey', virtualKey: '-', tooltip: t('keyboard.hintKeyTooltip') },
+                { keyName: 'HintRightKey', virtualKey: '-', tooltip: t('keyboard.hintRightKeyTooltip') },
+                { keyName: 'HintLeftKey', virtualKey: '-', tooltip: t('keyboard.hintLeftKeyTooltip') },
               ]}
               rowKey={item => item.keyName}
               renderItem={item => (
@@ -221,19 +223,19 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                   <Space align="center">
                     <Tooltip title={item.tooltip}>
                       <Input
-                        addonBefore="Key"
+                        addonBefore={t('keyboard.key')}
                         value={item.keyName}
                         disabled
                         style={{ width: '250px', fontWeight: 'bold' }}
-                        placeholder="Key Name"
+                        placeholder={t('keyboard.keyName')}
                       />
                     </Tooltip>
                     <Input
-                      addonBefore="VK"
+                      addonBefore={t('keyboard.vk')}
                       value={item.virtualKey}
                       disabled
                       style={{ width: '150px', fontWeight: 'bold' }}
-                      placeholder="VK"
+                      placeholder={t('keyboard.vk')}
                     />
                   </Space>
                 </List.Item>
@@ -250,19 +252,19 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                 <List.Item key={item.id}>
                   <Space align="center">
                     <Input
-                      addonBefore="Key"
+                      addonBefore={t('keyboard.key')}
                       value={item.keyName}
                       onChange={(e) => handleAvailableKeyNameChange(item.id, e.target.value)}
                       disabled={isSpecial}
                       style={{ width: '250px' }}
-                      placeholder="Key Name"
+                      placeholder={t('keyboard.keyName')}
                     />
                     <InputNumber
-                      addonBefore="VK"
+                      addonBefore={t('keyboard.vk')}
                       value={item.virtualKey}
                       onChange={(value) => handleAvailableKeyValueChange(item.id, value)}
                       style={{ width: '150px' }}
-                      placeholder="Virtual Key"
+                      placeholder={t('keyboard.vk')}
                     />
                     {!isSpecial && (
                       <Button
@@ -283,13 +285,13 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
             icon={<PlusOutlined />}
             style={{ marginTop: '10px' }}
           >
-            Add Available Key
+            {t('keyboard.addAvailableKey')}
           </Button>
         </Panel>
       </Collapse>
 
       <Collapse>
-        <Panel header={<Tooltip title="Define left/right relationships for keys. Used for flexible combos and directional actions.">Left Right Mapping</Tooltip>} className="config-section-title" key="left_right_mapping">
+        <Panel header={<Tooltip title={t('keyboard.leftRightMappingTooltip')}>{t('keyboard.leftRightMapping')}</Tooltip>} className="config-section-title" key="left_right_mapping">
           {/* Render list manually based on local state */}
           <List
             bordered
@@ -299,25 +301,25 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
               <List.Item key={item.id}>
                 <Space align="center">
                   <Input
-                    addonBefore="Key"
+                    addonBefore={t('keyboard.key')}
                     value={item.keyName}
                     onChange={(e) => handleLeftRightKeyNameChange(item.id, e.target.value)}
                     style={{ width: '130px' }}
-                    placeholder="Key Name"
+                    placeholder={t('keyboard.keyName')}
                   />
                   <Input
-                    addonBefore="Left"
+                    addonBefore={t('keyboard.left')}
                     value={item.left ?? ''}
                     onChange={(e) => handleLeftRightLeftChange(item.id, e.target.value)}
                     style={{ width: '130px' }}
-                    placeholder="(null)"
+                    placeholder={t('keyboard.left')}
                   />
                   <Input
-                    addonBefore="Right"
+                    addonBefore={t('keyboard.right')}
                     value={item.right ?? ''}
                     onChange={(e) => handleLeftRightRightChange(item.id, e.target.value)}
                     style={{ width: '130px' }}
-                    placeholder="(null)"
+                    placeholder={t('keyboard.right')}
                   />
                   <Button
                     danger
@@ -335,7 +337,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
             icon={<PlusOutlined />}
             style={{ marginTop: '10px' }}
           >
-            Add Left Right Mapping
+            {t('keyboard.addLeftRightMapping')}
           </Button>
         </Panel>
       </Collapse>

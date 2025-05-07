@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Tabs, Form, message, Spin } from 'antd';
+import { Tabs, Form, message, Spin, Select, Space } from 'antd';
 import { invoke } from '@tauri-apps/api/core';
 import type { Config } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
@@ -9,8 +9,14 @@ import { KeybindingSettings } from './sections/KeybindingSettings';
 import { SystemSettings } from './sections/SystemSettings';
 import { UiAutomationSettings } from './sections/UiAutomationSettings';
 import { debounce } from 'lodash';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../i18n';
+import Title from 'antd/es/typography/Title';
+import Text from 'antd/es/typography/Text';
+
 
 const Settings: React.FC = () => {
+  const { t, i18n: i18nInstance } = useTranslation();
   const [form] = Form.useForm<Config>();
   const [loading, setLoading] = useState(true);
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
@@ -63,55 +69,78 @@ const Settings: React.FC = () => {
     debouncedSave(currentAllValues); // 使用从 form 获取的最新值
   };
 
+  const handleLanguageChange = (lng: string) => {
+    i18nInstance.changeLanguage(lng);
+  };
+
   if (loading || !initialConfig) {
     return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Spin size="large" /></div>;
   }
 
   console.log("Rendering Form with initialConfig:", JSON.stringify(initialConfig, null, 2));
   return (
-    <Form
-      form={form}
-      layout="vertical"
-      initialValues={initialConfig}
-      onValuesChange={handleValuesChange}
-      style={{ padding: '0 8px' }}
-    >
-      <Tabs
-        defaultActiveKey="keybinding"
-        items={[
-          {
-            key: 'keybinding',
-            label: 'Keybinding',
-            children: <KeybindingSettings availableKeysData={availableKeysState} />,
-          },
-          {
-            key: 'mouse',
-            label: 'Mouse',
-            children: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeysState} />,
-          },
-          {
-            key: 'hint',
-            label: 'Hint',
-            children: <HintSettings onValuesChange={handleValuesChange} />,
-          },
-          {
-            key: 'ui_automation',
-            label: 'UI Automation',
-            children: <UiAutomationSettings />,
-          },
-          {
-            key: 'keyboard',
-            label: 'Keyboard',
-            children: <KeyboardSettings onValuesChange={handleValuesChange} />,
-          },
-          {
-            key: 'system',
-            label: 'System',
-            children: <SystemSettings />,
-          },
-        ]}
-      />
-    </Form>
+    <>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, marginBottom: 16 }}>
+        <div>
+          <Title level={3} style={{ margin: 0, fontWeight: 'bold', marginBottom: 8 }}>{t('settings.title')}</Title>
+          <Text type="secondary" style={{ display: 'block' }}>{t('settings.restart')}</Text>
+        </div>
+        <Space>
+          <Select
+            value={i18nInstance.language}
+            style={{ width: 100 }}
+            onChange={handleLanguageChange}
+            options={[
+              { value: 'en', label: t('settings.language.en') },
+              { value: 'zh', label: t('settings.language.zh') },
+            ]}
+          />
+        </Space>
+      </div>
+      <Form
+        form={form}
+        layout="vertical"
+        initialValues={initialConfig}
+        onValuesChange={handleValuesChange}
+        style={{ padding: '0 8px' }}
+      >
+        <Tabs
+          defaultActiveKey="keybinding"
+          items={[
+            {
+              key: 'keybinding',
+              label: t('settings.tab.keybinding'),
+              children: <KeybindingSettings availableKeysData={availableKeysState} />,
+            },
+            {
+              key: 'mouse',
+              label: t('settings.tab.mouse'),
+              children: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeysState} />,
+            },
+            {
+              key: 'hint',
+              label: t('settings.tab.hint'),
+              children: <HintSettings onValuesChange={handleValuesChange} />,
+            },
+            {
+              key: 'ui_automation',
+              label: t('settings.tab.uiAutomation'),
+              children: <UiAutomationSettings />,
+            },
+            {
+              key: 'keyboard',
+              label: t('settings.tab.keyboard'),
+              children: <KeyboardSettings onValuesChange={handleValuesChange} />,
+            },
+            {
+              key: 'system',
+              label: t('settings.tab.system'),
+              children: <SystemSettings />,
+            },
+          ]}
+        />
+      </Form>
+    </>
   );
 };
 

@@ -4,6 +4,7 @@ import { Config, MouseStep, MouseConfig } from '@/types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
 import '../../../styles/global.css';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -13,6 +14,7 @@ interface MouseSettingsProps {
 }
 
 export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, availableKeysData }) => {
+  const { t } = useTranslation();
   const form = Form.useFormInstance<Config>();
   const keyOptions = useKeyOptions(availableKeysData);
 
@@ -173,14 +175,14 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     let steps: MouseStep[];
     let tooltip = '';
     switch (type) {
-      case 'translate': steps = translateSteps; tooltip = 'Configure the amount and direction of mouse movement for each step. Used for keyboard-based mouse navigation.'; break;
-      case 'scroll': steps = scrollSteps; tooltip = 'Configure the amount and direction of scrolling for each step. Used for keyboard-based scrolling.'; break;
-      case 'drag': steps = dragSteps; tooltip = 'Configure the amount and direction of mouse movement for each step during drag operations.'; break;
+      case 'translate': steps = translateSteps; tooltip = t('mouse.movementStepTooltip'); break;
+      case 'scroll': steps = scrollSteps; tooltip = t('mouse.scrollStepTooltip'); break;
+      case 'drag': steps = dragSteps; tooltip = t('mouse.dragStepTooltip'); break;
       default: steps = []; tooltip = '';
     }
 
     return (
-      <Form.Item label={label} className="config-section-title" style={{ width: '100%' }} tooltip={tooltip}>
+      <Form.Item label={t(label)} className="config-section-title" style={{ width: '100%' }} tooltip={tooltip}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered
@@ -189,7 +191,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
               <List.Item>
                 <Space align="center">
                   <InputNumber
-                    addonBefore="X"
+                    addonBefore={t('mouse.x')}
                     value={step.x}
                     min={-10000}
                     max={10000}
@@ -197,16 +199,16 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
                     style={{ width: '80px' }}
                   />
                   <InputNumber
-                    addonBefore="Y"
+                    addonBefore={t('mouse.y')}
                     value={step.y}
                     min={-10000}
                     max={10000}
                     onChange={(value) => updateStepConfig(type, index, 'y', value)}
                     style={{ width: '80px' }}
                   />
-                  <Tooltip title="Modifier keys that must be held to trigger this step. Leave empty for no modifier requirement.">
+                  <Tooltip title={t('mouse.modifiersTooltip')}>
                     <Paragraph style={{ fontWeight: 'normal', marginBottom: 0 }}>
-                      Modifiers:
+                      {t('mouse.modifiers')}
                     </Paragraph>
                   </Tooltip>
                   <Select
@@ -214,7 +216,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
                     value={step.modifier}
                     options={keyOptions}
                     style={{ minWidth: '170px' }}
-                    placeholder="Select modifiers"
+                    placeholder={t('mouse.selectModifiers')}
                     onChange={(value) => updateStepConfig(type, index, 'modifier', value)}
                   />
                   <Button
@@ -230,9 +232,8 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
             type="dashed"
             onClick={() => addStep(type)}
             block
-            icon={<PlusOutlined />}
-          >
-            Add {label}
+            icon={<PlusOutlined />}>
+            {t('mouse.addStep', { label: t(label) })}
           </Button>
         </Space>
       </Form.Item>
@@ -241,11 +242,9 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
-
-      {renderStepList('translate', 'Movement Step')}
-      {renderStepList('scroll', 'Scroll Step')}
-      {renderStepList('drag', 'Drag Step')}
-
+      {renderStepList('translate', 'mouse.movementStep')}
+      {renderStepList('scroll', 'mouse.scrollStep')}
+      {renderStepList('drag', 'mouse.dragStep')}
     </Space>
   );
 }; 

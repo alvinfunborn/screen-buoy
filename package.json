@@ -1,7 +1,7 @@
 {
   "name": "screen-buoy",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,9 +15,11 @@
     "@tauri-apps/plugin-process": "^2.2.1",
     "@types/lodash": "^4.17.16",
     "antd": "^5.24.8",
+    "i18next": "^25.1.1",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-i18next": "^15.5.1"
   },
   "devDependencies": {
     "@tauri-apps/api": "^2.5.0",

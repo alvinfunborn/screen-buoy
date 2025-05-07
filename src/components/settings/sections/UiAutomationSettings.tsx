@@ -2,6 +2,7 @@ import React from 'react';
 import { Form, InputNumber, Space, Spin, Typography } from 'antd';
 import type { Config } from '../../../types/config';
 import '../../../styles/global.css';
+import { useTranslation } from 'react-i18next';
 
 const { Title } = Typography;
 
@@ -10,22 +11,23 @@ interface UiAutomationSettingsProps {
 }
 
 export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ onValuesChange }) => {
+  const { t } = useTranslation();
 
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       <Form.Item
         layout="horizontal"
-        label="Collection Interval (ms)"
+        label={t('uiAutomation.collectInterval')}
         name={['ui_automation', 'collect_interval']}
-        tooltip="Time interval between UI element scans in milliseconds."
+        tooltip={t('uiAutomation.collectIntervalTooltip')}
       >
         <InputNumber min={50} max={10000} step={50} />
       </Form.Item>
       <Form.Item
         layout="horizontal"
-        label="Cache TTL (ms)"
+        label={t('uiAutomation.cacheTtl')}
         name={['ui_automation', 'cache_ttl']}
-        tooltip="Time to live for cached UI element data in milliseconds. When scanning windows that are not on top, cached element data will be used."
+        tooltip={t('uiAutomation.cacheTtlTooltip')}
       >
         <InputNumber min={100} max={1000000} step={100} />
       </Form.Item>
