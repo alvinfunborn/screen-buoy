@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, List, Space, Spin, Typography, Select, Button, Flex } from 'antd';
+import { Form, InputNumber, List, Space, Spin, Typography, Select, Button, Flex, Tooltip } from 'antd';
 import { Config, MouseStep, MouseConfig } from '@/types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
@@ -171,15 +171,16 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
   const renderStepList = (type: 'translate' | 'scroll' | 'drag', label: string) => {
     // Determine the correct state array based on type
     let steps: MouseStep[];
+    let tooltip = '';
     switch (type) {
-      case 'translate': steps = translateSteps; break;
-      case 'scroll': steps = scrollSteps; break;
-      case 'drag': steps = dragSteps; break;
-      default: steps = [];
+      case 'translate': steps = translateSteps; tooltip = 'Configure the amount and direction of mouse movement for each step. Used for keyboard-based mouse navigation.'; break;
+      case 'scroll': steps = scrollSteps; tooltip = 'Configure the amount and direction of scrolling for each step. Used for keyboard-based scrolling.'; break;
+      case 'drag': steps = dragSteps; tooltip = 'Configure the amount and direction of mouse movement for each step during drag operations.'; break;
+      default: steps = []; tooltip = '';
     }
 
     return (
-      <Form.Item label={label} className="config-section-title" style={{ width: '100%' }}>
+      <Form.Item label={label} className="config-section-title" style={{ width: '100%' }} tooltip={tooltip}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered
@@ -203,9 +204,11 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
                     onChange={(value) => updateStepConfig(type, index, 'y', value)}
                     style={{ width: '80px' }}
                   />
-                  <Paragraph style={{ fontWeight: 'normal', marginBottom: 0 }}>
-                    Modifiers:
-                  </Paragraph>
+                  <Tooltip title="Modifier keys that must be held to trigger this step. Leave empty for no modifier requirement.">
+                    <Paragraph style={{ fontWeight: 'normal', marginBottom: 0 }}>
+                      Modifiers:
+                    </Paragraph>
+                  </Tooltip>
                   <Select
                     mode="multiple"
                     value={step.modifier}

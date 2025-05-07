@@ -360,7 +360,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   return (
     <Space direction="vertical" style={{ width: '100%' }}>
       {/* Hint Charsets Section (Existing) */}
-      <Form.Item label="Hint Charsets" className="config-section-title">
+      <Form.Item label="Hint Charsets" className="config-section-title" tooltip="Characters used for hints. The first character of each hint comes from the first charset row, the second from the second row, and so on.">
         <Form.List name={['hint', 'charsets']}>
           {(fields, { add, remove }) => (
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -402,6 +402,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       <Form.Item
         label="Hint Charset Extra"
         className="config-section-title"
+        tooltip="When the number of hints exceeds the available characters, these extra characters will be used. Extra characters are added as the first character of the hint; subsequent characters cycle through the main charsets."
         name={['hint', 'charset_extra']} // Bind to form state
       >
         <Input
@@ -419,6 +420,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       <Space direction="vertical" style={{ width: '100%' }}>
         <Form.Item
           label="Rows"
+          tooltip="Number of rows to divide the screen into for displaying hints at fixed positions."
           name={['hint', 'grid', 'rows']}
           style={{ marginBottom: 8 }}
         >
@@ -426,12 +428,13 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         </Form.Item>
         <Form.Item
           label="Columns"
+          tooltip="Number of columns to divide the screen into for displaying hints at fixed positions."
           name={['hint', 'grid', 'columns']}
           style={{ marginBottom: 8 }}
         >
           <InputNumber min={0} style={{ width: 100 }} />
         </Form.Item>
-        <Form.Item label="Show At Rows" style={{ marginBottom: 8 }}>
+        <Form.Item label="Show At Rows" tooltip="After dividing the screen into rows, show hints only at the specified rows." style={{ marginBottom: 8 }}>
           <Select
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_rows']) || []}
@@ -448,7 +451,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
             placeholder="选择行"
           />
         </Form.Item>
-        <Form.Item label="Show At Columns" style={{ marginBottom: 8 }}>
+        <Form.Item label="Show At Columns" tooltip="After dividing the screen into columns, show hints only at the specified columns." style={{ marginBottom: 8 }}>
           <Select
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_columns']) || []}
@@ -468,6 +471,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         <Form.Item
           label="Hint Type"
           name={['hint', 'grid', 'hint_type']}
+          tooltip="The hint type used for grid-generated hints, controls the style of these hints."
           style={{ marginBottom: 0 }}
         >
           <Select
@@ -482,6 +486,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       <Form.Item
         label="Hint Default Style"
         className="config-section-title"
+        tooltip="Default CSS style for hints."
         name={['hint', 'style']}
       >
         <Input.TextArea
@@ -517,6 +522,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               <Form.Item
                 label="Style CSS"
                 name={['hint', 'types', typeName, 'style']} // Bind directly to form state path
+                tooltip="Custom CSS style for this hint type."
                 rules={[{ required: false }]} // Optional style
                 style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
               >
@@ -532,6 +538,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               <Form.Item
                 label="Z-Index"
                 name={['hint', 'types', typeName, 'z_index']}
+                tooltip="z-index for this hint type. Controls stacking order when hints overlap."
                 rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
                 style={{ width: '100%', marginBottom: '10px' }} // Adjust spacing
               >
@@ -546,6 +553,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 // name={['hint', 'types', typeName, 'element_control_types']}
                 // Rules might not work correctly without the name prop, relying on manual update/validation
                 // Rules removed in user edit
+                tooltip="Element control types associated with this hint type. See Windows UI Automation control type IDs."
                 style={{ width: '100%', marginBottom: '0px' }} // Adjust spacing (last item)
               >
                 <Input

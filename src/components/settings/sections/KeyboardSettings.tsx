@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Space, Typography, Button, Input, List, Spin, Collapse, Select, InputNumber } from 'antd';
+import { Form, Space, Typography, Button, Input, List, Spin, Collapse, Select, InputNumber, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Config, KeyboardConfig, LeftRightConfig } from '../../../types/config';
 import '../../../styles/global.css';
@@ -193,6 +193,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
       {/* Propagation Modifier */}
       <Form.Item
         label="Propagation Modifier"
+        tooltip="Modifier keys (e.g. Alt, Ctrl, Shift, Win) that will be ignored by the app, allowing their events to pass through to other windows."
         className="config-section-title"
         name={['keyboard', 'propagation_modifier']}
       >
@@ -205,8 +206,40 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
       </Form.Item>
 
       <Collapse>
-        <Panel header="Available Keys" className="config-section-title" key="available_keys">
-          {/* Render list manually based on local state */}
+        <Panel header={<Tooltip title="Define all keys that can be used for custom keybindings. Each key is mapped to its Windows virtual key code.">Available Keys</Tooltip>} className="config-section-title" key="available_keys">
+          <Space direction="vertical" style={{ width: '100%', marginBottom: 8 }}>
+            <List
+              bordered
+              dataSource={[
+                { keyName: 'HintKey', virtualKey: '-', tooltip: 'The physical key corresponding to the last character of the current hint.' },
+                { keyName: 'HintRightKey', virtualKey: '-', tooltip: 'The physical key immediately to the right of HintKey, as defined in the leftRightMapping table below.' },
+                { keyName: 'HintLeftKey', virtualKey: '-', tooltip: 'The physical key immediately to the left of HintKey, as defined in the leftRightMapping table below.' },
+              ]}
+              rowKey={item => item.keyName}
+              renderItem={item => (
+                <List.Item key={item.keyName}>
+                  <Space align="center">
+                    <Tooltip title={item.tooltip}>
+                      <Input
+                        addonBefore="Key"
+                        value={item.keyName}
+                        disabled
+                        style={{ width: '250px', fontWeight: 'bold' }}
+                        placeholder="Key Name"
+                      />
+                    </Tooltip>
+                    <Input
+                      addonBefore="VK"
+                      value={item.virtualKey}
+                      disabled
+                      style={{ width: '150px', fontWeight: 'bold' }}
+                      placeholder="VK"
+                    />
+                  </Space>
+                </List.Item>
+              )}
+            />
+          </Space>
           <List
             bordered
             dataSource={availableKeyList}
@@ -256,7 +289,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
       </Collapse>
 
       <Collapse>
-        <Panel header="Left Right Mapping" className="config-section-title" key="left_right_mapping">
+        <Panel header={<Tooltip title="Define left/right relationships for keys. Used for flexible combos and directional actions.">Left Right Mapping</Tooltip>} className="config-section-title" key="left_right_mapping">
           {/* Render list manually based on local state */}
           <List
             bordered

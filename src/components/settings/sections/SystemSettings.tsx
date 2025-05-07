@@ -33,6 +33,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
         label="Logging Level"
         name={['system', 'logging_level']}
         style={{ width: '200px' }}
+        tooltip="Set the logging level. Select 'none' to disable all logging output."
         layout="horizontal"
       >
         <Select>
@@ -48,6 +49,7 @@ export const SystemSettings: React.FC<SystemSettingsProps> = ({ onValuesChange }
         label="Debug Mode"
         name={['system', 'debug_mode']}
         valuePropName="checked"
+        tooltip="In debug mode, the position of the hint window will be displayed."
         layout="horizontal"
       >
         <Switch />
