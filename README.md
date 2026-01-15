@@ -2,7 +2,7 @@
 
 [English](./README.md) | [中文](./README_zh.md)
 
-> A cross-screen, fully interactive screen hint navigation and automation tool.  
+> A cross-screen, fully interactive screen hint navigation and automation tool.
 > Inspired by Fluent Search and mousemaster, with enhanced multi-monitor and advanced interaction support.
 
 ---
@@ -28,20 +28,20 @@ Typical scenarios:
 
 ## Demo
 
-- **Multi-monitor hint navigation**  
+- **Multi-monitor hint navigation**
   ![image](./docs/hints.png)
 
 - **Move hints**
   ![image](./docs/move.gif)
 
 - **Advanced interactions**
-  - Right click  
+  - Right click
     ![image](./docs/right_click.gif)
-  - Double click  
+  - Double click
     ![image](./docs/double_click.gif)
-  - Scroll  
+  - Scroll
     ![image](./docs/scroll.gif)
-  - Drag  
+  - Drag
     ![image](./docs/drag.gif)
 
 - **Start advanced interaction at cursor without hint**
@@ -95,6 +95,9 @@ cargo build
 # Start in development mode
 cd ..
 npm run tauri dev
+
+# Build the release version
+npm run tauri build
 ```
 
 - **Tray icon**: Double-click to open settings
@@ -160,9 +163,9 @@ right = "L"
 
 ###### Hold At Hint
 
-**Hold At Hint** is a core interaction:  
-After entering a hint, long-pressing the HintKey (the last character of the hint) enters Hold mode, allowing advanced actions (drag, scroll, right-click, etc.) at the hint.  
-You can also long-press Space (or other custom keys) to enter Hold mode at the current cursor position.  
+**Hold At Hint** is a core interaction:
+After entering a hint, long-pressing the HintKey (the last character of the hint) enters Hold mode, allowing advanced actions (drag, scroll, right-click, etc.) at the hint.
+You can also long-press Space (or other custom keys) to enter Hold mode at the current cursor position.
 All entry methods for Hold mode can be customized via the `hold_at_hint` setting.
 
 ###### Structure
@@ -211,8 +214,8 @@ Example:
 [hint.types.button]
 style = """
 {
-  background-color: rgba(122, 164, 243, 1); 
-  color: #111111; 
+  background-color: rgba(122, 164, 243, 1);
+  color: #111111;
   font-size: 11px;
 }
 """
@@ -224,7 +227,7 @@ element_control_types = [50021, 50026, ...]
 
 ## Performance
 
-Screen Buoy is designed for high efficiency and low resource usage.  
+Screen Buoy is designed for high efficiency and low resource usage.
 - **Memory usage**: Typically 30~60MB RAM when running in the background.
 - **CPU usage**: Idle CPU usage is usually less than 1%, even with frequent UI Automation scans.
 - **Startup time**: Less than 1 second on most modern systems.
@@ -257,5 +260,5 @@ You can verify the binary with any mainstream antivirus or use the source code t
 
 ## References
 
-- [Fluent Search](https://www.fluentsearch.net/)  
-- [mousemaster](https://github.com/petoncle/mousemaster)  
+- [Fluent Search](https://www.fluentsearch.net/)
+- [mousemaster](https://github.com/petoncle/mousemaster)

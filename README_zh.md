@@ -1,6 +1,6 @@
 # Screen Buoy
 
-> 跨屏幕、全局可交互的屏幕Hint导航与自动化工具  
+> 跨屏幕、全局可交互的屏幕Hint导航与自动化工具
 > 灵感源自Fluent Search与mousemaster，支持多屏与复杂交互
 
 ---
@@ -28,7 +28,7 @@
 
 ## 使用示例
 
-- **多屏Hint导航**  
+- **多屏Hint导航**
   ![image](./docs/hints.png)
 
 - **移动Hint**
@@ -95,6 +95,9 @@ cargo build
 # 开发模式启动
 cd ..
 npm run tauri dev
+
+# 构建发布版本
+npm run tauri build
 ```
 
 - **托盘图标**：双击可打开设置界面
@@ -114,7 +117,7 @@ npm run tauri dev
   - 短按Space：在鼠标光标位置左键点击并退出
   - 长按Space：直接在光标位置进入Hold模式
   - 方向键: 移动Hint
-- Hold模式: 
+- Hold模式:
   - Esc: 退出Hint
   - LShift: 左键点击
   - HintLeftKey: 左键点击并退出
@@ -160,8 +163,8 @@ right = "L"
 
 ###### Hold At Hint说明
 
-**Hold At Hint**是Screen Buoy的核心交互方式之一。当你输入Hint后，长按HintKey（Hint的最后一个字符），会进入Hold模式，此时可以在Hint位置执行更多操作（如拖拽、滚动、右键点击等）。  
-你也可以在Hint激活时直接长按Space等自定义按键，直接在当前鼠标光标位置进入Hold模式。  
+**Hold At Hint**是Screen Buoy的核心交互方式之一。当你输入Hint后，长按HintKey（Hint的最后一个字符），会进入Hold模式，此时可以在Hint位置执行更多操作（如拖拽、滚动、右键点击等）。
+你也可以在Hint激活时直接长按Space等自定义按键，直接在当前鼠标光标位置进入Hold模式。
 这些进入Hold模式的方式都可以通过`hold_at_hint`配置灵活定制。
 
 ###### 配置结构
@@ -210,8 +213,8 @@ hint_type = "default"
 [hint.types.button]
 style = """
 {
-  background-color: rgba(122, 164, 243, 1); 
-  color: #111111; 
+  background-color: rgba(122, 164, 243, 1);
+  color: #111111;
   font-size: 11px;
 }
 """
@@ -223,7 +226,7 @@ element_control_types = [50021, 50026, ...]
 
 ## 性能
 
-Screen Buoy 追求高效与低资源占用：  
+Screen Buoy 追求高效与低资源占用：
 - **内存占用**：常驻后台时约 30~60MB。
 - **CPU 占用**：即使频繁扫描 UI，空闲时 CPU 占用通常低于 1%。
 - **启动速度**：大多数现代设备下启动时间小于 1 秒。
@@ -256,7 +259,7 @@ Screen Buoy 完全开源，并通过多项安全检测：
 
 ## 参考项目
 
-- [Fluent Search](https://www.fluentsearch.net/)  
-- [mousemaster](https://github.com/petoncle/mousemaster)  
+- [Fluent Search](https://www.fluentsearch.net/)
+- [mousemaster](https://github.com/petoncle/mousemaster)
 
 ---
