@@ -1,5 +1,5 @@
 identifier = "com.screen-buoy.dev"
-version = "0.2.0"
+version = "1.0.0"
 productName = "screen-buoy"
 
 [build]
@@ -76,4 +76,4 @@ iconPath = "icons/icon.ico"
 iconAsTemplate = true
 
 [plugins.updater]
-active = false 
+active = false

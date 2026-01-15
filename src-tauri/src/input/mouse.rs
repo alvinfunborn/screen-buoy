@@ -13,8 +13,9 @@ fn move_to(monitor: usize, x: i32, y: i32) -> windows::core::Result<()> {
     if let Ok(monitors) = MONITORS_STORAGE.lock() {
         if let Some(monitor_info) = monitors.get(monitor) {
             // 检查坐标是否在显示器范围内
-            let mut x = x * monitor_info.scale_factor as i32;
-            let mut y = y * monitor_info.scale_factor as i32;
+            // 注意：先乘以scale_factor再转换为i32，避免1.75 as i32 = 1的截断问题
+            let mut x = (x as f64 * monitor_info.scale_factor) as i32;
+            let mut y = (y as f64 * monitor_info.scale_factor) as i32;
             if x < 0 {
                 x = 0;
             } else if x > monitor_info.width {
