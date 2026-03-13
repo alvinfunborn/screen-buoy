@@ -109,14 +109,14 @@ npm run tauri build
 ## 默认键位
 
 - 运行时
-  - Alt+H: 显示Hint
-- Hint显示时
-  - Esc: 退出Hint
+  - Alt+H: 显示Hints
+- Hints显示时
+  - Esc: 退出Hints
   - 短按HintKey: 在Hint位置左键点击并退出
   - 长按HintKey：在Hint位置进入Hold模式
   - 短按Space：在鼠标光标位置左键点击并退出
   - 长按Space：直接在光标位置进入Hold模式
-  - 方向键: 移动Hint
+  - 方向键: 平移Hints和光标
 - Hold模式:
   - Esc: 退出Hint
   - LShift: 左键点击

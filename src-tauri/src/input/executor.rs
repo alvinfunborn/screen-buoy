@@ -289,6 +289,7 @@ impl<'a> Executor<'a> {
             // 发送事件到前端更新显示
             tauri::async_runtime::spawn(async move {
                 move_hints(app_handle_clone, (dx, dy)).await;
+                mouse::mouse_move_relative(dx, dy).await;
             });
             return true;
         }

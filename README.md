@@ -111,12 +111,12 @@ npm run tauri build
 - When running:
   - `Alt+H`: Show hints
 - When hints are visible:
-  - `Esc`: Exit hint mode
+  - `Esc`: Exit
   - Short press `HintKey`: Left click at hint and exit
   - Long press `HintKey`: Enter Hold mode at hint
   - Short press `Space`: Left click at cursor and exit
   - Long press `Space`: Enter Hold mode at cursor
-  - Arrow keys: Move hints
+  - Arrow keys: Move hints and cursor
 - In Hold mode:
   - `Esc`: Exit hint mode
   - `LShift`: Left click
