@@ -7,9 +7,18 @@ pub mod input;
 pub mod monitor;
 pub mod utils;
 pub mod window;
+#[cfg(target_os = "macos")]
+pub mod macos_access;
+
+#[cfg(target_os = "macos")]
+pub fn set_app_activation_policy_accessory() {
+    macos_window::set_app_activation_policy_accessory();
+}
 
 use config::{get_config_for_frontend, get_hint_types_styles, hint::get_hint_default_style, save_config_for_frontend};
-use hint::{ overlay::OVERLAY_HANDLES_STORAGE, show_hints};
+use hint::show_hints;
+#[cfg(target_os = "windows")]
+use hint::overlay::OVERLAY_HANDLES_STORAGE;
 use log::{error, info, warn};
 use std::{panic, str::FromStr};
 use tauri::{
@@ -20,12 +29,14 @@ use tauri::{
 };
 use tauri_plugin_autostart::{MacosLauncher, ManagerExt};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
+#[cfg(target_os = "windows")]
 use windows::Win32::{Foundation::HWND, Graphics::Dwm::DWMWINDOWATTRIBUTE};
-use windows::Win32::UI::WindowsAndMessaging::{
-    GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, 
-    WS_EX_TRANSPARENT, 
-};
+#[cfg(target_os = "windows")]
 use windows::Win32::Graphics::Dwm::DwmSetWindowAttribute;
+#[cfg(target_os = "windows")]
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, WS_EX_TRANSPARENT,
+};
 
 pub fn setup_tray(
     app_handle: &AppHandle,
@@ -46,7 +57,10 @@ pub fn setup_tray(
         .item(&exit_item)
         .build()?;
 
+    #[cfg(target_os = "windows")]
     let tray_icon = Image::from_bytes(include_bytes!("../icons/icon.ico"))?;
+    #[cfg(target_os = "macos")]
+    let tray_icon = Image::from_bytes(include_bytes!("../icons/tray_icon.png"))?;
 
     let _tray_icon = TrayIconBuilder::new()
         .menu(&tray_menu)
@@ -79,6 +93,7 @@ pub fn setup_tray(
                 _ => {}
             }
         })
+        .icon_as_template(true)
         .show_menu_on_left_click(true)
         .build(app_handle)?;
     Ok(())
@@ -241,36 +256,52 @@ pub fn create_overlay_window(
             e
         );
     }
-    
+
     let window = window.unwrap();
+    #[cfg(target_os = "macos")]
+    if let Err(e) = window.set_position(tauri::LogicalPosition::new(
+        position_x as f64 / monitor.scale_factor,
+        position_y as f64 / monitor.scale_factor,
+    )) {
+        error!("[create_overlay_window] set position failed: {}", e);
+    }
+    #[cfg(target_os = "windows")]
     if let Err(e) = window.set_position(tauri::PhysicalPosition::new(position_x, position_y)) {
         error!("[create_overlay_window] set position failed: {}", e);
     }
-    // 确保窗口位置正确
-    if let Ok(hwnd) = window.hwnd() {
-        let hwnd_raw = hwnd.0;
-        const DWMWA_WINDOW_CORNER_PREFERENCE: DWMWINDOWATTRIBUTE = DWMWINDOWATTRIBUTE(33);
-        const DWMWCP_DONOTROUND: u32 = 1;
-        let preference: u32 = DWMWCP_DONOTROUND;
-        unsafe {
-            // 去掉 Windows 11 圆角
-            let _ = DwmSetWindowAttribute(
-                HWND(hwnd_raw as *mut _),
-                DWMWA_WINDOW_CORNER_PREFERENCE,
-                &preference as *const _ as _,
-                std::mem::size_of_val(&preference) as u32,
-            );
-            if !config::get_config().unwrap().system.debug_mode {
-                set_window_transparent_style(&window, hwnd_raw as i64);
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(hwnd) = window.hwnd() {
+            let hwnd_raw = hwnd.0;
+            const DWMWA_WINDOW_CORNER_PREFERENCE: DWMWINDOWATTRIBUTE = DWMWINDOWATTRIBUTE(33);
+            const DWMWCP_DONOTROUND: u32 = 1;
+            let preference: u32 = DWMWCP_DONOTROUND;
+            unsafe {
+                let _ = DwmSetWindowAttribute(
+                    HWND(hwnd_raw as *mut _),
+                    DWMWA_WINDOW_CORNER_PREFERENCE,
+                    &preference as *const _ as _,
+                    std::mem::size_of_val(&preference) as u32,
+                );
+                if !config::get_config().unwrap().system.debug_mode {
+                    set_window_transparent_style_win(&window, hwnd_raw as i64);
+                }
+            }
+            if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
+                handles.insert(window_label.to_string(), hwnd_raw as i64);
             }
         }
-        if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
-            handles.insert(window_label.to_string(), hwnd_raw as i64);
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        if !config::get_config().unwrap().system.debug_mode {
+            set_window_transparent_style_non_win(&window);
         }
     }
 }
 
-fn set_window_transparent_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
+#[cfg(target_os = "windows")]
+fn set_window_transparent_style_win(window: &tauri::WebviewWindow, hwnd_raw: i64) {
     // 设置无任务栏图标并确保在最顶层
     if let Err(e) = window.set_skip_taskbar(true) {
         error!("[set_overlay_style] set skip taskbar failed: {}", e);
@@ -288,5 +319,78 @@ fn set_window_transparent_style(window: &tauri::WebviewWindow, hwnd_raw: i64) {
             GWL_EXSTYLE,
             style | (WS_EX_TRANSPARENT.0 | WS_EX_LAYERED.0) as i32,
         );
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn set_window_transparent_style_non_win(window: &tauri::WebviewWindow) {
+    if let Err(e) = window.set_skip_taskbar(true) {
+        error!("[set_overlay_style] set skip taskbar failed: {}", e);
+    }
+    if let Err(e) = window.set_always_on_top(true) {
+        error!("[set_overlay_style] set always on top failed: {}", e);
+    }
+    #[cfg(target_os = "macos")]
+    {
+        if let Err(e) = window.set_ignore_cursor_events(true) {
+            error!("[set_overlay_style] set_ignore_cursor_events failed: {}", e);
+        }
+        if let Ok(ns_win) = window.ns_window() {
+            macos_window::set_overlay_collection_behavior(ns_win);
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+mod macos_window {
+    use std::ffi::c_void;
+
+    #[link(name = "objc", kind = "dylib")]
+    extern "C" {
+        fn objc_msgSend();
+        fn objc_getClass(name: *const std::ffi::c_char) -> *mut c_void;
+        fn sel_registerName(name: *const std::ffi::c_char) -> *const c_void;
+    }
+
+    unsafe fn send_void(obj: *mut c_void, sel: *const c_void) -> *mut c_void {
+        let f: unsafe extern "C" fn(*mut c_void, *const c_void) -> *mut c_void =
+            std::mem::transmute(objc_msgSend as *const ());
+        f(obj, sel)
+    }
+
+    unsafe fn send_u64(obj: *mut c_void, sel: *const c_void, val: u64) {
+        let f: unsafe extern "C" fn(*mut c_void, *const c_void, u64) =
+            std::mem::transmute(objc_msgSend as *const ());
+        f(obj, sel, val)
+    }
+
+    unsafe fn send_i64(obj: *mut c_void, sel: *const c_void, val: i64) {
+        let f: unsafe extern "C" fn(*mut c_void, *const c_void, i64) =
+            std::mem::transmute(objc_msgSend as *const ());
+        f(obj, sel, val)
+    }
+
+    pub fn set_app_activation_policy_accessory() {
+        unsafe {
+            let cls = objc_getClass(b"NSApplication\0".as_ptr() as *const _);
+            let ns_app = send_void(cls, sel_registerName(b"sharedApplication\0".as_ptr() as *const _));
+            let sel = sel_registerName(b"setActivationPolicy:\0".as_ptr() as *const _);
+            send_i64(ns_app, sel, 1); // NSApplicationActivationPolicyAccessory
+        }
+    }
+
+    pub fn set_overlay_collection_behavior(ns_window: *mut c_void) {
+        const CAN_JOIN_ALL_SPACES: u64 = 1 << 0;
+        const STATIONARY: u64 = 1 << 4;
+        const IGNORES_CYCLE: u64 = 1 << 6;
+        let behavior = CAN_JOIN_ALL_SPACES | STATIONARY | IGNORES_CYCLE;
+
+        unsafe {
+            let sel = sel_registerName(b"setCollectionBehavior:\0".as_ptr() as *const _);
+            send_u64(ns_window, sel, behavior);
+
+            let level_sel = sel_registerName(b"setLevel:\0".as_ptr() as *const _);
+            send_i64(ns_window, level_sel, 25); // NSStatusWindowLevel
+        }
     }
 }

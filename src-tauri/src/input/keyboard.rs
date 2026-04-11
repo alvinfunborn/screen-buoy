@@ -298,7 +298,16 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
             hide_hints_when_session_end(&mut state, app_handle);
             return true;
         }
+
+        if modifier_keys.contains(&key.to_string()) {
+            return false;
+        }
+        for modifier_key in &configs.keyboard.propagation_modifier {
+            if state.hold_keys.get(modifier_key).copied().unwrap_or(false) {
+                return false;
+            }
+        }
     }
 
-    false
+    true
 }

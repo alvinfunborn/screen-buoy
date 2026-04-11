@@ -22,8 +22,9 @@ pub const HINT_RIGHT_KEY: &str = "HintRightKey";
 pub const HINT_LEFT_KEY: &str = "HintLeftKey";
 
 pub static VIRTUAL_KEY_MAP: Lazy<Mutex<IndexMap<u16, String>>> = Lazy::new(|| Mutex::new({
+    let config = super::get_config().unwrap().keyboard;
     let mut map = IndexMap::new();
-    for (key, vk) in &super::get_config().unwrap().keyboard.available_key {
+    for (key, vk) in &config.available_key {
         map.insert(*vk, key.clone());
     }
     map
@@ -47,6 +48,28 @@ impl KeyboardConfig {
             None
         }
     }
+}
+
+#[cfg(target_os = "macos")]
+const MODIFIER_NAMES: &[&str] = &[
+    "LOption", "ROption", "LControl", "RControl", "LCmd", "RCmd", "LShift", "RShift",
+];
+
+#[cfg(not(target_os = "macos"))]
+const MODIFIER_NAMES: &[&str] = &[
+    "LAlt", "RAlt", "LCtrl", "RCtrl", "LWin", "RWin", "LShift", "RShift",
+];
+
+/// Returns (keycode, name) pairs for all modifier keys found in VIRTUAL_KEY_MAP.
+pub fn get_modifier_keycodes() -> Vec<(u16, String)> {
+    let map = VIRTUAL_KEY_MAP.lock().unwrap();
+    let mut result = Vec::new();
+    for (code, name) in map.iter() {
+        if MODIFIER_NAMES.contains(&name.as_str()) {
+            result.push((*code, name.clone()));
+        }
+    }
+    result
 }
 
 // 检查是否是键的右侧键

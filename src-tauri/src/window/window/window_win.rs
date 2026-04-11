@@ -24,6 +24,7 @@ pub struct WindowElement {
     pub window_handle: i64,
     pub visible: bool,
     pub is_task_bar: bool,
+    pub owner_pid: i32,
 }
 
 impl Hash for WindowElement {
@@ -138,6 +139,7 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
                 window_handle: hwnd.0 as i64,
                 visible: !is_iconic,
                 is_task_bar: is_task_bar,
+                owner_pid: 0,
             };
 
             (*elements).push(window_element);

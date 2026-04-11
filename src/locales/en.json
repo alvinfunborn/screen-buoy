@@ -20,7 +20,7 @@
   },
   "keybinding": {
     "mainHotkey": "Main Hotkey",
-    "mainHotkeyTooltip": "The main hotkey to activate and show hints.",
+    "mainHotkeyTooltip": "The main hotkey to activate and show hints. Uses Tauri shortcut format: Alt = Option, Ctrl = Control, Super = Command on macOS.",
     "globalKeybindings": "Global Keybindings",
     "moveToHint": "Move to Hint",
     "moveToHintTooltip": "Move the mouse cursor to the selected hint.",

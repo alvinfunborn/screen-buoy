@@ -12,6 +12,7 @@ use screen_buoy::setup_panic_handler;
 use screen_buoy::setup_shortcut;
 use screen_buoy::setup_tray;
 use tauri::Manager;
+#[cfg(target_os = "windows")]
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
 use std::env;
 
@@ -32,7 +33,7 @@ fn main() {
     // Initialize logger
     let _ = init_logger(config.system.logging_level.clone());
     
-    // Initialize COM
+    #[cfg(target_os = "windows")]
     unsafe {
         let result = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         if result.is_err() {
@@ -48,6 +49,9 @@ fn main() {
     builder = builder.setup(move |app| {
         info!("=== application started ===");
         info!("debug mode: {}", cfg!(debug_assertions));
+
+        #[cfg(target_os = "macos")]
+        screen_buoy::set_app_activation_policy_accessory();
 
         let app_handle = app.handle();
 
@@ -72,6 +76,12 @@ fn main() {
         // Initialize panic handler
         setup_panic_handler(app_handle.clone());
         info!("[✓] panic handler initialized");
+
+        #[cfg(target_os = "macos")]
+        {
+            screen_buoy::macos_access::log_executable_identity();
+            screen_buoy::macos_access::log_accessibility_status();
+        }
 
         // Initialize input hook
         input::hook::init(app_handle.clone());
@@ -118,6 +128,7 @@ fn main() {
             input::hook::cleanup();
             info!("[✓] keyboard hook cleaned up");
 
+            #[cfg(target_os = "windows")]
             unsafe {
                 CoUninitialize();
                 info!("[✓] COM uninitialized");

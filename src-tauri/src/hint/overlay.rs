@@ -4,7 +4,9 @@ use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
+#[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
+#[cfg(target_os = "windows")]
 use windows::Win32::UI::WindowsAndMessaging::{
     SetWindowPos, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE,
 };
@@ -41,9 +43,9 @@ pub fn create_overlay_windows(app_handle: &tauri::AppHandle) {
 
 // 确保所有overlay窗口都在最顶层，直接使用保存的窗口句柄
 pub fn ensure_all_overlays_topmost() {
+    #[cfg(target_os = "windows")]
     if let Ok(handles) = OVERLAY_HANDLES_STORAGE.lock() {
         for (_label, &hwnd_raw) in handles.iter() {
-            #[cfg(target_os = "windows")]
             unsafe {
                 debug!("[ensure_all_overlays_topmost] set overlay window topmost: {}", hwnd_raw);
                 let _ = SetWindowPos(

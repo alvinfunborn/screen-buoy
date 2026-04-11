@@ -1,6 +1,6 @@
 # Screen Buoy
 
-> 跨屏幕、全局可交互的屏幕Hint导航与自动化工具
+> 跨平台（Windows / macOS）、全局可交互的屏幕Hint导航与自动化工具
 > 灵感源自Fluent Search与mousemaster，支持多屏与复杂交互
 
 ---
@@ -51,17 +51,30 @@
 
 ## 实现原理
 
-Screen Buoy 的核心能力依赖于 Windows UI Automation —— 微软官方提供的自动化API，能够跨进程、跨窗口地枚举所有UI控件（如按钮、文本框、窗口、菜单等）。
+Screen Buoy 通过平台原生的辅助功能 API 跨进程、跨窗口地枚举所有 UI 控件（如按钮、文本框、窗口、菜单等）。
 
-本项目通过 Tauri 后端（Rust）集成 Windows UI Automation，主要流程如下：
+#### Windows
+
+使用 **Windows UI Automation** —— 微软官方自动化 API：
 
 - 利用 Rust 的 `windows` crate 调用 UI Automation COM 接口，枚举所有桌面窗口和控件
 - 获取每个控件的类型（ControlType）、名称、可见性、可交互性、屏幕坐标、窗口层级等属性
+- 通过全局键盘钩子（`SetWindowsHookEx`）捕获和过滤按键
+
+#### macOS
+
+使用 **macOS Accessibility API** 和 **Core Graphics**：
+
+- 通过 Accessibility API（`AXUIElement`）枚举各应用的窗口和 UI 控件
+- 将 AX role（如 `AXButton`、`AXTextField`）映射到与 Windows 统一的控件类型体系
+- 使用 Core Graphics 事件监听（`CGEventTapCreate`）进行全局键盘监控
+- 首次启动时需授予 **辅助功能** 和 **输入监视** 权限（系统设置 > 隐私与安全性）
+
+#### 共同
+
 - 结合自定义控件类型映射和过滤规则，生成 Hint 候选点
 - 支持多屏幕、多窗口、遮挡检测等复杂场景
 - 后端将控件信息和 Hint 数据传递给前端/Overlay 进行渲染和交互
-
-通过 Windows UI Automation，Screen Buoy 能够实现对所有可见窗口和控件的精准捕捉和操作，为全局 Hint 导航和自动化交互提供底层支撑。
 
 ---
 
@@ -69,14 +82,23 @@ Screen Buoy 的核心能力依赖于 Windows UI Automation —— 微软官方�
 
 ##### 方式一：直接下载
 
+**Windows：**
+
 1. 前往 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载最新的 `ScreenBuoy.exe` 和 `config.toml` 文件。
 2. 将 `ScreenBuoy.exe` 和 `config.toml` 放在同一目录下。
-3. 双击运行 `ScreenBuoy.exe`，系统托盘会出现ScreenBuoy图标。
+3. 双击运行 `ScreenBuoy.exe`，系统托盘会出现 ScreenBuoy 图标。
 4. 如需自定义配置，可直接编辑同目录下的 `config.toml` 文件，保存后重启程序生效。
 
-- **托盘图标**：双击可打开设置界面
+**macOS：**
+
+1. 前往 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载最新的 `ScreenBuoy.app` 和 `config.toml`。
+2. 将 `ScreenBuoy.app` 移动到「应用程序」文件夹。开发模式下 `config.toml` 放在 `src-tauri/` 目录。
+3. 首次启动时，系统会提示授予 **辅助功能** 和 **输入监视** 权限，请在「系统设置 > 隐私与安全性」中允许。
+4. 菜单栏右上角会出现 Screen Buoy 图标。
+
+- **托盘 / 菜单栏图标**：双击可打开设置界面
 - **开机自启**：可在设置中开启
-- **配置文件**：详见`config.toml`
+- **配置文件**：详见 `config.toml`
 
 ##### 方式二：源码编译运行
 
@@ -141,18 +163,23 @@ npm run tauri build
 
 ##### 2. keyboard配置的按键注册
 
-- **propagation_modifier**：指定哪些修饰键（如Ctrl、Alt、Win）在Hint激活时会被传递。
-- **available_key**：定义所有可用的按键及其对应的键码，便于自定义绑定。
+- **propagation_modifier**：指定哪些修饰键在 Hint 激活时会被传递。
+- **available_key**：定义所有可用的按键及其键码，便于自定义绑定。
 - **map_left_right**：为部分按键定义"左/右"映射关系，支持更灵活的组合操作。
 
-示例：
+> **说明：** Windows 和 macOS 使用独立配置文件（`config.toml` 和 `config_macos.toml`）。macOS 使用原生键名：`LCmd`/`RCmd`（Command）、`LOption`/`ROption`（Option）、`LControl`/`RControl`（Control）。
+
+示例（Windows `config.toml`）：
 ```toml
 [keyboard]
 propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin"]
+
 [keyboard.available_key]
 Back = 8
 Tab = 9
+LWin = 91
 ...
+
 [keyboard.map_left_right.K]
 right = "L"
 ```
@@ -226,13 +253,27 @@ element_control_types = [50021, 50026, ...]
 
 ## 性能
 
-Screen Buoy 追求高效与低资源占用：
-- **内存占用**：常驻后台时约 30~60MB。
-- **CPU 占用**：即使频繁扫描 UI，空闲时 CPU 占用通常低于 1%。
+Screen Buoy 追求低资源占用的同时保证 Hint 生成的实时性。
+- **内存占用**：常驻后台时约 50~120MB，取决于显示器数量和屏幕上的 UI 元素数量。
+- **CPU 占用**：空闲时通常低于 1%。UI 元素扫描默认每 100ms 执行一次以确保切屏/切窗口后 Hint 及时更新，在控件较多的桌面（如 IDE、多标签浏览器）下可能产生短暂尖峰。
 - **启动速度**：大多数现代设备下启动时间小于 1 秒。
-- **后台线程**：仅有少量轻量线程用于 UI Automation 和事件钩子。
+- **后台线程**：少量轻量线程用于 UI 元素采集和键盘/鼠标事件钩子。
 
-即使多屏、低配设备也可常驻运行，无明显性能压力。
+支持多屏环境常驻运行。
+
+---
+
+## 平台要求
+
+| | Windows | macOS |
+|---|---|---|
+| **系统版本** | Windows 10+ | macOS 10.15+ |
+| **权限** | 普通用户 | 辅助功能 + 输入监视 |
+| **开机自启** | 注册表 | LaunchAgent |
+| **托盘** | 系统托盘图标 | 菜单栏图标 |
+| **UI 元素检测** | UI Automation (COM) | Accessibility API (AXUIElement) |
+| **键盘钩子** | SetWindowsHookEx | CGEventTap |
+| **键码体系** | Virtual Key Codes | CGKeyCodes |
 
 ---
 
@@ -241,10 +282,10 @@ Screen Buoy 追求高效与低资源占用：
 Screen Buoy 完全开源，并通过多项安全检测：
 - **无网络上传**：程序不会上传任何用户数据或遥测信息。
 - **无后门/恶意代码**：全部源码可审计，官方发布包无任何后门。
-- **杀毒扫描**：官方 release 版已通过 Windows Defender、卡巴斯基、Virustotal 等主流杀毒软件检测，无报毒。
-- **权限需求**：仅需普通用户权限，无需系统级或内核级访问。
+- **杀毒扫描**（Windows）：官方 release 版已通过 Windows Defender、卡巴斯基、Virustotal 等主流杀毒软件检测，无报毒。
+- **权限需求**：Windows 仅需普通用户权限。macOS 需要辅助功能和输入监视权限 —— 仅用于读取 UI 元素位置和捕获键盘事件。
 
-[Virustotal 检测报告](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
+[Virustotal 检测报告 (Windows)](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
 
 你可自行用主流杀毒软件验证，或直接编译源码获得可信版本。
 
@@ -253,7 +294,9 @@ Screen Buoy 完全开源，并通过多项安全检测：
 ## 附录
 
 - [Windows Virtual Key Codes](https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)
+- [macOS CGKeyCode 参考 (Events.h)](https://github.com/nicklockwood/iVersion/blob/master/Examples/Mac/iVersionMac/Events.h)
 - [Windows UI Automation Element Control Types Ids](https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-controltype-ids)
+- [macOS Accessibility Roles](https://developer.apple.com/documentation/appkit/nsaccessibility/role)
 
 ---
 

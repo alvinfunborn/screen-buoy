@@ -20,7 +20,7 @@
   },
   "keybinding": {
     "mainHotkey": "主快捷键",
-    "mainHotkeyTooltip": "用于激活和显示hint的主快捷键。",
+    "mainHotkeyTooltip": "用于激活和显示hint的主快捷键。使用 Tauri 快捷键格式：macOS 上 Alt = Option，Ctrl = Control，Super = Command。",
     "globalKeybindings": "全局快捷键",
     "moveToHint": "移动到Hint",
     "moveToHintTooltip": "将鼠标移动到选中的hint。",

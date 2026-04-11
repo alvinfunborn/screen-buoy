@@ -3130,9 +3130,13 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 name = "screen-buoy"
 version = "1.0.0"
 dependencies = [
+ "core-foundation",
+ "core-graphics",
+ "dispatch",
  "flexi_logger",
  "indexmap 2.9.0",
  "lazy_static",
+ "libc",
  "log",
  "once_cell",
  "serde",

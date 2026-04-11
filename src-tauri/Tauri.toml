@@ -8,6 +8,9 @@ beforeBuildCommand = "npm run build"
 devUrl = "http://localhost:1420"
 frontendDist = ["../dist"] # v2 需要明确指定
 
+[app]
+macOSPrivateApi = true
+
 [app.security]
 capabilities = ["main-capability"]
 
@@ -44,13 +47,10 @@ visible = false
 active = true
 targets = ["app"] # 只生成便携式exe
 icon = [
-  "icons/32x32.png",
-  "icons/128x128.png",
-  "icons/128x128@2x.png",
-  "icons/icon.icns",
   "icons/icon.ico",
+  "icons/icon.png",
 ]
-copyright = ""
+copyright = "Copyright (c) 2025 alvinfunborn"
 category = "DeveloperTool"
 shortDescription = ""
 longDescription = ""
@@ -58,12 +58,9 @@ longDescription = ""
 # [bundle.deb]
 # depends = []
 
-# [bundle.macOS]
-# frameworks = []
-# exceptionDomain = ""
-# signingIdentity = null
-# providerShortName = null
-# entitlements = null
+[bundle.macOS]
+minimumSystemVersion = "10.15"
+exceptionDomain = ""
 
 [bundle.windows]
 # certificateThumbprint = null
@@ -72,8 +69,8 @@ timestampUrl = ""
 # wix = {} # 可选，用于 WiX 配置
 
 [plugins.trayIcon]
-iconPath = "icons/icon.ico"
-iconAsTemplate = true
+iconPath = "icons/icon.png"
+iconAsTemplate = false
 
 [plugins.updater]
 active = false
