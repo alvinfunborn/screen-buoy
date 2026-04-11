@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSAccessibilityUsageDescription</key>
+	<string>Screen Buoy 需要辅助功能权限以读取界面控件位置并显示快捷键提示。</string>
+</dict>
+</plist>

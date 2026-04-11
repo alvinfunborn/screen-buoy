@@ -29,10 +29,43 @@ pub struct Config {
 }
 
 pub fn get_config_path() -> Option<String> {
-    let config_paths = vec!["config.toml", "src-tauri/config.toml", "../config.toml"];
-    for path in config_paths {
-        if Path::new(path).exists() {
-            return Some(path.to_string());
+    let config_filenames = if cfg!(target_os = "macos") {
+        vec!["config_macos.toml", "config.toml"]
+    } else {
+        vec!["config.toml"]
+    };
+
+    // First, try paths relative to the executable (needed for macOS .app bundles
+    // where the working directory is not the app's location)
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            for filename in &config_filenames {
+                // For macOS .app: executable is at screen-buoy.app/Contents/MacOS/screen-buoy
+                // config is next to the .app bundle, so check ../../.. relative to exe
+                let candidates = vec![
+                    exe_dir.join(filename),              // next to exe
+                    exe_dir.join(format!("../../../{}", filename)), // next to .app bundle (macOS)
+                ];
+                for candidate in candidates {
+                    if let Ok(canonical) = candidate.canonicalize() {
+                        return Some(canonical.to_string_lossy().to_string());
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: relative to working directory (dev mode / Windows)
+    for filename in &config_filenames {
+        let paths = vec![
+            filename.to_string(),
+            format!("src-tauri/{}", filename),
+            format!("../{}", filename),
+        ];
+        for path in paths {
+            if Path::new(&path).exists() {
+                return Some(path);
+            }
         }
     }
     None
@@ -83,9 +116,16 @@ pub fn get_config_for_frontend() -> Config {
 // 为前端提供的配置保存命令
 #[tauri::command]
 pub fn save_config_for_frontend(config: Config) {
-    // 重排序 keyboard.available_key
     let mut config = config;
     debug!("[save_config_for_frontend] save config: {:?}", config);
+
+    // 更新内存中的配置
+    {
+        let mut config_guard = CONFIG.lock().unwrap();
+        *config_guard = Some(config.clone());
+    }
+
+    // 重排序 keyboard.available_key
     let mut available_keys_vec = config
         .keyboard
         .available_key
@@ -94,18 +134,16 @@ pub fn save_config_for_frontend(config: Config) {
     available_keys_vec.sort_by_key(|k| k.1);
     config.keyboard.available_key = available_keys_vec.into_iter().collect();
 
-    // 更新内存中的配置
-    {
-        let mut config_guard = CONFIG.lock().unwrap();
-        *config_guard = Some(config.clone());
-    }
-
     // 获取当前配置文件路径，如果不存在则使用默认路径
     let config_path = get_config_path().unwrap_or_else(|| {
         if cfg!(debug_assertions) {
             "src-tauri/config.toml".to_string()
         } else {
-            "config.toml".to_string()
+            // Try to place config next to the executable
+            std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|d| d.join("config.toml").to_string_lossy().to_string()))
+                .unwrap_or_else(|| "config.toml".to_string())
         }
     });
 

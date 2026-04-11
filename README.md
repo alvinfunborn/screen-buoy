@@ -2,7 +2,7 @@
 
 [English](./README.md) | [中文](./README_zh.md)
 
-> A cross-screen, fully interactive screen hint navigation and automation tool.
+> A cross-platform (Windows / macOS), fully interactive screen hint navigation and automation tool.
 > Inspired by Fluent Search and mousemaster, with enhanced multi-monitor and advanced interaction support.
 
 ---
@@ -51,17 +51,30 @@ Typical scenarios:
 
 ## How It Works
 
-Screen Buoy is powered by Windows UI Automation — the official Microsoft API for enumerating and interacting with all UI controls (buttons, textboxes, windows, menus, etc.) across processes and windows.
+Screen Buoy uses platform-native accessibility APIs to enumerate and interact with all UI controls (buttons, textboxes, windows, menus, etc.) across processes and windows.
 
-The backend (Tauri, Rust) integrates UI Automation as follows:
+#### Windows
 
-- Uses the Rust `windows` crate to call UI Automation COM interfaces and enumerate all desktop windows and controls
+Uses **Windows UI Automation** — the official Microsoft API:
+
+- Calls UI Automation COM interfaces via the Rust `windows` crate to enumerate all desktop windows and controls
 - Retrieves each control's type (ControlType), name, visibility, interactivity, screen coordinates, window z-order, etc.
+- Uses global keyboard hooks (`SetWindowsHookEx`) to capture and filter keystrokes
+
+#### macOS
+
+Uses **macOS Accessibility API** and **Core Graphics**:
+
+- Calls the Accessibility API (`AXUIElement`) to enumerate windows and UI controls for each application
+- Maps AX roles (e.g. `AXButton`, `AXTextField`) to a unified control type system shared with Windows
+- Uses Core Graphics event taps (`CGEventTapCreate`) for global keyboard monitoring
+- Requires **Accessibility** and **Input Monitoring** permissions (prompted on first launch)
+
+#### Shared
+
 - Applies custom control type mapping and filtering rules to generate hint candidates
 - Supports multi-monitor, multi-window, and occlusion detection
 - Passes control and hint data to the frontend/overlay for rendering and interaction
-
-With UI Automation, Screen Buoy can precisely capture and operate on all visible windows and controls, providing a robust foundation for global hint navigation and automation.
 
 ---
 
@@ -69,12 +82,21 @@ With UI Automation, Screen Buoy can precisely capture and operate on all visible
 
 #### Method 1: Download (Recommended)
 
+**Windows:**
+
 1. Go to the [Releases page](https://github.com/alvinfunborn/screen-buoy/releases) and download the latest `ScreenBuoy.exe` and `config.toml`.
 2. Place both files in the same directory.
 3. Double-click `ScreenBuoy.exe` to launch. The ScreenBuoy tray icon will appear.
 4. To customize, edit `config.toml` in the same directory and restart the program.
 
-- **Tray icon**: Double-click to open settings
+**macOS:**
+
+1. Go to the [Releases page](https://github.com/alvinfunborn/screen-buoy/releases) and download the latest `ScreenBuoy.app` and `config.toml`.
+2. Move `ScreenBuoy.app` to the Applications folder. Place `config.toml` alongside the app or in `src-tauri/` during development.
+3. On first launch, macOS will prompt for **Accessibility** and **Input Monitoring** permissions. Grant both in **System Settings > Privacy & Security**.
+4. The Screen Buoy menu bar icon will appear in the top-right corner.
+
+- **Tray / Menu bar icon**: Double-click to open settings
 - **Auto-start**: Can be enabled in settings
 - **Configuration**: See `config.toml`
 
@@ -141,18 +163,23 @@ All these keys can be customized in the `keybinding` section.
 
 #### 2. Keyboard Configuration
 
-- **propagation_modifier**: Modifier keys (Ctrl, Alt, Win, etc.) that are passed through when hints are active.
-- **available_key**: All available keys and their codes for custom binding.
+- **propagation_modifier**: Modifier keys that are passed through when hints are active.
+- **available_key**: All available keys and their key codes for custom binding.
 - **map_left_right**: Define left/right mapping for certain keys for flexible combos.
 
-Example:
+> **Note:** Windows and macOS use separate config files (`config.toml` and `config_macos.toml`). macOS uses native key names: `LCmd`/`RCmd` (Command), `LOption`/`ROption` (Option), `LControl`/`RControl` (Control).
+
+Example (Windows `config.toml`):
 ```toml
 [keyboard]
 propagation_modifier = ["LCtrl", "RCtrl", "LAlt", "RAlt", "LWin"]
+
 [keyboard.available_key]
 Back = 8
 Tab = 9
+LWin = 91
 ...
+
 [keyboard.map_left_right.K]
 right = "L"
 ```
@@ -227,13 +254,27 @@ element_control_types = [50021, 50026, ...]
 
 ## Performance
 
-Screen Buoy is designed for high efficiency and low resource usage.
-- **Memory usage**: Typically 30~60MB RAM when running in the background.
-- **CPU usage**: Idle CPU usage is usually less than 1%, even with frequent UI Automation scans.
+Screen Buoy is designed for low resource usage while maintaining responsive hint generation.
+- **Memory usage**: Typically 50~120MB RAM, depending on monitor count and number of UI elements on screen.
+- **CPU usage**: Idle CPU usage is usually less than 1%. UI element scanning runs every 100ms by default to ensure hints stay up-to-date after window/screen switches, which may cause brief spikes on desktops with many controls (e.g., IDEs, browsers with many tabs).
 - **Startup time**: Less than 1 second on most modern systems.
-- **Background threads**: Only a few lightweight threads for UI Automation and event hooks.
+- **Background threads**: A few lightweight threads for UI element collection and keyboard/mouse event hooks.
 
-Screen Buoy is suitable for always-on use, even on multi-monitor setups and low-end hardware.
+Screen Buoy is suitable for always-on use on multi-monitor setups.
+
+---
+
+## Platform Requirements
+
+| | Windows | macOS |
+|---|---|---|
+| **OS version** | Windows 10+ | macOS 10.15+ |
+| **Permissions** | Standard user | Accessibility + Input Monitoring |
+| **Auto-start** | Registry | LaunchAgent |
+| **Tray** | System tray icon | Menu bar icon |
+| **UI element detection** | UI Automation (COM) | Accessibility API (AXUIElement) |
+| **Keyboard hook** | SetWindowsHookEx | CGEventTap |
+| **Key codes** | Virtual Key Codes | CGKeyCodes |
 
 ---
 
@@ -242,10 +283,10 @@ Screen Buoy is suitable for always-on use, even on multi-monitor setups and low-
 Screen Buoy is open source and has passed multiple security checks:
 - **No network upload**: The application does not upload any user data or telemetry.
 - **No backdoors or malicious code**: All source code is available for audit.
-- **Antivirus scan**: The official release binary has been scanned by Windows Defender, Kaspersky, and Virustotal, with no threats detected.
-- **Permissions**: Only requires standard user privileges; no system-level or kernel access.
+- **Antivirus scan** (Windows): The official release binary has been scanned by Windows Defender, Kaspersky, and Virustotal, with no threats detected.
+- **Permissions**: Windows requires standard user privileges only. macOS requires Accessibility and Input Monitoring permissions — these are used solely for reading UI element positions and capturing keyboard events.
 
-[Virustotal scan report](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
+[Virustotal scan report (Windows)](https://www.virustotal.com/gui/file/9e29999b238e0d2b9f5e39affc1e5e7b41ff1008be3e2dfa4a3982071390dae1/detection)
 
 You can verify the binary with any mainstream antivirus or use the source code to build your own trusted version.
 
@@ -254,7 +295,9 @@ You can verify the binary with any mainstream antivirus or use the source code t
 ## Appendix
 
 - [Windows Virtual Key Codes](https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes)
+- [macOS CGKeyCode Reference (Events.h)](https://github.com/nicklockwood/iVersion/blob/master/Examples/Mac/iVersionMac/Events.h)
 - [Windows UI Automation Element Control Types Ids](https://learn.microsoft.com/en-us/windows/win32/winauto/uiauto-controltype-ids)
+- [macOS Accessibility Roles](https://developer.apple.com/documentation/appkit/nsaccessibility/role)
 
 ---
 

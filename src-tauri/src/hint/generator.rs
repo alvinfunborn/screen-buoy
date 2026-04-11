@@ -180,16 +180,26 @@ impl HintsGenerator {
             if !position_set.insert((hint.x, hint.y)) {
                 continue;
             }
-            // 找到hint所在的显示器
             for (index, monitor) in self.monitors.iter().enumerate() {
-                if hint.x < monitor.x
-                    || hint.x >= monitor.x + monitor.width
-                    || hint.y < monitor.y
-                    || hint.y >= monitor.y + monitor.height
+                #[cfg(target_os = "macos")]
+                let (mon_x, mon_y, mon_w, mon_h) = (
+                    (monitor.x as f64 / monitor.scale_factor) as i32,
+                    (monitor.y as f64 / monitor.scale_factor) as i32,
+                    (monitor.width as f64 / monitor.scale_factor) as i32,
+                    (monitor.height as f64 / monitor.scale_factor) as i32,
+                );
+                #[cfg(target_os = "windows")]
+                let (mon_x, mon_y, mon_w, mon_h) =
+                    (monitor.x, monitor.y, monitor.width, monitor.height);
+
+                if hint.x < mon_x
+                    || hint.x >= mon_x + mon_w
+                    || hint.y < mon_y
+                    || hint.y >= mon_y + mon_h
                 {
                     continue;
                 }
-                // 检查hint是否在窗口的可见区域内
+
                 let mut is_covered = false;
                 for area in covered_areas {
                     if area.contains_point(hint.x, hint.y) {
@@ -203,19 +213,25 @@ impl HintsGenerator {
                 }
 
                 if !is_covered {
-                    // 检查是否超出范围
                     if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
                         debug!("[generator] skip hint:{}:({},{}) due to hint text is out of use",
                             hint.text, hint.x, hint.y);
                         return;
                     }
 
-                    // 转换为相对于显示器的坐标
                     let mut hint = hint.clone();
-                    hint.x -= monitor.x;
-                    hint.y -= monitor.y;
-                    hint.x = (hint.x as f64 / monitor.scale_factor) as i32;
-                    hint.y = (hint.y as f64 / monitor.scale_factor) as i32;
+                    #[cfg(target_os = "macos")]
+                    {
+                        hint.x -= mon_x;
+                        hint.y -= mon_y;
+                    }
+                    #[cfg(target_os = "windows")]
+                    {
+                        hint.x -= monitor.x;
+                        hint.y -= monitor.y;
+                        hint.x = (hint.x as f64 / monitor.scale_factor) as i32;
+                        hint.y = (hint.y as f64 / monitor.scale_factor) as i32;
+                    }
                     let hint_letter =
                         HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
                     let hint_type = hint.element_type;
