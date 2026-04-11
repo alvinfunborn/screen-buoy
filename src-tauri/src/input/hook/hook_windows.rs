@@ -17,7 +17,7 @@ use windows::Win32::{
 
 use crate::config;
 
-use super::keyboard::handle_keyboard_event;
+use crate::input::keyboard::handle_keyboard_event;
 
 // 包装 HHOOK
 struct HookHandle(HHOOK);
