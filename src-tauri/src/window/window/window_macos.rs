@@ -10,7 +10,7 @@ use core_graphics::display::{
 use indexmap::IndexMap;
 use log::{debug, error};
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +74,27 @@ fn bounds_rect(dict: &CFDictionary<CFString, CFType>) -> Option<(i32, i32, i32, 
     Some((x, y, w.max(0), h.max(0)))
 }
 
+fn process_path(pid: i32) -> String {
+    let mut buffer = vec![0_u8; libc::PROC_PIDPATHINFO_MAXSIZE as usize];
+    let length = unsafe {
+        libc::proc_pidpath(pid, buffer.as_mut_ptr().cast(), buffer.len() as u32)
+    };
+    if length <= 0 { return String::new(); }
+    let end = buffer.iter().position(|&byte| byte == 0).unwrap_or(buffer.len());
+    String::from_utf8_lossy(&buffer[..end]).into_owned()
+}
+
+fn is_system_desktop_surface(path: &str, layer: i32, bounds: &Rect, displays: &[Rect]) -> bool {
+    // These system hosts report alpha=1 for a transparent, display-sized window.
+    // Match the executable, not the localized owner name. Keep actual Dock,
+    // notification panels, menus and ordinary fullscreen app windows.
+    let desktop_host = matches!((path, layer),
+        ("/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock", 20) |
+        ("/System/Library/CoreServices/NotificationCenter.app/Contents/MacOS/NotificationCenter", 23)
+    );
+    desktop_host && displays.iter().any(|display| (bounds.x, bounds.y, bounds.width, bounds.height) == (display.x, display.y, display.width, display.height))
+}
+
 pub fn get_all_windows() -> Vec<WindowElement> {
     let Some(arr) = CGDisplay::window_list_info(
         kCGWindowListOptionOnScreenOnly | kCGWindowListExcludeDesktopElements,
@@ -83,6 +104,11 @@ pub fn get_all_windows() -> Vec<WindowElement> {
         return Vec::new();
     };
 
+    let displays: Vec<Rect> = CGDisplay::active_displays().unwrap_or_default().iter().map(|&id| {
+        let r = CGDisplay::new(id).bounds();
+        Rect::new(r.origin.x as i32, r.origin.y as i32, r.size.width as i32, r.size.height as i32)
+    }).collect();
+    let mut process_paths = HashMap::new();
     let mut windows: Vec<WindowElement> = Vec::new();
     for ptr in arr.get_all_values() {
         if ptr.is_null() {
@@ -103,6 +129,15 @@ pub fn get_all_windows() -> Vec<WindowElement> {
         let owner_pid = cf_dict_get_number(&dict, "kCGWindowOwnerPID")
             .and_then(|n| n.to_i32())
             .unwrap_or(0);
+        // Our transparent overlays must never occlude the target apps.
+        if owner_pid == std::process::id() as i32 {
+            continue;
+        }
+        if cf_dict_get_number(&dict, "kCGWindowAlpha")
+            .and_then(|n| n.to_f64()) == Some(0.0)
+        {
+            continue;
+        }
 
         let win_num = cf_dict_get_number(&dict, "kCGWindowNumber")
             .and_then(|n| n.to_i64())
@@ -113,6 +148,13 @@ pub fn get_all_windows() -> Vec<WindowElement> {
         };
         if width <= 0 || height <= 0 {
             continue;
+        }
+
+        if matches!(layer, 20 | 23) {
+            let path = process_paths.entry(owner_pid).or_insert_with(|| process_path(owner_pid));
+            if is_system_desktop_surface(path, layer, &Rect::new(x, y, width, height), &displays) {
+                continue;
+            }
         }
 
         let owner_name = cf_dict_get_string(&dict, "kCGWindowOwnerName").unwrap_or_default();
@@ -148,7 +190,8 @@ pub fn get_all_windows() -> Vec<WindowElement> {
         });
     }
 
-    windows.sort_by_key(|w: &WindowElement| -w.z_index);
+    // CGWindowList already supplies front-to-back order, including windows on
+    // different levels. Sorting by layer reverses floating-window occlusion.
     debug!("[get_all_windows macos] count={}", windows.len());
     windows
 }
@@ -204,6 +247,10 @@ pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElem
 
 pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
     let windows = get_all_windows();
+    covered_areas_for_windows(&windows)
+}
+
+fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
     let mut uncovered_windows = HashSet::new();
     let mut covered_areas: IndexMap<WindowElement, Vec<Rect>> = IndexMap::new();
 
@@ -308,4 +355,62 @@ pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElem
         }
     }
     (uncovered_windows, covered_areas)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn window(id: i64, x: i32, y: i32, width: i32, height: i32, layer: i32) -> WindowElement {
+        WindowElement { x, y, width, height, title: format!("window-{id}"),
+            class_name: String::new(), z_index: -layer, window_handle: id,
+            visible: true, is_task_bar: false, owner_pid: 1 }
+    }
+
+    #[test]
+    fn localized_system_desktop_hosts_do_not_hide_all_controls() {
+        let display = Rect::new(-1800, -1169, 1800, 1169);
+        for (path, layer) in [
+            ("/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock", 20),
+            ("/System/Library/CoreServices/NotificationCenter.app/Contents/MacOS/NotificationCenter", 23),
+        ] {
+            assert!(is_system_desktop_surface(path, layer, &display, &[display.clone()]));
+            assert!(!is_system_desktop_surface(path, layer, &Rect::new(-400, -1100, 350, 400), &[display.clone()]));
+            assert!(!is_system_desktop_surface(path, 0, &display, &[display.clone()]));
+        }
+        assert!(!is_system_desktop_surface("/Applications/Test.app/Contents/MacOS/Test", 20, &display, &[display.clone()]));
+    }
+
+    #[test]
+    fn floating_window_occludes_normal_window() {
+        let floating = window(1, 20, 20, 50, 50, 3);
+        let normal = window(2, 0, 0, 100, 100, 0);
+        let (uncovered, covered) = covered_areas_for_windows(&[floating.clone(), normal.clone()]);
+        assert!(uncovered.contains(&floating));
+        assert!(!uncovered.contains(&normal));
+        let areas = &covered[&normal];
+        assert!(areas.iter().any(|r| r.contains_point(30, 30)));
+        assert!(!areas.iter().any(|r| r.contains_point(10, 10)));
+    }
+
+    #[test]
+    fn same_level_front_window_hides_identical_back_window() {
+        let front = window(1, 0, 0, 100, 100, 0);
+        let back = window(2, 0, 0, 100, 100, 0);
+        let (uncovered, covered) = covered_areas_for_windows(&[front.clone(), back.clone()]);
+        assert_eq!(uncovered.len(), 1);
+        assert!(uncovered.contains(&front));
+        assert!(!covered.contains_key(&back));
+    }
+
+    #[test]
+    fn multiple_windows_can_completely_occlude_a_window_on_a_left_monitor() {
+        let left = window(1, -200, 0, 50, 100, 3);
+        let right = window(2, -150, 0, 50, 100, 0);
+        let back = window(3, -200, 0, 100, 100, 0);
+        let (uncovered, covered) = covered_areas_for_windows(&[left, right, back.clone()]);
+        assert_eq!(uncovered.len(), 2);
+        assert!(!uncovered.contains(&back));
+        assert!(!covered.contains_key(&back));
+    }
 }

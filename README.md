@@ -68,7 +68,7 @@ Uses **macOS Accessibility API** and **Core Graphics**:
 - Calls the Accessibility API (`AXUIElement`) to enumerate windows and UI controls for each application
 - Maps AX roles (e.g. `AXButton`, `AXTextField`) to a unified control type system shared with Windows
 - Uses Core Graphics event taps (`CGEventTapCreate`) for global keyboard monitoring
-- Requires **Accessibility** and **Input Monitoring** permissions (prompted on first launch)
+- Requires **Accessibility**; if keyboard capture is unavailable, also allow **Input Monitoring**. Settings shows permission status and recovery actions.
 
 #### Shared
 
@@ -91,12 +91,18 @@ Uses **macOS Accessibility API** and **Core Graphics**:
 
 **macOS:**
 
-1. Go to the [Releases page](https://github.com/alvinfunborn/screen-buoy/releases) and download the latest `ScreenBuoy.app` and `config.toml`.
-2. Move `ScreenBuoy.app` to the Applications folder. Place `config.toml` alongside the app or in `src-tauri/` during development.
-3. On first launch, macOS will prompt for **Accessibility** and **Input Monitoring** permissions. Grant both in **System Settings > Privacy & Security**.
-4. The Screen Buoy menu bar icon will appear in the top-right corner.
+1. Download `screen-buoy-macos.zip` from [Releases](https://github.com/alvinfunborn/screen-buoy/releases), extract it, and move `screen-buoy.app` to Applications.
+2. **Starting with 1.2.1**: release builds include Apple Silicon and Intel architectures. First launch creates `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml` and preserves existing preferences. Version 1.2.0 is arm64-only and still needs `config_macos.toml` beside the app.
+3. Community builds use an ad-hoc signature and are not yet Developer ID signed or notarized. After verifying the download source, if Gatekeeper blocks launch, remove only this app's quarantine attribute:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/screen-buoy.app
+   ```
+4. If permissions are missing, Settings shows their status and links to System Settings. Allow Accessibility; if keyboard capture is still unavailable, also allow Input Monitoring. Grant access to the copy shown in the UI. Replacing the app may require re-adding its permission entry and restarting.
+5. Open Settings from the menu bar icon's menu. Press **Option+H** for hints; the mouse pointer remains visible.
 
-- **Tray / Menu bar icon**: Double-click to open settings
+Download published builds from [Releases](https://github.com/alvinfunborn/screen-buoy/releases). See the [macOS release guide](docs/macos-release.md) and [validation matrix](docs/macos-validation.md).
+
+- **Tray / Menu bar icon**: Use the menu to open Settings (Windows also supports double-click)
 - **Auto-start**: Can be enabled in settings
 - **Configuration**: See `config.toml`
 

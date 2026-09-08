@@ -1,6 +1,7 @@
 use crate::create_overlay_window;
 use crate::monitor::MONITORS_STORAGE;
-use log::{debug, error, info};
+#[cfg(target_os = "windows")]
+use log::debug;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;

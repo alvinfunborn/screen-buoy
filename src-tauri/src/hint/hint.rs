@@ -1,6 +1,6 @@
 use crate::hint::generator::Hint;
 use crate::hint::overlay::get_overlay_monitor_id;
-use log::{debug, error, info};
+use log::{debug, error};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;

@@ -1,4 +1,4 @@
-use log::{debug, error, info};
+use log::debug;
 
 use crate::{
     config,
@@ -112,7 +112,6 @@ impl<'a> Executor<'a> {
         {
             tauri::async_runtime::spawn(async move {
                 mouse::mouse_move(monitor_id, x, y).await;
-                mouse::show_cursor().await;
                 if exit {
                     hide_hints(app_handle_clone).await;
                 }
@@ -156,7 +155,6 @@ impl<'a> Executor<'a> {
                 // 未找到末位hint, 提前进入hold状态
                 debug!("[execute_hold_at_hint] no final hint, directly to hold state, filter hints");
                 tauri::async_runtime::spawn(async move {
-                    mouse::show_cursor().await;
                     filter_hints(app_handle_clone, "_removeAllHints".to_string()).await;
                 });
             }

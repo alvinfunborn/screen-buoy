@@ -1,4 +1,23 @@
 {
+  "permissions": {
+    "title": "允许 Screen Buoy 控制你的 Mac",
+    "ready": "Screen Buoy 已就绪",
+    "description": "辅助功能权限用于识别控件和执行鼠标操作。如果键盘监听尚未连接，请同时允许输入监视。准备就绪前不会进入 Hint 模式。",
+    "accessibility": "辅助功能",
+    "inputMonitoring": "输入监视",
+    "keyboardHook": "键盘监听",
+    "granted": "已允许",
+    "missing": "需要授权",
+    "notGranted": "未允许",
+    "connected": "已连接",
+    "waiting": "等待连接",
+    "openAccessibility": "打开辅助功能设置",
+    "openInputMonitoring": "打开输入监视设置",
+    "refresh": "重新检查",
+    "restart": "重启 Screen Buoy",
+    "recovery": "请在系统设置中允许下方路径对应的 App。替换 App 后，可能需要移除旧权限项、重新添加，再重启 Screen Buoy。",
+    "checkFailed": "无法检查权限"
+  },
   "keyboard": {
     "propagationModifier": "穿透修饰键",
     "propagationModifierTooltip": "指定不监听的修饰键（如Alt、Ctrl、Shift、Win），这些修饰键按下时按键事件会穿透到其他窗口。",

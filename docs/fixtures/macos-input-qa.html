@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Screen Buoy QA</title><style>
+body {font:20px system-ui;padding:35px;max-width:960px} button,input {font:20px system-ui;margin:15px;padding:18px} #scroll {overflow:auto;height:180px;width:580px;border:3px solid #486;padding:8px} #drag {width:130px;height:85px;background:#acf;cursor:grab} #drop{width:250px;height:120px;border:3px dashed #668;display:flex;align-items:center;justify-content:center} #events{padding:20px;background:#eee} .row{display:flex;gap:40px;align-items:center}
+</style><h1>Screen Buoy QA</h1><p>Disposable local test page. No network requests.</p>
+<button id="click">Click target</button><button id="double">Double-click target</button><button id="right">Right-click target</button>
+<p id="events" role="status">Clicks: 0 | Double clicks: 0 | Right clicks: 0 | Drops: 0 | Scroll: 0</p>
+<input aria-label="Typing target" placeholder="Typing target"><div class="row"><div id="drag" draggable="true" role="button" tabindex="0" aria-label="Drag source">Drag source</div><div id="drop" role="button" tabindex="0" aria-label="Drop target">Drop target</div></div>
+<p>Scrollable panel</p><div id="scroll" tabindex="0" aria-label="Scrollable panel"></div>
+<script>
+const counts={click:0,double:0,right:0,drop:0,scroll:0};
+const render=()=>document.getElementById('events').textContent=`Clicks: ${counts.click} | Double clicks: ${counts.double} | Right clicks: ${counts.right} | Drops: ${counts.drop} | Scroll: ${counts.scroll}`;
+document.getElementById('click').onclick=()=>{counts.click++;render()};
+document.getElementById('double').ondblclick=()=>{counts.double++;render()};
+document.getElementById('right').oncontextmenu=e=>{e.preventDefault();counts.right++;render()};
+document.getElementById('drag').ondragstart=e=>e.dataTransfer.setData('text/plain','buoy');
+document.getElementById('drop').ondragover=e=>e.preventDefault();
+document.getElementById('drop').ondrop=e=>{e.preventDefault();counts.drop++;render()};
+const panel=document.getElementById('scroll');panel.innerHTML=Array.from({length:40},(_,i)=>`<p>Scroll row ${i+1}</p>`).join('');panel.onscroll=()=>{counts.scroll=Math.round(panel.scrollTop);render()};
+</script></html>

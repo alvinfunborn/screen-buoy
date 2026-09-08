@@ -1,5 +1,5 @@
 use crate::window::WindowElement;
-use log::{debug, error, info};
+use log::debug;
 use once_cell::sync::Lazy;
 use tokio::time::Instant;
 use std::collections::{HashMap, HashSet};
@@ -50,6 +50,13 @@ fn cache_ui_elements_for_windows(windows: &[WindowElement], real_time: bool) {
 }
 
 pub fn collect_ui_elements() {
+    #[cfg(target_os = "macos")]
+    if !crate::macos_access::is_accessibility_trusted() {
+        // Permission recovery must not keep spawning AX scans or retain stale
+        // controls from a previously authorized session.
+        WINDOWS_UI_ELEMENTS_MAP_STORAGE.lock().unwrap().clear();
+        return;
+    }
     let start_time = Instant::now();
     clean_expired_cache();
     let windows = crate::window::window::get_all_windows();

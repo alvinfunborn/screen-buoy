@@ -14,7 +14,6 @@ use screen_buoy::setup_tray;
 use tauri::Manager;
 #[cfg(target_os = "windows")]
 use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT_APARTMENTTHREADED};
-use std::env;
 
 fn main() {
     // 自动切换到 exe 所在目录, 为了解决windows自动启动时workding directory读取不到配置文件的问题
@@ -81,11 +80,15 @@ fn main() {
         {
             screen_buoy::macos_access::log_executable_identity();
             screen_buoy::macos_access::log_accessibility_status();
+            if !screen_buoy::macos_access::is_accessibility_trusted() {
+                main_window.show()?;
+                main_window.set_focus()?;
+            }
         }
 
         // Initialize input hook
         input::hook::init(app_handle.clone());
-        info!("[✓] input hook initialized");
+        info!("input hook installation requested");
 
         // Initialize hints
         hint::init_hint_text_list_storage();

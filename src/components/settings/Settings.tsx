@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '../../i18n';
 import Title from 'antd/es/typography/Title';
 import Text from 'antd/es/typography/Text';
+import { MacPermissions } from './MacPermissions';
 
 
 const Settings: React.FC = () => {
@@ -97,6 +98,7 @@ const Settings: React.FC = () => {
           />
         </Space>
       </div>
+      <MacPermissions />
       <Form
         form={form}
         layout="vertical"
@@ -144,4 +146,4 @@ const Settings: React.FC = () => {
   );
 };
 
-export default Settings; 
+export default Settings;

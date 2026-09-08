@@ -8,6 +8,34 @@ pub struct Rect {
     pub height: i32,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn subtracting_an_inner_rectangle_preserves_visible_area_without_overlap() {
+        let window = Rect::new(-100, -50, 200, 100);
+        let occluder = Rect::new(-20, -10, 40, 20);
+        let remaining = window.subtract(&occluder);
+        assert_eq!(remaining.iter().map(Rect::area).sum::<i32>(), window.area() - occluder.area());
+        for (i, rect) in remaining.iter().enumerate() {
+            assert!(window.contains(rect));
+            assert!(!rect.intersects(&occluder));
+            assert!(remaining[..i].iter().all(|other| !rect.intersects(other)));
+        }
+    }
+
+    #[test]
+    fn touching_edges_do_not_occlude_each_other() {
+        let left = Rect::new(0, 0, 100, 100);
+        let right = Rect::new(100, 0, 100, 100);
+        assert!(!left.intersects(&right));
+        assert_eq!(left.subtract(&right).iter().map(Rect::area).sum::<i32>(), left.area());
+        assert!(!left.contains_point(100, 50));
+        assert!(right.contains_point(100, 50));
+    }
+}
+
 impl Rect {
     pub fn new(x: i32, y: i32, width: i32, height: i32) -> Self {
         Self {

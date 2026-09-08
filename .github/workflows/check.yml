@@ -1,0 +1,31 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+      - run: npm ci
+      - run: npm run check:version
+      - run: npm run build
+      - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
+      - run: cargo check --locked --manifest-path src-tauri/Cargo.toml --all-targets

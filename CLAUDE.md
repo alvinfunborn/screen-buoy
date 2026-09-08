@@ -14,7 +14,7 @@ A cross-platform (Windows/macOS) keyboard-driven screen navigation tool built wi
 - **Rust check:** `cd src-tauri && cargo check`
 - **Rust clippy:** `cd src-tauri && cargo clippy`
 
-No test suite exists currently.
+Run `cargo test --locked --lib` in `src-tauri/` for regression tests. `npm run check:version` verifies package/bundle versions. See `docs/macos-validation.md` for runtime acceptance.
 
 ## Architecture
 
@@ -50,12 +50,12 @@ Global state uses `Lazy<Mutex<T>>` or `Lazy<RwLock<T>>` (from `once_cell`):
 - **Events (backend→frontend):** `show-hints`, `hide-hints`, `move-hints`, `filter-hints`, `rust-panic`
 
 ### Configuration
-`src-tauri/config.toml` defines all settings: hint characters/styles/types, keybindings, mouse step sizes, keyboard mappings, system preferences, and UI automation intervals. Config search order: `./config.toml` → `./src-tauri/config.toml` → `../config.toml` (relative to exe).
+`src-tauri/config.toml` defines all settings: hint characters/styles/types, keybindings, mouse step sizes, keyboard mappings, system preferences, and UI automation intervals. On macOS, development uses `config_macos.toml`. Release builds use `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml`, migrating a legacy sidecar once or creating embedded defaults. Windows retains its executable-relative config lookup.
 
 ## Platform-specific notes
 
 - **Windows:** Requires COM initialization (APARTMENTTHREADED). Uses `windows` crate 0.61 for UI Automation, DWM API for overlay transparency, virtual key codes for keyboard mapping.
-- **macOS:** Requires Accessibility permission (prompted on first run). Uses `core-graphics` for monitors/windows, Cocoa event taps for input hooks. Tauri built with `macos-private-api` feature.
+- **macOS:** Requires Accessibility and an installed event tap; Settings provides permission status and explicit grant buttons. Uses `core-graphics` for monitors/windows, Cocoa event taps for input hooks. Tauri built with `macos-private-api` feature.
 
 ## Frontend tech
 React 18 + TypeScript + Vite 6 + Ant Design 5 + Tailwind CSS 3 + i18next (en/zh locales in `src/locales/`).

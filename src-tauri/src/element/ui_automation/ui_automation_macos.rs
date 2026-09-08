@@ -174,14 +174,14 @@ fn ax_point_size(element: AXUIElementRef) -> Option<(f64, f64, f64, f64)> {
     Some((pt.x, pt.y, sz.width, sz.height))
 }
 
-fn ax_rect_scaled_to_pixels(px: f64, py: f64, pw: f64, ph: f64, target: &WindowElement) -> (i32, i32, i32, i32) {
-    let sx = target.width as f64 / pw.max(1.0);
-    let sy = target.height as f64 / ph.max(1.0);
+fn ax_rect_in_screen_points(px: f64, py: f64, pw: f64, ph: f64) -> (i32, i32, i32, i32) {
+    // AX and CGWindow bounds both use global logical points. Scaling every
+    // candidate to the target's size can make a different window look identical.
     (
-        (px * sx).round() as i32,
-        (py * sy).round() as i32,
-        (pw * sx).round() as i32,
-        (ph * sy).round() as i32,
+        px.round() as i32,
+        py.round() as i32,
+        pw.round() as i32,
+        ph.round() as i32,
     )
 }
 
@@ -245,7 +245,7 @@ fn find_ax_window(app: AXUIElementRef, target: &WindowElement) -> Option<(CFType
         let Some((px, py, pw, ph)) = ax_point_size(el) else {
             continue;
         };
-        let fr = ax_rect_scaled_to_pixels(px, py, pw, ph, target);
+        let fr = ax_rect_in_screen_points(px, py, pw, ph);
         let score = frame_iou(tgt, fr);
         let title_bonus = if !target.title.is_empty() && title == target.title {
             0.15
@@ -468,4 +468,25 @@ pub fn clean_expired_cache() {
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
     let mut cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
     cache.retain(|_, (_, expire_at)| *expire_at > now);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_smaller_window_must_not_be_scaled_to_match_the_target() {
+        let target = (400, 400, 800, 600);
+        let wrong_window = ax_rect_in_screen_points(200.0, 200.0, 400.0, 300.0);
+        assert!(frame_iou(target, wrong_window) < 0.35);
+        assert_eq!(frame_iou(target, ax_rect_in_screen_points(400.0, 400.0, 800.0, 600.0)), 1.0);
+    }
+
+    #[test]
+    fn negative_screen_coordinates_are_preserved() {
+        let bounds = ax_rect_in_screen_points(-1440.0, -200.0, 800.0, 600.0);
+        assert_eq!(bounds, (-1440, -200, 800, 600));
+        assert_eq!(frame_iou(bounds, bounds), 1.0);
+        assert_eq!(frame_iou(bounds, (0, 0, 800, 600)), 0.0);
+    }
 }

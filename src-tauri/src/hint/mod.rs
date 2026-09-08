@@ -5,7 +5,7 @@ pub mod overlay;
 use crate::config;
 use crate::hint::generator::HintsGenerator;
 use crate::input;
-use log::{debug, error, info};
+use log::{debug, error};
 use overlay::ensure_all_overlays_topmost;
 use serde_json::json;
 use std::collections::HashSet;
@@ -20,6 +20,13 @@ pub use overlay::create_overlay_windows;
 pub use overlay::OVERLAY_WINDOW_PREFIX;
 
 pub async fn show_hints(window: WebviewWindow) {
+    // Never enter a mode whose exit key cannot be captured. Bring the recovery
+    // instructions forward instead of leaving unresponsive hints on the screen.
+    if !crate::permissions::get_permission_status().ready {
+        let _ = window.show();
+        let _ = window.set_focus();
+        return;
+    }
     // 清空之前的 hints 数据
     clear_hints();
 

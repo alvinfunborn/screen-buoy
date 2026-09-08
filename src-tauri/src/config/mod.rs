@@ -29,6 +29,13 @@ pub struct Config {
 }
 
 pub fn get_config_path() -> Option<String> {
+    #[cfg(all(target_os = "macos", not(debug_assertions)))]
+    {
+        let user_path = macos_user_config_path().expect("Cannot locate macOS user configuration");
+        if user_path.is_file() {
+            return Some(user_path.to_string_lossy().into_owned());
+        }
+    }
     let config_filenames = if cfg!(target_os = "macos") {
         vec!["config_macos.toml", "config.toml"]
     } else {
@@ -72,6 +79,15 @@ pub fn get_config_path() -> Option<String> {
 }
 
 pub fn load_config() -> Config {
+    #[cfg(all(target_os = "macos", not(debug_assertions)))]
+    {
+        let destination = macos_user_config_path().expect("Cannot locate macOS user configuration");
+        // Migrate a sidecar config once. A standalone .app gets embedded macOS
+        // defaults; subsequent upgrades preserve the user's writable copy.
+        let legacy = get_config_path();
+        initialize_user_config(&destination, legacy.as_deref().map(Path::new))
+            .expect("Could not initialize macOS configuration");
+    }
     if let Some(path) = get_config_path() {
         let config_str = fs::read_to_string(&path)
             .expect(format!("[load_config] Failed to read config file: {}", path).as_str());
@@ -81,6 +97,75 @@ pub fn load_config() -> Config {
         return config;
     }
     panic!("please check the config file: config.toml exists");
+}
+
+#[cfg(all(target_os = "macos", not(debug_assertions)))]
+fn macos_user_config_path() -> Option<std::path::PathBuf> {
+    std::env::var_os("HOME").map(|home| {
+        std::path::PathBuf::from(home)
+            .join("Library/Application Support/com.screen-buoy.dev/config_macos.toml")
+    })
+}
+
+#[cfg(all(target_os = "macos", any(not(debug_assertions), test)))]
+fn initialize_user_config(destination: &Path, legacy: Option<&Path>) -> std::io::Result<()> {
+    use std::io::Write;
+    if destination.is_file() {
+        return Ok(());
+    }
+    let contents = match legacy {
+        Some(path) => fs::read_to_string(path)?,
+        None => include_str!("../../config_macos.toml").to_owned(),
+    };
+    if let Some(parent) = destination.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    match fs::OpenOptions::new().write(true).create_new(true).open(destination) {
+        Ok(mut file) => file.write_all(contents.as_bytes()),
+        Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => Ok(()),
+        Err(err) => Err(err),
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+
+    struct ConfigDir(std::path::PathBuf);
+    impl ConfigDir {
+        fn new() -> Self {
+            let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
+            Self(std::env::temp_dir().join(format!("screen-buoy-config-{}-{unique}", std::process::id())))
+        }
+    }
+    impl Drop for ConfigDir {
+        fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); }
+    }
+
+    #[test]
+    fn standalone_app_creates_valid_macos_defaults() {
+        let dir = ConfigDir::new();
+        let destination = dir.0.join("settings/config_macos.toml");
+        initialize_user_config(&destination, None).unwrap();
+        let config: Config = toml::from_str(&fs::read_to_string(destination).unwrap()).unwrap();
+        assert_eq!(config.keyboard.available_key["LCmd"], 55);
+        assert_eq!(config.keybinding.hotkey_buoy, "Alt+H");
+    }
+
+    #[test]
+    fn migration_preserves_legacy_config_and_never_overwrites_user_edits() {
+        let dir = ConfigDir::new();
+        fs::create_dir_all(&dir.0).unwrap();
+        let legacy = dir.0.join("legacy.toml");
+        let destination = dir.0.join("settings/config_macos.toml");
+        fs::write(&legacy, "legacy preferences").unwrap();
+        initialize_user_config(&destination, Some(&legacy)).unwrap();
+        assert_eq!(fs::read_to_string(&destination).unwrap(), "legacy preferences");
+        fs::write(&destination, "user edits").unwrap();
+        initialize_user_config(&destination, Some(&legacy)).unwrap();
+        assert_eq!(fs::read_to_string(&destination).unwrap(), "user edits");
+        assert_eq!(fs::read_to_string(&legacy).unwrap(), "legacy preferences");
+    }
 }
 
 // 全局配置实例

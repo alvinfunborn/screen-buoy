@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
 use std::sync::Mutex;
 
 use core_foundation::base::TCFType;
@@ -36,6 +36,8 @@ extern "C" {
     ) -> core_foundation::mach_port::CFMachPortRef;
 
     fn CGEventTapEnable(tap: core_foundation::mach_port::CFMachPortRef, enable: bool);
+    fn CGEventTapIsEnabled(tap: core_foundation::mach_port::CFMachPortRef) -> bool;
+    fn CGEventGetFlags(event: CGEventRef) -> u64;
     fn CGEventSourceKeyState(state_id: u32, key_code: CGKeyCode) -> bool;
     fn CGEventKeyboardGetUnicodeString(
         event: CGEventRef,
@@ -53,6 +55,12 @@ extern "C" {
 }
 
 static TAP_RUNLOOP: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::null_mut());
+static RUNNING: AtomicBool = AtomicBool::new(false);
+static READY: AtomicBool = AtomicBool::new(false);
+
+pub fn is_ready() -> bool {
+    READY.load(Ordering::Acquire)
+}
 
 const CG_KEY_DOWN: u32 = 10;
 const CG_KEY_UP: u32 = 11;
@@ -68,7 +76,7 @@ thread_local! {
 
 struct TapState {
     mach_port: CFMachPort,
-    loop_source: core_foundation::runloop::CFRunLoopSource,
+    _loop_source: core_foundation::runloop::CFRunLoopSource,
 }
 
 fn keycode_to_name(keycode: u16) -> Option<String> {
@@ -117,26 +125,52 @@ fn event_to_key_string(event: CGEventRef, keycode: u16) -> Option<String> {
     None
 }
 
+// Decode the event being handled. Querying session key state inside the tap
+// can still report the previous state, especially for remapped/synthetic keys.
+fn modifier_down_from_flags(keycode: u16, flags: u64) -> Option<bool> {
+    let (generic, left, right, own) = match keycode {
+        56 => (0x20000, 0x2, 0x4, 0x2),
+        60 => (0x20000, 0x2, 0x4, 0x4),
+        59 => (0x40000, 0x1, 0x2000, 0x1),
+        62 => (0x40000, 0x1, 0x2000, 0x2000),
+        58 => (0x80000, 0x20, 0x40, 0x20),
+        61 => (0x80000, 0x20, 0x40, 0x40),
+        55 => (0x100000, 0x8, 0x10, 0x8),
+        54 => (0x100000, 0x8, 0x10, 0x10),
+        57 => return Some(flags & 0x10000 != 0),
+        _ => return None,
+    };
+    Some(if flags & (left | right) != 0 { flags & own != 0 } else { flags & generic != 0 })
+}
+
 unsafe extern "C" fn tap_callback(
     _proxy: CGEventTapProxy,
     etype: u32,
     event_ref: CGEventRef,
     _user_info: *const c_void,
 ) -> CGEventRef {
-    if event_ref.is_null() {
-        return event_ref;
-    }
     match etype {
         CG_TAP_DISABLED_TIMEOUT | CG_TAP_DISABLED_USER => {
+            READY.store(false, Ordering::Release);
             TAP_STATE.with(|c| {
                 if let Some(state) = c.borrow().as_ref() {
                     CGEventTapEnable(state.mach_port.as_concrete_TypeRef(), true);
+                    READY.store(CGEventTapIsEnabled(state.mach_port.as_concrete_TypeRef()), Ordering::Release);
                     warn!("[mac tap] re-enabled after disable (etype={})", etype);
                 }
             });
             return event_ref;
         }
         _ => {}
+    }
+    if event_ref.is_null() {
+        return event_ref;
+    }
+
+    // Outside Hint mode, forward input without decoding or logging typed text.
+    // Tap-disable notifications above still recover the capture connection.
+    if !KEYBOARD_STATE.lock().map(|state| state.in_ctrl_session).unwrap_or(false) {
+        return event_ref;
     }
 
     let keycode = unsafe {
@@ -148,7 +182,8 @@ unsafe extern "C" fn tap_callback(
         CG_KEY_UP => (event_to_key_string(event_ref, keycode), false),
         CG_FLAGS_CHANGED => {
             let name = keycode_to_name(keycode);
-            let down = unsafe { CGEventSourceKeyState(0, keycode) };
+            let down = modifier_down_from_flags(keycode, CGEventGetFlags(event_ref))
+                .unwrap_or_else(|| CGEventSourceKeyState(0, keycode));
             (name, down)
         }
         _ => return event_ref,
@@ -223,6 +258,9 @@ unsafe extern "C" fn tap_callback(
 }
 
 pub fn init(app_handle: tauri::AppHandle) {
+    if RUNNING.swap(true, Ordering::AcqRel) {
+        return;
+    }
     *APP_HANDLE.lock().unwrap() = Some(app_handle);
 
     if let Ok(p) = std::env::current_exe() {
@@ -236,7 +274,11 @@ pub fn init(app_handle: tauri::AppHandle) {
                 (1u64 << CG_KEY_DOWN) | (1u64 << CG_KEY_UP) | (1u64 << CG_FLAGS_CHANGED);
 
             let port_ref;
+            let mut recovery_shown = false;
             loop {
+                if !RUNNING.load(Ordering::Acquire) {
+                    return;
+                }
                 let p = unsafe {
                     CGEventTapCreate(0, 0, 0, mask, tap_callback, std::ptr::null())
                 };
@@ -248,17 +290,17 @@ pub fn init(app_handle: tauri::AppHandle) {
                     .map(|p| p.display().to_string())
                     .unwrap_or_default();
 
-                if crate::macos_access::is_accessibility_trusted() {
-                    warn!(
-                        "[mac tap] CGEventTapCreate failed — Accessibility is granted but Input Monitoring is missing. \
-                         Please enable in: System Settings > Privacy & Security > Input Monitoring. executable: {}",
-                        exe
-                    );
-                } else {
-                    warn!(
-                        "[mac tap] CGEventTapCreate failed — missing Accessibility & Input Monitoring permissions. executable: {}",
-                        exe
-                    );
+                warn!("[mac tap] installation failed: accessibility={}, input_monitoring={}, executable={}",
+                    crate::macos_access::is_accessibility_trusted(),
+                    crate::macos_access::has_input_monitoring_access(), exe);
+                if !recovery_shown {
+                    if let Some(app) = APP_HANDLE.lock().unwrap().as_ref() {
+                        use tauri::Manager;
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                        }
+                    }
+                    recovery_shown = true;
                 }
                 std::thread::sleep(std::time::Duration::from_secs(3));
             }
@@ -286,21 +328,52 @@ pub fn init(app_handle: tauri::AppHandle) {
             TAP_STATE.with(|c| {
                 *c.borrow_mut() = Some(TapState {
                     mach_port,
-                    loop_source,
+                    _loop_source: loop_source,
                 });
             });
 
             info!("[mac tap] CGEventTap installed on dedicated thread");
+            READY.store(true, Ordering::Release);
             unsafe { CFRunLoopRun(); }
+            READY.store(false, Ordering::Release);
+            TAP_RUNLOOP.store(std::ptr::null_mut(), Ordering::Release);
+            TAP_STATE.with(|c| {
+                if let Some(state) = c.borrow_mut().take() {
+                    unsafe { CGEventTapEnable(state.mach_port.as_concrete_TypeRef(), false); }
+                }
+            });
             info!("[mac tap] dedicated thread exiting");
         })
         .expect("failed to spawn keyboard-tap thread");
 }
 
 pub fn cleanup() {
+    RUNNING.store(false, Ordering::Release);
+    READY.store(false, Ordering::Release);
     let rl_ptr = TAP_RUNLOOP.swap(std::ptr::null_mut(), Ordering::AcqRel);
     if !rl_ptr.is_null() {
         unsafe { CFRunLoopStop(rl_ptr); }
     }
     *APP_HANDLE.lock().unwrap() = None;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::modifier_down_from_flags;
+
+    #[test]
+    fn modifier_events_use_their_own_flags_even_before_session_state_updates() {
+        assert_eq!(modifier_down_from_flags(60, 0x20000), Some(true));
+        assert_eq!(modifier_down_from_flags(60, 0), Some(false));
+        assert_eq!(modifier_down_from_flags(58, 0x80000), Some(true));
+        assert_eq!(modifier_down_from_flags(58, 0), Some(false));
+    }
+
+    #[test]
+    fn releasing_one_shift_preserves_the_other_shift() {
+        assert_eq!(modifier_down_from_flags(56, 0x20004), Some(false));
+        assert_eq!(modifier_down_from_flags(60, 0x20004), Some(true));
+        assert_eq!(modifier_down_from_flags(56, 0x20002), Some(true));
+        assert_eq!(modifier_down_from_flags(60, 0x20002), Some(false));
+    }
 }

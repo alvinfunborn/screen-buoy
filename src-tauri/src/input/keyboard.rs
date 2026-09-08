@@ -1,7 +1,7 @@
 use crate::config;
 use crate::hint::{filter_hints, hide_hints};
 use crate::input::{executor, mouse};
-use log::{debug, error, info};
+use log::{debug, info};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -60,14 +60,9 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
                 if let Some(app_handle) = app_handle {
                     let app_handle_clone = app_handle.clone();
                     tauri::async_runtime::spawn(async move {
-                        mouse::show_cursor().await;
                         hide_hints(app_handle_clone).await;
                     });
                 }
-            } else {
-                tauri::async_runtime::spawn(async move {
-                    mouse::hide_cursor().await;
-                });
             }
         }
     }

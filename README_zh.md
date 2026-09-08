@@ -68,7 +68,7 @@ Screen Buoy 通过平台原生的辅助功能 API 跨进程、跨窗口地枚举
 - 通过 Accessibility API（`AXUIElement`）枚举各应用的窗口和 UI 控件
 - 将 AX role（如 `AXButton`、`AXTextField`）映射到与 Windows 统一的控件类型体系
 - 使用 Core Graphics 事件监听（`CGEventTapCreate`）进行全局键盘监控
-- 首次启动时需授予 **辅助功能** 和 **输入监视** 权限（系统设置 > 隐私与安全性）
+- 需授予 **辅助功能** 权限；如果键盘监听不可用，同时允许 **输入监视**（系统设置 > 隐私与安全性）
 
 #### 共同
 
@@ -91,12 +91,18 @@ Screen Buoy 通过平台原生的辅助功能 API 跨进程、跨窗口地枚举
 
 **macOS：**
 
-1. 前往 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载最新的 `ScreenBuoy.app` 和 `config.toml`。
-2. 将 `ScreenBuoy.app` 移动到「应用程序」文件夹。开发模式下 `config.toml` 放在 `src-tauri/` 目录。
-3. 首次启动时，系统会提示授予 **辅助功能** 和 **输入监视** 权限，请在「系统设置 > 隐私与安全性」中允许。
-4. 菜单栏右上角会出现 Screen Buoy 图标。
+1. 从 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载 `screen-buoy-macos.zip`，解压后将 `screen-buoy.app` 放进「应用程序」。
+2. **1.2.1 起**：发布构建包含 Apple Silicon 和 Intel 两种架构；首次运行自动创建 `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml`，并保留已有配置。旧版 1.2.0 为 arm64，仍需旁置 `config_macos.toml`。
+3. 当前社区构建采用 ad-hoc 签名，尚未完成 Developer ID 签名和公证。确认下载来源后，若 Gatekeeper 阻止打开，可仅移除此 App 的隔离标记：
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/screen-buoy.app
+   ```
+4. 权限不足时，设置界面会显示当前状态和系统设置入口。允许「辅助功能」；键盘监听仍未连接时，同时允许「输入监视」。请授权界面列出的那份 App，替换 App 后可能需要重新添加权限项并重启。
+5. 菜单栏图标的菜单可打开设置。按 **Option+H** 显示 Hint；鼠标箭头始终可见。
 
-- **托盘 / 菜单栏图标**：双击可打开设置界面
+发布版本请从 [Releases](https://github.com/alvinfunborn/screen-buoy/releases) 下载。构建、签名和验收说明见 [macOS 发布指南](docs/macos-release.md) 与 [验证矩阵](docs/macos-validation.md)。
+
+- **托盘 / 菜单栏图标**：从菜单打开设置（Windows 也支持双击）
 - **开机自启**：可在设置中开启
 - **配置文件**：详见 `config.toml`
 

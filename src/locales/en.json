@@ -1,4 +1,23 @@
 {
+  "permissions": {
+    "title": "Allow Screen Buoy to control your Mac",
+    "ready": "Screen Buoy is ready",
+    "description": "Accessibility lets Screen Buoy find controls and perform mouse actions. If keyboard capture is unavailable, also allow Input Monitoring. Hints stay off until control is available.",
+    "accessibility": "Accessibility",
+    "inputMonitoring": "Input Monitoring",
+    "keyboardHook": "Keyboard capture",
+    "granted": "Allowed",
+    "missing": "Required",
+    "notGranted": "Not allowed",
+    "connected": "Connected",
+    "waiting": "Waiting",
+    "openAccessibility": "Open Accessibility",
+    "openInputMonitoring": "Open Input Monitoring",
+    "refresh": "Check again",
+    "restart": "Restart Screen Buoy",
+    "recovery": "Enable the copy shown below in System Settings. After replacing the app, you may need to remove its old permission entry, add it again, and restart Screen Buoy.",
+    "checkFailed": "Could not check permissions"
+  },
   "keyboard": {
     "propagationModifier": "Propagation Modifier",
     "propagationModifierTooltip": "Modifier keys (e.g. Alt, Ctrl, Shift, Win) that will be ignored by the app, allowing their events to pass through to other windows.",

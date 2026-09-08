@@ -201,7 +201,3 @@ pub async fn mouse_wheel_move(delta_x: i32, delta_y: i32) {
         }
     }
 }
-
-pub async fn hide_cursor() {}
-
-pub async fn show_cursor() {}

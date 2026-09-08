@@ -7,6 +7,7 @@ pub mod input;
 pub mod monitor;
 pub mod utils;
 pub mod window;
+pub mod permissions;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
 
@@ -202,6 +203,8 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             get_hint_types_styles,
             get_config_for_frontend,
             save_config_for_frontend,
+            permissions::get_permission_status,
+            permissions::open_permission_settings,
         ])
         .on_window_event(|window, event| {
             if let WindowEvent::CloseRequested { api, .. } = event {
@@ -393,4 +396,5 @@ mod macos_window {
             send_i64(ns_window, level_sel, 25); // NSStatusWindowLevel
         }
     }
+
 }

@@ -9,7 +9,7 @@ jobs:
   release-windows:
     runs-on: windows-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,25 +31,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check release version
+        run: npm run check:version
+
       - name: Build frontend & Tauri
-        run: npm run build && npm run tauri build
+        run: npm run tauri build -- --no-bundle
+
+      - name: Run regression tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
 
       - name: Create screen-buoy-windows.zip
         run: |
           Compress-Archive -Path src-tauri\target\release\screen-buoy.exe, src-tauri\config.toml -DestinationPath screen-buoy-windows.zip -Force
 
-      - name: Upload to GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: screen-buoy-windows.zip
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: release-windows
+          path: screen-buoy-windows.zip
+          if-no-files-found: error
 
   release-macos:
     runs-on: macos-latest
     permissions:
-      contents: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -62,6 +67,8 @@ jobs:
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
@@ -71,19 +78,61 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check release version
+        run: npm run check:version
+
       - name: Build frontend & Tauri
-        run: npm run build && npm run tauri build
+        env:
+          # With no Developer ID credentials, produce an explicitly ad-hoc
+          # signed universal app. See docs/macos-release.md for notarized builds.
+          APPLE_SIGNING_IDENTITY: '-'
+        run: npm run tauri build -- --target universal-apple-darwin --bundles app
+
+      - name: Run regression tests
+        run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
+
+      - name: Verify architectures and bundle version
+        run: |
+          APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app
+          lipo "$APP/Contents/MacOS/screen-buoy" -verify_arch arm64 x86_64
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")" = "${GITHUB_REF_NAME#v}"
+          codesign --verify --deep --strict "$APP"
 
       - name: Create screen-buoy-macos.zip
         run: |
-          cd src-tauri/target/release/bundle/macos
-          cp ../../../../config_macos.toml ./config_macos.toml
-          zip -r ../../../../../screen-buoy-macos.zip screen-buoy.app config_macos.toml
+          ditto -c -k --keepParent src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app screen-buoy-macos.zip
 
-      - name: Upload to GitHub Release
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: screen-buoy-macos.zip
+          if-no-files-found: error
+
+  prepare-release:
+    needs: [release-windows, release-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download both platform artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Generate archive checksums
+        run: sha256sum screen-buoy-macos.zip screen-buoy-windows.zip > SHA256SUMS
+
+      - name: Create complete draft release
         uses: softprops/action-gh-release@v2
         with:
-          files: screen-buoy-macos.zip
+          draft: true
+          fail_on_unmatched_files: true
+          files: |
+            screen-buoy-macos.zip
+            screen-buoy-windows.zip
+            SHA256SUMS
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
