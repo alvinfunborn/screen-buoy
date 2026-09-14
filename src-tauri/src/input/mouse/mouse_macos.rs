@@ -94,9 +94,7 @@ pub async fn mouse_move(monitor: usize, x: i32, y: i32) {
         if let Some(m) = monitors.get(monitor) {
             let gx = (m.x as f64 / m.scale_factor) + x as f64;
             let gy = (m.y as f64 / m.scale_factor) + y as f64;
-            unsafe {
-                CGWarpMouseCursorPosition(CGPoint { x: gx, y: gy });
-            }
+            move_pointer(CGPoint { x: gx, y: gy });
         } else {
             error!("[mouse_macos] monitor not found: {}", monitor);
         }
@@ -109,9 +107,15 @@ pub async fn mouse_move_relative(dx: i32, dy: i32) {
         x: cur.x + dx as f64,
         y: cur.y + dy as f64,
     };
+    move_pointer(new_pos);
+}
+
+fn move_pointer(new_pos: CGPoint) {
     unsafe {
         CGWarpMouseCursorPosition(new_pos);
     }
+    // Warping alone sends no movement event. Dock and other hover-driven
+    // controls need the event before a subsequent click at the new position.
     let etype = if DRAGGING.load(Ordering::Relaxed) {
         CG_EVENT_LEFT_MOUSE_DRAGGED
     } else {

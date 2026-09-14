@@ -5,6 +5,8 @@ use log::debug;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::sync::Mutex;
+#[cfg(target_os = "macos")]
+use tauri::Manager;
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
 #[cfg(target_os = "windows")]
@@ -43,7 +45,9 @@ pub fn create_overlay_windows(app_handle: &tauri::AppHandle) {
 }
 
 // 确保所有overlay窗口都在最顶层，直接使用保存的窗口句柄
-pub fn ensure_all_overlays_topmost() {
+pub fn ensure_all_overlays_topmost(_app_handle: &tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    sync_overlay_visibility(_app_handle);
     #[cfg(target_os = "windows")]
     if let Ok(handles) = OVERLAY_HANDLES_STORAGE.lock() {
         for (_label, &hwnd_raw) in handles.iter() {
@@ -59,6 +63,23 @@ pub fn ensure_all_overlays_topmost() {
                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE,
                 );
             }
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub fn sync_overlay_visibility(app_handle: &tauri::AppHandle) {
+    for (label, window) in app_handle.webview_windows() {
+        if !label.starts_with(OVERLAY_WINDOW_PREFIX) {
+            continue;
+        }
+        if let Err(e) = window.with_webview(|webview| {
+            // Read the current state on the main thread. A slow second hint
+            // batch must not resurrect the native overlay after Escape.
+            let visible = crate::input::keyboard::KEYBOARD_STATE.lock().unwrap().in_ctrl_session;
+            unsafe { crate::macos_window::set_overlay_visible(webview.ns_window(), visible); }
+        }) {
+            log::error!("[overlay] update native visibility failed: {}", e);
         }
     }
 }

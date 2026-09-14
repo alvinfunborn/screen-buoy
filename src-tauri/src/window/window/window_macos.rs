@@ -109,6 +109,7 @@ pub fn get_all_windows() -> Vec<WindowElement> {
         Rect::new(r.origin.x as i32, r.origin.y as i32, r.size.width as i32, r.size.height as i32)
     }).collect();
     let mut process_paths = HashMap::new();
+    let mut included_docks = HashSet::new();
     let mut windows: Vec<WindowElement> = Vec::new();
     for ptr in arr.get_all_values() {
         if ptr.is_null() {
@@ -143,16 +144,25 @@ pub fn get_all_windows() -> Vec<WindowElement> {
             .and_then(|n| n.to_i64())
             .unwrap_or(0);
 
-        let Some((x, y, width, height)) = bounds_rect(&dict) else {
+        let Some((mut x, mut y, mut width, mut height)) = bounds_rect(&dict) else {
             continue;
         };
         if width <= 0 || height <= 0 {
             continue;
         }
 
+        let mut is_dock = false;
         if matches!(layer, 20 | 23) {
             let path = process_paths.entry(owner_pid).or_insert_with(|| process_path(owner_pid));
-            if is_system_desktop_surface(path, layer, &Rect::new(x, y, width, height), &displays) {
+            is_dock = layer == 20 && path == "/System/Library/CoreServices/Dock.app/Contents/MacOS/Dock";
+            if is_dock {
+                use crate::element::dock_frame;
+                if included_docks.contains(&owner_pid) { continue; }
+                let Some(frame) = dock_frame(owner_pid) else { continue; };
+                if !frame.intersects(&Rect::new(x, y, width, height)) { continue; }
+                (x, y, width, height) = (frame.x, frame.y, frame.width, frame.height);
+                included_docks.insert(owner_pid);
+            } else if is_system_desktop_surface(path, layer, &Rect::new(x, y, width, height), &displays) {
                 continue;
             }
         }
@@ -165,9 +175,13 @@ pub fn get_all_windows() -> Vec<WindowElement> {
             win_name.clone()
         };
 
-        let class_name = format!("{}:L{}", owner_name, layer);
+        let class_name = if is_dock {
+            crate::element::DOCK_WINDOW_CLASS.to_string()
+        } else {
+            format!("{}:L{}", owner_name, layer)
+        };
 
-        let is_task_bar = layer >= 24
+        let is_task_bar = is_dock || layer >= 24
             || title == "Menubar"
             || owner_name.contains("Dock")
             || owner_name == "Window Server"

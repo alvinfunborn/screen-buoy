@@ -1,4 +1,6 @@
 mod ui_automation;
+#[cfg(target_os = "macos")]
+pub(crate) use ui_automation::{dock_frame, DOCK_WINDOW_CLASS};
 pub mod element;
 
 pub use ui_automation::UIElement;

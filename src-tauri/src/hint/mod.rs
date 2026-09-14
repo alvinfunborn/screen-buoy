@@ -65,7 +65,7 @@ pub async fn show_hints(window: WebviewWindow) {
         save_hints(window_label.clone(), hints.clone()).await;
     }
     if !config::get_config().unwrap().system.debug_mode {
-        ensure_all_overlays_topmost();
+        ensure_all_overlays_topmost(app_handle);
     }
 
     let monitor_hints = hints_generator.generate_hints_batch2(&mut position_set, &mut hints_count);
@@ -86,7 +86,7 @@ pub async fn show_hints(window: WebviewWindow) {
         save_hints(window_label.clone(), hints.clone()).await;
     }
     if !config::get_config().unwrap().system.debug_mode {
-        ensure_all_overlays_topmost();
+        ensure_all_overlays_topmost(app_handle);
     }
 }
 
@@ -99,6 +99,10 @@ pub async fn hide_hints(app_handle: tauri::AppHandle) {
 
     // 设置键盘状态为不可见
     input::keyboard::switch_keyboard_ctrl(false, Some(&app_handle));
+    #[cfg(target_os = "macos")]
+    if !config::get_config().unwrap().system.debug_mode {
+        overlay::sync_overlay_visibility(&app_handle);
+    }
     debug!("[hide_hints] switch keyboard ctrl to false");
     // 清空 hints 数据
     clear_hints();

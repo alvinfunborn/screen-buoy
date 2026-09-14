@@ -63,6 +63,7 @@ impl AxAttr {
 static AX_WINDOWS: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXWindows")));
 static AX_CHILDREN: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXChildren")));
 static AX_ROLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXRole")));
+static AX_SUBROLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXSubrole")));
 static AX_TITLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXTitle")));
 static AX_POSITION: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXPosition")));
 static AX_SIZE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXSize")));
@@ -273,11 +274,43 @@ fn find_ax_window(app: AXUIElementRef, target: &WindowElement) -> Option<(CFType
     unsafe { Some((CFType::wrap_under_get_rule(el), rpx, rpy, rpw, rph)) }
 }
 
+pub const DOCK_WINDOW_CLASS: &str = "com.apple.dock";
+
+fn find_dock_list(app: AXUIElementRef) -> Option<(CFType, f64, f64, f64, f64)> {
+    // Dock has no AXWindows. Its visible icons are children of an application
+    // AXList, whose bounds exclude the transparent display-sized Dock surface.
+    let children = ax_copy_attribute(app, AX_CHILDREN.as_cf())?;
+    let children = unsafe { CFArray::<CFType>::wrap_under_get_rule(children.as_CFTypeRef() as CFArrayRef) };
+    for index in 0..children.len() {
+        let child = children.get(index)?;
+        if ax_copy_string(child.as_CFTypeRef(), AX_ROLE.as_cf()).as_deref() != Some("AXList") {
+            continue;
+        }
+        let (x, y, width, height) = ax_point_size(child.as_CFTypeRef())?;
+        if width > 0.0 && height > 0.0 {
+            return Some(((*child).clone(), x, y, width, height));
+        }
+    }
+    None
+}
+
+pub fn dock_frame(pid: i32) -> Option<crate::utils::Rect> {
+    if unsafe { AXIsProcessTrusted() } == 0 { return None; }
+    let app = unsafe { CFType::wrap_under_create_rule(AXUIElementCreateApplication(pid)) };
+    let (_, x, y, width, height) = find_dock_list(app.as_CFTypeRef())?;
+    let (x, y, width, height) = ax_rect_in_screen_points(x, y, width, height);
+    Some(crate::utils::Rect::new(x, y, width, height))
+}
+
+fn is_clickable_dock_item(subrole: &str) -> bool {
+    matches!(subrole, "AXApplicationDockItem" | "AXFileDockItem" | "AXFolderDockItem" | "AXTrashDockItem" | "AXURLDockItem")
+}
+
 fn control_type_for_ax_role(role: &str) -> Option<i32> {
     let m = &*HINT_CONTROL_TYPES_ID_Z_MAP;
     let try_seq = |ids: &[i32]| ids.iter().copied().find(|id| m.contains_key(id));
     match role {
-        "AXButton" => try_seq(&[50021, 50000, 50026]),
+        "AXButton" | "AXDockItem" => try_seq(&[50021, 50000, 50026]),
         "AXRadioButton" => try_seq(&[50013]),
         "AXCheckBox" => try_seq(&[50002]),
         "AXPopUpButton" | "AXComboBox" => try_seq(&[50003]),
@@ -325,6 +358,9 @@ fn walk_element(
     *nodes += 1;
 
     let role = ax_copy_string(element, AX_ROLE.as_cf()).unwrap_or_default();
+    if role == "AXDockItem" && !is_clickable_dock_item(&ax_copy_string(element, AX_SUBROLE.as_cf()).unwrap_or_default()) {
+        return;
+    }
     *role_stats.entry(role.clone()).or_insert(0) += 1;
 
     if let Some((px, py, pw, ph)) = ax_point_size(element) {
@@ -419,9 +455,12 @@ fn get_elements_for_window_inner(window: &WindowElement) -> Option<Vec<UIElement
         CFType::wrap_under_create_rule(r)
     };
 
-    ensure_enhanced_ui(app.as_CFTypeRef(), window.owner_pid);
-
-    let (root, rpx, rpy, rpw, rph) = find_ax_window(app.as_CFTypeRef(), window)?;
+    let (root, rpx, rpy, rpw, rph) = if window.class_name == DOCK_WINDOW_CLASS {
+        find_dock_list(app.as_CFTypeRef())?
+    } else {
+        ensure_enhanced_ui(app.as_CFTypeRef(), window.owner_pid);
+        find_ax_window(app.as_CFTypeRef(), window)?
+    };
     let sx = window.width as f64 / rpw.max(1.0);
     let sy = window.height as f64 / rph.max(1.0);
     let mut nodes = 0usize;
@@ -473,6 +512,15 @@ pub fn clean_expired_cache() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn dock_icons_are_clickable_but_separators_and_unknown_items_are_not() {
+        for role in ["AXApplicationDockItem", "AXFileDockItem", "AXFolderDockItem", "AXTrashDockItem", "AXURLDockItem"] {
+            assert!(is_clickable_dock_item(role));
+        }
+        assert!(!is_clickable_dock_item("AXSeparatorDockItem"));
+        assert!(!is_clickable_dock_item(""));
+    }
 
     #[test]
     fn a_smaller_window_must_not_be_scaled_to_match_the_target() {

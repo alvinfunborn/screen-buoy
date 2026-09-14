@@ -10,6 +10,8 @@ pub mod window;
 pub mod permissions;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
+#[cfg(target_os = "macos")]
+mod macos_window;
 
 #[cfg(target_os = "macos")]
 pub fn set_app_activation_policy_accessory() {
@@ -251,6 +253,9 @@ pub fn create_overlay_window(
     .resizable(true)
     .inner_size(width, height)
     .focused(false)
+    // A transparent, empty NSWindow still appears in third-party switchers.
+    // Configure its accessibility identity before first ordering it on screen.
+    .visible(!cfg!(target_os = "macos") || config::get_config().unwrap().system.debug_mode)
     .build();
 
     if let Err(e) = window {
@@ -330,6 +335,7 @@ fn set_window_transparent_style_non_win(window: &tauri::WebviewWindow) {
     if let Err(e) = window.set_skip_taskbar(true) {
         error!("[set_overlay_style] set skip taskbar failed: {}", e);
     }
+    #[cfg(not(target_os = "macos"))]
     if let Err(e) = window.set_always_on_top(true) {
         error!("[set_overlay_style] set always on top failed: {}", e);
     }
@@ -338,63 +344,10 @@ fn set_window_transparent_style_non_win(window: &tauri::WebviewWindow) {
         if let Err(e) = window.set_ignore_cursor_events(true) {
             error!("[set_overlay_style] set_ignore_cursor_events failed: {}", e);
         }
-        if let Ok(ns_win) = window.ns_window() {
-            macos_window::set_overlay_collection_behavior(ns_win);
+        if let Err(e) = window.with_webview(|webview| unsafe {
+            macos_window::configure_overlay(webview.ns_window());
+        }) {
+            error!("[set_overlay_style] configure native overlay failed: {}", e);
         }
     }
-}
-
-#[cfg(target_os = "macos")]
-mod macos_window {
-    use std::ffi::c_void;
-
-    #[link(name = "objc", kind = "dylib")]
-    extern "C" {
-        fn objc_msgSend();
-        fn objc_getClass(name: *const std::ffi::c_char) -> *mut c_void;
-        fn sel_registerName(name: *const std::ffi::c_char) -> *const c_void;
-    }
-
-    unsafe fn send_void(obj: *mut c_void, sel: *const c_void) -> *mut c_void {
-        let f: unsafe extern "C" fn(*mut c_void, *const c_void) -> *mut c_void =
-            std::mem::transmute(objc_msgSend as *const ());
-        f(obj, sel)
-    }
-
-    unsafe fn send_u64(obj: *mut c_void, sel: *const c_void, val: u64) {
-        let f: unsafe extern "C" fn(*mut c_void, *const c_void, u64) =
-            std::mem::transmute(objc_msgSend as *const ());
-        f(obj, sel, val)
-    }
-
-    unsafe fn send_i64(obj: *mut c_void, sel: *const c_void, val: i64) {
-        let f: unsafe extern "C" fn(*mut c_void, *const c_void, i64) =
-            std::mem::transmute(objc_msgSend as *const ());
-        f(obj, sel, val)
-    }
-
-    pub fn set_app_activation_policy_accessory() {
-        unsafe {
-            let cls = objc_getClass(b"NSApplication\0".as_ptr() as *const _);
-            let ns_app = send_void(cls, sel_registerName(b"sharedApplication\0".as_ptr() as *const _));
-            let sel = sel_registerName(b"setActivationPolicy:\0".as_ptr() as *const _);
-            send_i64(ns_app, sel, 1); // NSApplicationActivationPolicyAccessory
-        }
-    }
-
-    pub fn set_overlay_collection_behavior(ns_window: *mut c_void) {
-        const CAN_JOIN_ALL_SPACES: u64 = 1 << 0;
-        const STATIONARY: u64 = 1 << 4;
-        const IGNORES_CYCLE: u64 = 1 << 6;
-        let behavior = CAN_JOIN_ALL_SPACES | STATIONARY | IGNORES_CYCLE;
-
-        unsafe {
-            let sel = sel_registerName(b"setCollectionBehavior:\0".as_ptr() as *const _);
-            send_u64(ns_window, sel, behavior);
-
-            let level_sel = sel_registerName(b"setLevel:\0".as_ptr() as *const _);
-            send_i64(ns_window, level_sel, 25); // NSStatusWindowLevel
-        }
-    }
-
 }
