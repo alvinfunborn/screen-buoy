@@ -130,16 +130,45 @@ fn initialize_user_config(destination: &Path, legacy: Option<&Path>) -> std::io:
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    static NEXT_CONFIG_DIR: AtomicU64 = AtomicU64::new(0);
 
     struct ConfigDir(std::path::PathBuf);
     impl ConfigDir {
         fn new() -> Self {
-            let unique = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-            Self(std::env::temp_dir().join(format!("screen-buoy-config-{}-{unique}", std::process::id())))
+            // SystemTime's nanosecond representation does not guarantee a
+            // nanosecond clock resolution. Parallel tests can see the same
+            // timestamp; reserve each directory atomically before using it.
+            loop {
+                let unique = NEXT_CONFIG_DIR.fetch_add(1, Ordering::Relaxed);
+                let path = std::env::temp_dir().join(format!("screen-buoy-config-{}-{unique}", std::process::id()));
+                match fs::create_dir(&path) {
+                    Ok(()) => return Self(path),
+                    Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(err) => panic!("Cannot create config test directory: {err}"),
+                }
+            }
         }
     }
     impl Drop for ConfigDir {
         fn drop(&mut self) { let _ = fs::remove_dir_all(&self.0); }
+    }
+
+    #[test]
+    fn parallel_config_tests_own_distinct_directories() {
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(16));
+        let threads: Vec<_> = (0..16).map(|_| {
+            let barrier = barrier.clone();
+            std::thread::spawn(move || {
+                barrier.wait();
+                ConfigDir::new()
+            })
+        }).collect();
+        let dirs: Vec<_> = threads.into_iter().map(|thread| thread.join().unwrap()).collect();
+        let paths: std::collections::HashSet<_> = dirs.iter().map(|dir| &dir.0).collect();
+        assert_eq!(paths.len(), dirs.len());
+        assert!(paths.iter().all(|path| path.is_dir()));
     }
 
     #[test]
