@@ -122,6 +122,15 @@ impl<'a> Executor<'a> {
     }
 
     fn execute_quick_click(&mut self, exit: bool) -> bool {
+        let scheduled = self.try_quick_click(exit);
+        // macOS keeps the session alive until the async click finishes.
+        #[cfg(target_os = "macos")]
+        { let _ = scheduled; false }
+        #[cfg(not(target_os = "macos"))]
+        { scheduled }
+    }
+
+    pub(super) fn try_quick_click(&mut self, exit: bool) -> bool {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -131,7 +140,20 @@ impl<'a> Executor<'a> {
         let app_handle_clone = self.app_handle.clone();
         if hold_duration < 300 {
             debug!("[execute_quick_click] execute quick click since hold_duration: {} < 300", hold_duration);
+            #[cfg(target_os = "macos")]
+            let click_ticket = mouse::click_ticket();
+            #[cfg(target_os = "macos")]
+            let click_point = get_hint_position_by_text(self.state.pressed_hint_keys.as_deref().unwrap_or(""));
             tauri::async_runtime::spawn(async move {
+                #[cfg(target_os = "macos")]
+                if !mouse::click_ticket_current(click_ticket) { return; }
+                #[cfg(target_os = "macos")]
+                if let Some((monitor, x, y)) = click_point {
+                    mouse::mouse_move(monitor, x, y).await;
+                }
+                #[cfg(target_os = "macos")]
+                if !mouse::mouse_click_left(click_ticket).await { return; }
+                #[cfg(not(target_os = "macos"))]
                 mouse::mouse_click_left().await;
                 if exit {
                     hide_hints(app_handle_clone).await;
@@ -177,13 +199,20 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let app_handle_clone = self.app_handle.clone();
         let is_dragging = self.state.is_dragging;
+        #[cfg(target_os = "macos")]
+        let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
+            #[cfg(target_os = "macos")]
+            if !mouse::click_ticket_current(click_ticket) { return; }
             if is_dragging {
                 mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
                 mouse::mouse_move(monitor_id, x, y).await;
             }
+            #[cfg(target_os = "macos")]
+            if !mouse::mouse_click_left(click_ticket).await { return; }
+            #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_left().await;
             if exit {
                 hide_hints(app_handle_clone).await;
@@ -197,13 +226,20 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
+        #[cfg(target_os = "macos")]
+        let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
+            #[cfg(target_os = "macos")]
+            if !mouse::click_ticket_current(click_ticket) { return; }
             if is_dragging {
                 mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
                 mouse::mouse_move(monitor_id, x, y).await;
             }
+            #[cfg(target_os = "macos")]
+            if !mouse::mouse_click_right(click_ticket).await { return; }
+            #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_right().await;
             if exit {
                 hide_hints(app_handle_clone).await;
@@ -217,13 +253,20 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
+        #[cfg(target_os = "macos")]
+        let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
+            #[cfg(target_os = "macos")]
+            if !mouse::click_ticket_current(click_ticket) { return; }
             if is_dragging {
                 let _ = mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
                 mouse::mouse_move(monitor_id, x, y).await;
             }
+            #[cfg(target_os = "macos")]
+            if !mouse::mouse_click_middle(click_ticket).await { return; }
+            #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_middle().await;
             if exit {
                 hide_hints(app_handle_clone).await;
@@ -238,13 +281,20 @@ impl<'a> Executor<'a> {
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
         self.state.double_click_key_hold = true;
+        #[cfg(target_os = "macos")]
+        let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
+            #[cfg(target_os = "macos")]
+            if !mouse::click_ticket_current(click_ticket) { return; }
             if is_dragging {
                 mouse::mouse_drag_end().await;
             }
             if let Some((monitor_id, x, y)) = get_hint_position_by_text(&pressed_hint_keys) {
                 mouse::mouse_move(monitor_id, x, y).await;
             }
+            #[cfg(target_os = "macos")]
+            if !mouse::mouse_double_click(click_ticket).await { return; }
+            #[cfg(not(target_os = "macos"))]
             mouse::mouse_double_click().await;
             if exit {
                 hide_hints(app_handle_clone).await;
@@ -254,6 +304,8 @@ impl<'a> Executor<'a> {
     }
 
     fn execute_exit(&self) -> bool {
+        #[cfg(target_os = "macos")]
+        mouse::cancel_pending_clicks();
         let app_handle_clone = self.app_handle.clone();
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {

@@ -1,36 +1,22 @@
 import React from 'react';
-import { Form, InputNumber, Space, Spin, Typography } from 'antd';
-import type { Config } from '../../../types/config';
-import '../../../styles/global.css';
+import { Form, InputNumber } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { SettingSection } from '../SettingSection';
 
-const { Title } = Typography;
-
-interface UiAutomationSettingsProps {
-  onValuesChange?: (changedValues: any, allValues: Config) => void;
-}
-
-export const UiAutomationSettings: React.FC<UiAutomationSettingsProps> = ({ onValuesChange }) => {
+export const UiAutomationSettings: React.FC = () => {
   const { t } = useTranslation();
-
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Form.Item
-        layout="horizontal"
-        label={t('uiAutomation.collectInterval')}
-        name={['ui_automation', 'collect_interval']}
-        tooltip={t('uiAutomation.collectIntervalTooltip')}
-      >
+    <SettingSection title={t('settings.groups.detection')} description={t('settings.groups.detectionDescription')}>
+      <Form.Item className="setting-row" layout="horizontal"
+        label={<span>{t('uiAutomation.collectInterval')}<small>{t('uiAutomation.collectIntervalTooltip')}</small></span>}
+        name={['ui_automation', 'collect_interval']}>
         <InputNumber min={50} max={10000} step={50} />
       </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('uiAutomation.cacheTtl')}
-        name={['ui_automation', 'cache_ttl']}
-        tooltip={t('uiAutomation.cacheTtlTooltip')}
-      >
+      <Form.Item className="setting-row" layout="horizontal"
+        label={<span>{t('uiAutomation.cacheTtl')}<small>{t('uiAutomation.cacheTtlTooltip')}</small></span>}
+        name={['ui_automation', 'cache_ttl']}>
         <InputNumber min={100} max={1000000} step={100} />
       </Form.Item>
-    </Space>
+    </SettingSection>
   );
 };

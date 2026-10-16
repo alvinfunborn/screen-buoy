@@ -272,10 +272,6 @@ fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElemen
         let window_rect = Rect::new(window.x, window.y, window.width, window.height);
 
         let mut covered = Vec::new();
-        let max_covered_area = 10;
-        let mut total_covered_area: Vec<Rect> = Vec::new();
-        let mut is_fully_covered = false;
-
         for upper_window in windows.iter().take(i) {
             let upper_rect = Rect::new(
                 upper_window.x,
@@ -302,54 +298,24 @@ fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElemen
                         upper_window.height,
                         intersection
                     );
-                    let new_covered_area = intersection.clone();
-                    let mut is_new_area = true;
-
-                    for existing_area in total_covered_area.iter() {
-                        if existing_area.contains(&new_covered_area) {
-                            is_new_area = false;
+                    if !covered.iter().any(|area: &Rect| area.contains(&intersection)) {
+                        covered.retain(|area| !intersection.contains(area));
+                        let full_bounds = intersection.contains(&window_rect);
+                        covered.push(intersection);
+                        // Rectangles only identify points needing a native hit test.
+                        // Even full coverage can be a click-through transparent host.
+                        if full_bounds {
                             break;
-                        }
-                    }
-
-                    if is_new_area {
-                        if covered.len() > max_covered_area {
-                            is_fully_covered = true;
-                            break;
-                        }
-                        covered.push(intersection.clone());
-                        total_covered_area.push(new_covered_area);
-
-                        let mut remaining = vec![window_rect.clone()];
-                        for covered_rect in &total_covered_area {
-                            let mut new_remaining = Vec::new();
-                            for rem in remaining {
-                                if rem.intersects(covered_rect) {
-                                    new_remaining.extend(rem.subtract(covered_rect));
-                                } else {
-                                    new_remaining.push(rem);
-                                }
-                            }
-                            remaining = new_remaining;
-                            if remaining.is_empty() {
-                                is_fully_covered = true;
-                                break;
-                            }
                         }
                     }
                 }
             }
 
-            if is_fully_covered {
-                break;
-            }
         }
-        if !is_fully_covered {
-            if covered.is_empty() {
-                uncovered_windows.insert(window.clone());
-            } else {
-                covered_areas.insert(window.clone(), covered);
-            }
+        if covered.is_empty() {
+            uncovered_windows.insert(window.clone());
+        } else {
+            covered_areas.insert(window.clone(), covered);
         }
     }
 
@@ -408,13 +374,13 @@ mod tests {
     }
 
     #[test]
-    fn same_level_front_window_hides_identical_back_window() {
+    fn full_rectangle_coverage_retains_back_window_for_native_hit_testing() {
         let front = window(1, 0, 0, 100, 100, 0);
         let back = window(2, 0, 0, 100, 100, 0);
         let (uncovered, covered) = covered_areas_for_windows(&[front.clone(), back.clone()]);
         assert_eq!(uncovered.len(), 1);
         assert!(uncovered.contains(&front));
-        assert!(!covered.contains_key(&back));
+        assert!(covered[&back].iter().any(|area| area.contains_point(50, 50)));
     }
 
     #[test]
@@ -425,6 +391,18 @@ mod tests {
         let (uncovered, covered) = covered_areas_for_windows(&[left, right, back.clone()]);
         assert_eq!(uncovered.len(), 2);
         assert!(!uncovered.contains(&back));
-        assert!(!covered.contains_key(&back));
+        let areas = &covered[&back];
+        assert!(areas.iter().any(|area| area.contains_point(-175, 50)));
+        assert!(areas.iter().any(|area| area.contains_point(-125, 50)));
+    }
+
+    #[test]
+    fn many_partial_occluders_do_not_discard_window_or_uncovered_points() {
+        let mut windows: Vec<_> = (0..12).map(|id| window(id, id as i32 * 5, 0, 3, 10, 3)).collect();
+        let back = window(20, 0, 0, 100, 100, 0);
+        windows.push(back.clone());
+        let (_, covered) = covered_areas_for_windows(&windows);
+        assert_eq!(covered[&back].len(), 12);
+        assert!(!covered[&back].iter().any(|area| area.contains_point(50, 50)));
     }
 }

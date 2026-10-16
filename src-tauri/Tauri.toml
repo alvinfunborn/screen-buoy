@@ -1,5 +1,5 @@
 identifier = "com.screen-buoy.dev"
-version = "1.2.2"
+version = "1.2.3"
 productName = "screen-buoy"
 
 [build]
@@ -34,8 +34,8 @@ capabilities = ["main-capability"]
 label = "main"
 title = "Screen Buoy"
 url = "index.html"
-width = 600
-height = 800
+width = 960
+height = 780
 resizable = true
 fullscreen = false
 center = true

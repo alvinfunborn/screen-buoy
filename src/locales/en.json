@@ -1,8 +1,11 @@
 {
   "permissions": {
-    "title": "Allow Screen Buoy to control your Mac",
+    "troubleshooting": "Permission troubleshooting",
+    "keyboardRecovery": "Accessibility is allowed, but keyboard capture has not connected. Restart Screen Buoy first. If the issue persists, try allowing Input Monitoring.",
+    "keyboardUnavailable": "Keyboard shortcuts are unavailable",
+    "title": "Allow Accessibility access",
     "ready": "Screen Buoy is ready",
-    "description": "Accessibility lets Screen Buoy find controls and perform mouse actions. If keyboard capture is unavailable, also allow Input Monitoring. Hints stay off until control is available.",
+    "description": "Allow Screen Buoy in System Settings → Privacy & Security → Accessibility to find controls and click them.",
     "accessibility": "Accessibility",
     "inputMonitoring": "Input Monitoring",
     "keyboardHook": "Keyboard capture",
@@ -23,7 +26,7 @@
     "propagationModifierTooltip": "Modifier keys (e.g. Alt, Ctrl, Shift, Win) that will be ignored by the app, allowing their events to pass through to other windows.",
     "selectModifiers": "Select modifiers",
     "availableKeys": "Available Keys",
-    "availableKeysTooltip": "Define all keys that can be used for custom keybindings. Each key is mapped to its Windows virtual key code.",
+    "availableKeysTooltip": "Define the keys available for shortcuts and their platform key codes.",
     "hintKeyTooltip": "The physical key corresponding to the last character of the current hint.",
     "hintRightKeyTooltip": "The physical key immediately to the right of HintKey, as defined in the leftRightMapping table below.",
     "hintLeftKeyTooltip": "The physical key immediately to the left of HintKey, as defined in the leftRightMapping table below.",
@@ -178,6 +181,46 @@
       "uiAutomation": "UI Automation",
       "keyboard": "Keyboard",
       "system": "System"
-    }
+    },
+    "description": {
+      "keybinding": "Make every action feel natural. Set the keys you use to navigate and click.",
+      "mouse": "Fine-tune movement, scrolling and dragging for each modifier combination.",
+      "hint": "Choose the characters, grid and appearance of your on-screen hints.",
+      "uiAutomation": "Control how often Screen Buoy finds and refreshes interface elements.",
+      "keyboard": "Manage modifier keys, key codes and neighboring key relationships.",
+      "system": "Adjust startup, tray behavior and application diagnostics."
+    },
+    "groups": {
+      "activation": "Your shortcut to show hints, from any application.",
+      "global": "Actions available while entering a hint.",
+      "atHint": "Actions available while holding the final hint key.",
+      "translate": "Move hints",
+      "drag": "Drag",
+      "scroll": "Scroll",
+      "startup": "Startup & system tray",
+      "diagnostics": "Diagnostics",
+      "application": "Application",
+      "detection": "Scanning & cache",
+      "detectionDescription": "Time in milliseconds between element scans and before cached results expire.",
+      "characterRows": "Character sets, in order",
+      "gridDescription": "Place hints at fixed positions across the screen.",
+      "typesDescription": "Customize appearance and element assignments for each hint type."
+    },
+    "help": {
+      "startAtLogin": "Launch Screen Buoy when you sign in.",
+      "startInTray": "Keep the settings window hidden on startup.",
+      "showTrayIcon": "Keep Screen Buoy accessible from the menu bar or system tray."
+    },
+    "save": {
+      "idle": "Changes save automatically",
+      "saving": "Saving…",
+      "saved": "Changes submitted",
+      "error": "Could not save"
+    },
+    "loading": "Loading your settings…",
+    "loadError": "Could not load your settings",
+    "retry": "Try again",
+    "saveError": "Could not save settings. Please try your change again.",
+    "removeItem": "Remove {{name}}"
   }
 }

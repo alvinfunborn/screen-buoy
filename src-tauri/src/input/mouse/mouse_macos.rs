@@ -3,11 +3,15 @@ use log::error;
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicBool, Ordering};
 
+#[path = "click_focus_macos.rs"]
+mod click_focus;
+pub use click_focus::{cancel_pending_clicks, click_ticket, click_ticket_current};
+
 type CGEventRef = *const c_void;
 type CGEventSourceRef = *const c_void;
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct CGPoint {
     x: f64,
     y: f64,
@@ -111,6 +115,9 @@ pub async fn mouse_move_relative(dx: i32, dy: i32) {
 }
 
 fn move_pointer(new_pos: CGPoint) {
+    if new_pos != get_cursor_position() {
+        click_focus::pointer_moved();
+    }
     unsafe {
         CGWarpMouseCursorPosition(new_pos);
     }
@@ -124,34 +131,24 @@ fn move_pointer(new_pos: CGPoint) {
     post_mouse(etype, new_pos, CG_MOUSE_BUTTON_LEFT);
 }
 
-pub async fn mouse_click_left() {
-    let pos = get_cursor_position();
-    post_mouse(CG_EVENT_LEFT_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_LEFT);
-    post_mouse(CG_EVENT_LEFT_MOUSE_UP, pos, CG_MOUSE_BUTTON_LEFT);
+pub async fn mouse_click_left(ticket: u64) -> bool {
+    click_focus::click(click_focus::Click::Left, ticket).await
 }
 
-pub async fn mouse_click_right() {
-    let pos = get_cursor_position();
-    post_mouse(CG_EVENT_RIGHT_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_RIGHT);
-    post_mouse(CG_EVENT_RIGHT_MOUSE_UP, pos, CG_MOUSE_BUTTON_RIGHT);
+pub async fn mouse_click_right(ticket: u64) -> bool {
+    click_focus::click(click_focus::Click::Right, ticket).await
 }
 
-pub async fn mouse_click_middle() {
-    let pos = get_cursor_position();
-    post_mouse(CG_EVENT_OTHER_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_CENTER);
-    post_mouse(CG_EVENT_OTHER_MOUSE_UP, pos, CG_MOUSE_BUTTON_CENTER);
+pub async fn mouse_click_middle(ticket: u64) -> bool {
+    click_focus::click(click_focus::Click::Middle, ticket).await
 }
 
-pub async fn mouse_double_click() {
-    let pos = get_cursor_position();
-    post_mouse_click(CG_EVENT_LEFT_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_LEFT, 1);
-    post_mouse_click(CG_EVENT_LEFT_MOUSE_UP, pos, CG_MOUSE_BUTTON_LEFT, 1);
-    tokio::time::sleep(tokio::time::Duration::from_millis(50)).await;
-    post_mouse_click(CG_EVENT_LEFT_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_LEFT, 2);
-    post_mouse_click(CG_EVENT_LEFT_MOUSE_UP, pos, CG_MOUSE_BUTTON_LEFT, 2);
+pub async fn mouse_double_click(ticket: u64) -> bool {
+    click_focus::click(click_focus::Click::Double, ticket).await
 }
 
 pub async fn mouse_drag_start() {
+    cancel_pending_clicks();
     DRAGGING.store(true, Ordering::Relaxed);
     let pos = get_cursor_position();
     post_mouse(CG_EVENT_LEFT_MOUSE_DOWN, pos, CG_MOUSE_BUTTON_LEFT);

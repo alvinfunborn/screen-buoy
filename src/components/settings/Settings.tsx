@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Tabs, Form, message, Spin, Select, Space } from 'antd';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Button, Form, Grid, Result, Select, Spin, Tabs, message } from 'antd';
+import {
+  AimOutlined, AppstoreOutlined, CheckCircleOutlined, ControlOutlined,
+  ExclamationCircleOutlined, FontSizeOutlined, GlobalOutlined,
+  LoadingOutlined, SettingOutlined, ThunderboltOutlined,
+} from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/core';
+import { debounce } from 'lodash';
+import { useTranslation } from 'react-i18next';
 import type { Config } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
 import { KeyboardSettings } from './sections/KeyboardSettings';
@@ -8,141 +15,121 @@ import { MouseSettings } from './sections/MouseSettings';
 import { KeybindingSettings } from './sections/KeybindingSettings';
 import { SystemSettings } from './sections/SystemSettings';
 import { UiAutomationSettings } from './sections/UiAutomationSettings';
-import { debounce } from 'lodash';
-import { useTranslation } from 'react-i18next';
-import i18n from '../../i18n';
-import Title from 'antd/es/typography/Title';
-import Text from 'antd/es/typography/Text';
 import { MacPermissions } from './MacPermissions';
+import i18n from '../../i18n';
 
+const appIconUrl = new URL('../../../src-tauri/icons/icon.png', import.meta.url).href;
+
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 const Settings: React.FC = () => {
-  const { t, i18n: i18nInstance } = useTranslation();
+  const { t, i18n: language } = useTranslation();
   const [form] = Form.useForm<Config>();
+  const screens = Grid.useBreakpoint();
   const [loading, setLoading] = useState(true);
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
-  const [availableKeysState, setAvailableKeysState] = useState<Record<string, number> | undefined>(undefined);
-
-  useEffect(() => {
-    loadConfig();
-  }, []);
+  const [availableKeys, setAvailableKeys] = useState<Record<string, number>>();
+  const [saveState, setSaveState] = useState<SaveState>('idle');
+  const revision = useRef(0);
+  const saveQueue = useRef(Promise.resolve());
 
   const loadConfig = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       const config = await invoke<Config>('get_config_for_frontend');
-      console.log("Config loaded from backend:", JSON.stringify(config, null, 2));
       setInitialConfig(config);
-      setAvailableKeysState(config.keyboard?.available_key);
+      setAvailableKeys(config.keyboard?.available_key);
     } catch (err) {
-      message.error('Failed to load config');
       console.error('Failed to load config:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const debouncedSave = debounce(async (values: Config) => {
-    try {
-      console.log("[Settings.tsx] Saving config:", JSON.stringify(values, null, 2));
-      await invoke('save_config_for_frontend', { config: values });
-    } catch (err) {
-      message.error('Failed to save config');
-      console.error('Failed to save config:', err);
-    }
-  }, 500);
+  useEffect(() => { void loadConfig(); }, []);
 
-  const handleValuesChange = (changedValues: any, _allValues: Config) => {
-    console.log("[Settings.tsx] handleValuesChange triggered. Changed:", JSON.stringify(changedValues));
+  // Keep the existing 500 ms autosave stable across presentation re-renders.
+  // Serialize writes so a slower earlier save cannot overwrite the latest edit.
+  const debouncedSave = useMemo(() => debounce((values: Config, version: number) => {
+    saveQueue.current = saveQueue.current.then(async () => {
+      try {
+        await invoke('save_config_for_frontend', { config: values });
+        if (revision.current === version) setSaveState('saved');
+      } catch (err) {
+        if (revision.current === version) setSaveState('error');
+        message.error(i18n.t('settings.saveError'));
+        console.error('Failed to save config:', err);
+      }
+    });
+  }, 500), []);
 
-    // 从 form 实例获取最新的完整值，而不是依赖回调参数
-    const currentAllValues = form.getFieldsValue(true);
-    console.log("[Settings.tsx] currentAllValues from form:", JSON.stringify(currentAllValues, null, 2));
+  useEffect(() => () => { debouncedSave.flush(); }, [debouncedSave]);
 
-    if (changedValues.keyboard && changedValues.keyboard.available_key) {
-      console.log("[Settings.tsx] keyboard.available_key changed, updating state:", changedValues.keyboard.available_key);
-      setAvailableKeysState(changedValues.keyboard.available_key);
-    } else if (changedValues.keyboard && currentAllValues.keyboard?.available_key !== availableKeysState) {
-      console.log("[Settings.tsx] keyboard object changed, updating state:", currentAllValues.keyboard?.available_key);
-      setAvailableKeysState(currentAllValues.keyboard?.available_key);
-    }
-
-    debouncedSave(currentAllValues); // 使用从 form 获取的最新值
+  const handleValuesChange = (changedValues: Partial<Config>, _allValues: Config) => {
+    const values = form.getFieldsValue(true) as Config;
+    if (changedValues.keyboard) setAvailableKeys(values.keyboard?.available_key);
+    setSaveState('saving');
+    debouncedSave(values, ++revision.current);
   };
 
-  const handleLanguageChange = (lng: string) => {
-    i18nInstance.changeLanguage(lng);
-  };
+  const pages = [
+    { key: 'keybinding', icon: <ThunderboltOutlined />, content: <KeybindingSettings availableKeysData={availableKeys} /> },
+    { key: 'mouse', icon: <AimOutlined />, content: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeys} /> },
+    { key: 'hint', icon: <FontSizeOutlined />, content: <HintSettings onValuesChange={handleValuesChange} /> },
+    { key: 'uiAutomation', icon: <AppstoreOutlined />, content: <UiAutomationSettings /> },
+    { key: 'keyboard', icon: <ControlOutlined />, content: <KeyboardSettings onValuesChange={handleValuesChange} /> },
+    { key: 'system', icon: <SettingOutlined />, content: <SystemSettings /> },
+  ];
 
-  if (loading || !initialConfig) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><Spin size="large" /></div>;
-  }
-
-  console.log("Rendering Form with initialConfig:", JSON.stringify(initialConfig, null, 2));
   return (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, marginBottom: 16 }}>
-        <div>
-          <Title level={3} style={{ margin: 0, fontWeight: 'bold', marginBottom: 8 }}>{t('settings.title')}</Title>
-          <Text type="secondary" style={{ display: 'block' }}>{t('settings.restart')}</Text>
+    <div className="settings-shell">
+      <header className="settings-header">
+        <div className="settings-brand">
+          <img className="brand-mark" src={appIconUrl} alt="" aria-hidden="true" />
+          <div><strong>Screen Buoy</strong><span>{t('settings.title')}</span></div>
         </div>
-        <Space>
+        <div className="settings-header-actions">
+          {initialConfig && <span className={`save-status save-status-${saveState}`} role="status" aria-live="polite">
+            {saveState === 'saving' ? <LoadingOutlined /> : saveState === 'error' ? <ExclamationCircleOutlined /> : <CheckCircleOutlined />}
+            <span>{t(`settings.save.${saveState}`)}</span>
+          </span>}
           <Select
-            value={i18nInstance.language}
-            style={{ width: 100 }}
-            onChange={handleLanguageChange}
-            options={[
-              { value: 'en', label: t('settings.language.en') },
-              { value: 'zh', label: t('settings.language.zh') },
-            ]}
+            className="language-select"
+            aria-label={t('settings.language')}
+            prefix={<GlobalOutlined />}
+            value={language.resolvedLanguage}
+            onChange={lng => { void language.changeLanguage(lng); document.documentElement.lang = lng; }}
+            options={[{ value: 'en', label: 'English' }, { value: 'zh', label: '中文' }]}
           />
-        </Space>
-      </div>
-      <MacPermissions />
-      <Form
-        form={form}
-        layout="vertical"
-        initialValues={initialConfig}
-        onValuesChange={handleValuesChange}
-        style={{ padding: '0 8px' }}
-      >
-        <Tabs
-          defaultActiveKey="keybinding"
-          items={[
-            {
-              key: 'keybinding',
-              label: t('settings.tab.keybinding'),
-              children: <KeybindingSettings availableKeysData={availableKeysState} />,
-            },
-            {
-              key: 'mouse',
-              label: t('settings.tab.mouse'),
-              children: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeysState} />,
-            },
-            {
-              key: 'hint',
-              label: t('settings.tab.hint'),
-              children: <HintSettings onValuesChange={handleValuesChange} />,
-            },
-            {
-              key: 'ui_automation',
-              label: t('settings.tab.uiAutomation'),
-              children: <UiAutomationSettings />,
-            },
-            {
-              key: 'keyboard',
-              label: t('settings.tab.keyboard'),
-              children: <KeyboardSettings onValuesChange={handleValuesChange} />,
-            },
-            {
-              key: 'system',
-              label: t('settings.tab.system'),
-              children: <SystemSettings />,
-            },
-          ]}
-        />
-      </Form>
-    </>
+        </div>
+      </header>
+      <div className="settings-permissions"><MacPermissions /></div>
+      {loading ? <div className="settings-loading"><Spin size="large" /><p>{t('settings.loading')}</p></div>
+        : !initialConfig ? <Result status="warning" title={t('settings.loadError')}
+          extra={<Button type="primary" onClick={loadConfig}>{t('settings.retry')}</Button>} />
+        : <Form form={form} layout="vertical" initialValues={initialConfig} onValuesChange={handleValuesChange} className="settings-form">
+          <Tabs
+            className="settings-tabs"
+            defaultActiveKey="keybinding"
+            tabPosition={screens.md ? 'left' : 'top'}
+            items={pages.map(page => ({
+              key: page.key,
+              label: <span className="settings-nav-label">{page.icon}<span>{t(`settings.tab.${page.key}`)}</span></span>,
+              children: <main className={`settings-page settings-page-${page.key}`}>
+                <div className="settings-page-heading">
+                  <h1>{t(`settings.tab.${page.key}`)}</h1>
+                  <p>{t(`settings.description.${page.key}`)}</p>
+                </div>
+                {page.content}
+              </main>,
+            }))}
+          />
+          <footer className="settings-footer">
+            <span><span className="footer-dot" />{t('settings.restart')}</span>
+            <span>Screen Buoy</span>
+          </footer>
+        </Form>}
+    </div>
   );
 };
 

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Form, Space, Typography, Button, Input, List, Spin, Collapse, Select, InputNumber, Tooltip } from 'antd';
+import { Form, Space, Button, Input, List, Collapse, Select, InputNumber, Tooltip } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Config, KeyboardConfig, LeftRightConfig } from '../../../types/config';
-import '../../../styles/global.css';
+import { SettingSection } from '../SettingSection';
 import { useTranslation } from 'react-i18next';
 
-const { Title, Paragraph } = Typography;
 const { Panel } = Collapse;
 
 interface KeyboardSettingsProps {
@@ -191,24 +190,26 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
   }));
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <div className="settings-stack">
+      <SettingSection title={t('keyboard.propagationModifier')} description={t('keyboard.propagationModifierTooltip')}>
       {/* Propagation Modifier */}
       <Form.Item
-        label={t('keyboard.propagationModifier')}
-        tooltip={t('keyboard.propagationModifierTooltip')}
-        className="config-section-title"
+        className="propagation-field"
         name={['keyboard', 'propagation_modifier']}
       >
         <Select
           mode="multiple"
+          aria-label={t('keyboard.propagationModifier')}
           placeholder={t('keyboard.selectModifiers')}
           style={{ width: '100%' }}
           options={keyOptionsForSelect}
         />
       </Form.Item>
+      </SettingSection>
 
-      <Collapse>
+      <Collapse className="setting-disclosure">
         <Panel header={<Tooltip title={t('keyboard.availableKeysTooltip')}>{t('keyboard.availableKeys')}</Tooltip>} className="config-section-title" key="available_keys">
+          <p className="setting-note">{t('keyboard.availableKeysTooltip')}</p>
           <Space direction="vertical" style={{ width: '100%', marginBottom: 8 }}>
             <List
               bordered
@@ -220,13 +221,13 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
               rowKey={item => item.keyName}
               renderItem={item => (
                 <List.Item key={item.keyName}>
-                  <Space align="center">
+                  <div className="key-map-row">
                     <Tooltip title={item.tooltip}>
                       <Input
                         addonBefore={t('keyboard.key')}
                         value={item.keyName}
                         disabled
-                        style={{ width: '250px', fontWeight: 'bold' }}
+                        style={{ width: '100%', fontWeight: 'bold' }}
                         placeholder={t('keyboard.keyName')}
                       />
                     </Tooltip>
@@ -234,10 +235,10 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                       addonBefore={t('keyboard.vk')}
                       value={item.virtualKey}
                       disabled
-                      style={{ width: '150px', fontWeight: 'bold' }}
+                      style={{ width: '100%', fontWeight: 'bold' }}
                       placeholder={t('keyboard.vk')}
                     />
-                  </Space>
+                  </div>
                 </List.Item>
               )}
             />
@@ -250,30 +251,32 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
               const isSpecial = specialKeys.includes(item.keyName);
               return (
                 <List.Item key={item.id}>
-                  <Space align="center">
+                  <div className="key-map-row">
                     <Input
                       addonBefore={t('keyboard.key')}
                       value={item.keyName}
                       onChange={(e) => handleAvailableKeyNameChange(item.id, e.target.value)}
                       disabled={isSpecial}
-                      style={{ width: '250px' }}
+                      style={{ width: '100%' }}
                       placeholder={t('keyboard.keyName')}
                     />
                     <InputNumber
                       addonBefore={t('keyboard.vk')}
                       value={item.virtualKey}
                       onChange={(value) => handleAvailableKeyValueChange(item.id, value)}
-                      style={{ width: '150px' }}
+                      style={{ width: '100%' }}
                       placeholder={t('keyboard.vk')}
                     />
                     {!isSpecial && (
                       <Button
                         danger
+                        type="text"
+                        aria-label={t('settings.removeItem', { name: item.keyName })}
                         icon={<MinusCircleOutlined />}
                         onClick={() => handleRemoveAvailableKey(item.id)}
                       />
                     )}
-                  </Space>
+                  </div>
                 </List.Item>
               );
             }}
@@ -290,8 +293,9 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
         </Panel>
       </Collapse>
 
-      <Collapse>
+      <Collapse className="setting-disclosure">
         <Panel header={<Tooltip title={t('keyboard.leftRightMappingTooltip')}>{t('keyboard.leftRightMapping')}</Tooltip>} className="config-section-title" key="left_right_mapping">
+          <p className="setting-note">{t('keyboard.leftRightMappingTooltip')}</p>
           {/* Render list manually based on local state */}
           <List
             bordered
@@ -299,34 +303,36 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
             rowKey="id"
             renderItem={(item) => (
               <List.Item key={item.id}>
-                <Space align="center">
+                <div className="key-map-row key-map-row-neighbors">
                   <Input
                     addonBefore={t('keyboard.key')}
                     value={item.keyName}
                     onChange={(e) => handleLeftRightKeyNameChange(item.id, e.target.value)}
-                    style={{ width: '130px' }}
+                    style={{ width: '100%' }}
                     placeholder={t('keyboard.keyName')}
                   />
                   <Input
                     addonBefore={t('keyboard.left')}
                     value={item.left ?? ''}
                     onChange={(e) => handleLeftRightLeftChange(item.id, e.target.value)}
-                    style={{ width: '130px' }}
+                    style={{ width: '100%' }}
                     placeholder={t('keyboard.left')}
                   />
                   <Input
                     addonBefore={t('keyboard.right')}
                     value={item.right ?? ''}
                     onChange={(e) => handleLeftRightRightChange(item.id, e.target.value)}
-                    style={{ width: '130px' }}
+                    style={{ width: '100%' }}
                     placeholder={t('keyboard.right')}
                   />
                   <Button
                     danger
+                    type="text"
+                    aria-label={t('settings.removeItem', { name: item.keyName })}
                     icon={<MinusCircleOutlined />}
                     onClick={() => handleRemoveLeftRightMap(item.id)}
                   />
-                </Space>
+                </div>
               </List.Item>
             )}
           />
@@ -341,6 +347,6 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
           </Button>
         </Panel>
       </Collapse>
-    </Space>
+    </div>
   );
 }; 

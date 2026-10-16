@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Form, InputNumber, List, Space, Spin, Typography, Select, Button, Flex, Tooltip } from 'antd';
+import { Form, InputNumber, List, Space, Typography, Select, Button, Tooltip } from 'antd';
 import { Config, MouseStep, MouseConfig } from '@/types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
-import '../../../styles/global.css';
+import { SettingSection } from '../SettingSection';
 import { useTranslation } from 'react-i18next';
 
-const { Title, Text, Paragraph } = Typography;
+const { Paragraph } = Typography;
 
 interface MouseSettingsProps {
   onValuesChange?: (changedValues: any, allValues: Config) => void;
@@ -182,29 +182,31 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     }
 
     return (
-      <Form.Item label={t(label)} className="config-section-title" style={{ width: '100%' }} tooltip={tooltip}>
+      <SettingSection title={t(label)} description={tooltip}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered
             dataSource={steps}
             renderItem={(step, index) => (
               <List.Item>
-                <Space align="center">
+                <div className="mouse-step-row">
                   <InputNumber
                     addonBefore={t('mouse.x')}
+                    aria-label={`${t(label)} ${index + 1} X`}
                     value={step.x}
                     min={-10000}
                     max={10000}
                     onChange={(value) => updateStepConfig(type, index, 'x', value)}
-                    style={{ width: '80px' }}
+                    style={{ width: '100%' }}
                   />
                   <InputNumber
                     addonBefore={t('mouse.y')}
+                    aria-label={`${t(label)} ${index + 1} Y`}
                     value={step.y}
                     min={-10000}
                     max={10000}
                     onChange={(value) => updateStepConfig(type, index, 'y', value)}
-                    style={{ width: '80px' }}
+                    style={{ width: '100%' }}
                   />
                   <Tooltip title={t('mouse.modifiersTooltip')}>
                     <Paragraph style={{ fontWeight: 'normal', marginBottom: 0 }}>
@@ -213,18 +215,21 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
                   </Tooltip>
                   <Select
                     mode="multiple"
+                    aria-label={`${t('mouse.modifiers')} ${index + 1}`}
                     value={step.modifier}
                     options={keyOptions}
-                    style={{ minWidth: '170px' }}
+                    style={{ width: '100%' }}
                     placeholder={t('mouse.selectModifiers')}
                     onChange={(value) => updateStepConfig(type, index, 'modifier', value)}
                   />
                   <Button
                     danger
+                    type="text"
+                    aria-label={t('settings.removeItem', { name: `${t(label)} ${index + 1}` })}
                     icon={<MinusCircleOutlined />}
                     onClick={() => removeStep(type, index)}
                   />
-                </Space>
+                </div>
               </List.Item>
             )}
           />
@@ -236,15 +241,15 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
             {t('mouse.addStep', { label: t(label) })}
           </Button>
         </Space>
-      </Form.Item>
+      </SettingSection>
     );
   };
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <div className="settings-stack">
       {renderStepList('translate', 'mouse.movementStep')}
       {renderStepList('scroll', 'mouse.scrollStep')}
       {renderStepList('drag', 'mouse.dragStep')}
-    </Space>
+    </div>
   );
 }; 

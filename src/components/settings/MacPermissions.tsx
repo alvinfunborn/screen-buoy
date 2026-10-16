@@ -1,5 +1,6 @@
+import { CheckCircleFilled } from '@ant-design/icons';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Collapse, Space, Typography } from 'antd';
 import { invoke } from '@tauri-apps/api/core';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { useTranslation } from 'react-i18next';
@@ -66,40 +67,51 @@ export function MacPermissions() {
     return error ? <Alert type="error" message={t('permissions.checkFailed')} description={error} /> : null;
   }
 
+  if (status.ready) {
+    return <div className="permissions-ready" role="status">
+      <span className="permissions-summary"><CheckCircleFilled />{t('permissions.ready')}</span>
+      {error && <Typography.Text type="danger">{error}</Typography.Text>}
+    </div>;
+  }
+
+  const needsAccessibility = !status.accessibility;
+
   return (
     <Alert
       style={{ marginBottom: 20 }}
       showIcon
-      type={status.ready ? 'success' : 'warning'}
-      message={t(status.ready ? 'permissions.ready' : 'permissions.title')}
+      type="warning"
+      message={t(needsAccessibility ? 'permissions.title' : 'permissions.keyboardUnavailable')}
       description={
         <Space direction="vertical" style={{ width: '100%' }}>
-          {!status.ready && <span>{t('permissions.description')}</span>}
+          <span>{t(needsAccessibility ? 'permissions.description' : 'permissions.keyboardRecovery')}</span>
           <Space wrap>
-            <Tag color={status.accessibility ? 'green' : 'orange'}>
-              {t('permissions.accessibility')}: {t(status.accessibility ? 'permissions.granted' : 'permissions.missing')}
-            </Tag>
-            <Tag color={status.inputMonitoring ? 'green' : 'default'}>
-              {t('permissions.inputMonitoring')}: {t(status.inputMonitoring ? 'permissions.granted' : 'permissions.notGranted')}
-            </Tag>
-            <Tag color={status.keyboardHook ? 'green' : 'orange'}>
-              {t('permissions.keyboardHook')}: {t(status.keyboardHook ? 'permissions.connected' : 'permissions.waiting')}
-            </Tag>
-          </Space>
-          {!status.ready && <>
-            <Space wrap>
-              {!status.accessibility && <Button loading={pending === 'accessibility'} onClick={() => request('accessibility')}>
+            {needsAccessibility ? (
+              <Button type="primary" loading={pending === 'accessibility'} onClick={() => request('accessibility')}>
                 {t('permissions.openAccessibility')}
-              </Button>}
-              {!status.inputMonitoring && <Button loading={pending === 'inputMonitoring'} onClick={() => request('inputMonitoring')}>
-                {t('permissions.openInputMonitoring')}
-              </Button>}
-              <Button onClick={refresh}>{t('permissions.refresh')}</Button>
-              <Button onClick={() => relaunch().catch(err => setError(String(err)))}>{t('permissions.restart')}</Button>
-            </Space>
-            <Typography.Text type="secondary">{t('permissions.recovery')}</Typography.Text>
-            <Typography.Text style={{ overflowWrap: 'anywhere' }}>{status.appPath}</Typography.Text>
-          </>}
+              </Button>
+            ) : (
+              <>
+                <Button type="primary" onClick={() => relaunch().catch(err => setError(String(err)))}>
+                  {t('permissions.restart')}
+                </Button>
+                {!status.inputMonitoring && (
+                  <Button loading={pending === 'inputMonitoring'} onClick={() => request('inputMonitoring')}>
+                    {t('permissions.openInputMonitoring')}
+                  </Button>
+                )}
+              </>
+            )}
+            <Button onClick={refresh}>{t('permissions.refresh')}</Button>
+          </Space>
+          <Collapse ghost size="small" items={[{
+            key: 'recovery',
+            label: t('permissions.troubleshooting'),
+            children: <Space direction="vertical">
+              <Typography.Text type="secondary">{t('permissions.recovery')}</Typography.Text>
+              <Typography.Text style={{ overflowWrap: 'anywhere' }}>{status.appPath}</Typography.Text>
+            </Space>,
+          }]} />
           {error && <Typography.Text type="danger">{error}</Typography.Text>}
         </Space>
       }

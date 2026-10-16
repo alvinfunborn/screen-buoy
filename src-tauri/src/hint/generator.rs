@@ -68,6 +68,8 @@ pub struct HintsGenerator {
     uncovered_windows: HashSet<WindowElement>,
     windows_covered_areas: IndexMap<WindowElement, Vec<Rect>>,
     ui_elements: HashMap<WindowElement, Vec<UIElement>>,
+    #[cfg(target_os = "macos")]
+    visibility: super::occlusion_macos::PointVisibility,
 }
 
 impl HintsGenerator {
@@ -81,7 +83,51 @@ impl HintsGenerator {
             uncovered_windows,
             windows_covered_areas,
             ui_elements,
+            #[cfg(target_os = "macos")]
+            visibility: Default::default(),
         }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn monitor_bounds(monitor: &MonitorInfo) -> Rect {
+        Rect::new(
+            (monitor.x as f64 / monitor.scale_factor) as i32,
+            (monitor.y as f64 / monitor.scale_factor) as i32,
+            (monitor.width as f64 / monitor.scale_factor) as i32,
+            (monitor.height as f64 / monitor.scale_factor) as i32,
+        )
+    }
+
+    #[cfg(target_os = "macos")]
+    pub async fn prepare_visibility(
+        mut self,
+        app: &tauri::AppHandle,
+        activation: u64,
+    ) -> Option<Self> {
+        let monitors: Vec<_> = self.monitors.iter().map(Self::monitor_bounds).collect();
+        let windows = self.uncovered_windows.iter().map(|window| (window, &[][..]))
+            .chain(self.windows_covered_areas.iter().map(|(window, areas)| (window, areas.as_slice())));
+        for (window, areas) in windows {
+            if let Some(elements) = self.ui_elements.get(window) {
+                for element in elements {
+                    self.visibility.add_candidate(
+                        (element.x, element.y),
+                        monitors.iter().any(|monitor| monitor.contains_point(element.x, element.y)),
+                        areas.iter().any(|area| area.contains_point(element.x, element.y)),
+                    );
+                }
+            }
+        }
+        if self.visibility.prepare(app, activation).await {
+            Some(self)
+        } else {
+            None
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn log_performance(&self, activation: u64, hints: i32, grid: i32, total: std::time::Duration) {
+        self.visibility.log_performance(activation, hints, grid, total);
     }
 
     pub fn generate_hints_grid(
@@ -177,6 +223,7 @@ impl HintsGenerator {
         hints_count: &mut i32,
     ) {
         for hint in ui_elements {
+            #[cfg(target_os = "windows")]
             if !position_set.insert((hint.x, hint.y)) {
                 continue;
             }
@@ -204,6 +251,7 @@ impl HintsGenerator {
                 for area in covered_areas {
                     if area.contains_point(hint.x, hint.y) {
                         is_covered = true;
+                        #[cfg(target_os = "windows")]
                         debug!(
                             "[generator] skip window:{}, hint:{}:({},{}) was covered by {:?}",
                             window_element.title, hint.text, hint.x, hint.y, area
@@ -212,7 +260,20 @@ impl HintsGenerator {
                     }
                 }
 
+                #[cfg(target_os = "macos")]
+                let is_covered = !self.visibility.visible(
+                    window_element.window_handle,
+                    (hint.x, hint.y),
+                    is_covered,
+                );
+
                 if !is_covered {
+                    // A rejected transparent host / hidden element must not claim
+                    // the coordinate before its visible owner is considered.
+                    #[cfg(target_os = "macos")]
+                    if !position_set.insert((hint.x, hint.y)) {
+                        break;
+                    }
                     if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
                         debug!("[generator] skip hint:{}:({},{}) due to hint text is out of use",
                             hint.text, hint.x, hint.y);

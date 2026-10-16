@@ -43,6 +43,8 @@ pub static KEYBOARD_STATE: Lazy<Mutex<KeyboardState>> =
     Lazy::new(|| Mutex::new(KeyboardState::new()));
 
 pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>) {
+    #[cfg(target_os = "macos")]
+    if visible { mouse::cancel_pending_clicks(); }
     if let Ok(mut state) = KEYBOARD_STATE.lock() {
         let old_visible = state.in_ctrl_session;
         state.in_ctrl_session = visible;
@@ -278,6 +280,15 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
         }
 
         let cmd_key = config::keybinding::GLOBAL_KEY_UP_KEYBINDINGS.clone();
+        // HintKey can bind both hold_at_hint and left_click_exit. On macOS,
+        // schedule the short click before hold release can end its session.
+        // Long releases still follow the existing hold/drag cleanup below.
+        #[cfg(target_os = "macos")]
+        if dispatch_macos_quick_release(&current_key, &cmd_key, || {
+            executor::Executor::new(app_handle, &configs, &mut state).try_quick_click(true)
+        }) {
+            return true;
+        }
         for (cmd, keys) in cmd_key {
             if key_in_keys(current_key, &keys) {
                 info!(
@@ -305,4 +316,43 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
     }
 
     true
+}
+
+// The callback returns true only after reserving and scheduling the click.
+// It owns the duration check, so a release near 300 ms is decided only once.
+#[cfg(target_os = "macos")]
+fn dispatch_macos_quick_release(
+    key: &str,
+    bindings: &indexmap::IndexMap<&str, Vec<String>>,
+    schedule: impl FnOnce() -> bool,
+) -> bool {
+    bindings.get(config::keybinding::LEFT_CLICK_EXIT_CMD)
+        .map(|keys| keys.iter().any(|bound| bound == key))
+        .unwrap_or(false) && schedule()
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod macos_release_tests {
+    use super::*;
+
+    #[test]
+    fn shared_hint_release_schedules_click_before_hold_cleanup() {
+        let bindings = indexmap::indexmap! {
+            config::keybinding::HOLD_AT_HINT_CMD => vec!["HintKey".into()],
+            config::keybinding::LEFT_CLICK_EXIT_CMD => vec!["HintKey".into()],
+        };
+        let mut scheduled = 0;
+        let mut hold_cleanup = 0;
+        if !dispatch_macos_quick_release("HintKey", &bindings, || {
+            scheduled += 1;
+            true
+        }) {
+            hold_cleanup += 1;
+        }
+        assert_eq!((scheduled, hold_cleanup), (1, 0));
+        // A long release must retain the normal hold/drag cleanup.
+        assert!(!dispatch_macos_quick_release("HintKey", &bindings, || false));
+        // Releasing another key must not schedule any click.
+        assert!(!dispatch_macos_quick_release("Other", &bindings, || panic!("unexpected click")));
+    }
 }

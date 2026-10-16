@@ -1,366 +1,63 @@
 import React from 'react';
-import { Form, Space, Typography, Spin, Input, Select } from 'antd';
-import type { Config } from '../../../types/config';
-import { useKeyOptions } from '../../../hooks/useKeyOptions';
-import '../../../styles/global.css';
+import { Form, Input, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
-
-const { Title, Text, Paragraph } = Typography;
+import { useKeyOptions } from '../../../hooks/useKeyOptions';
+import { SettingSection } from '../SettingSection';
 
 interface KeybindingSettingsProps {
-  onValuesChange?: (changedValues: any, allValues: Config) => void;
   availableKeysData?: Record<string, number>;
 }
 
-export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ onValuesChange, availableKeysData }) => {
+type Binding = [field: string, label: string];
+const globalActions: Binding[] = [
+  ['move_to_hint', 'moveToHint'], ['move_to_hint_exit', 'moveAndExit'],
+  ['left_click_exit', 'leftClickAndExit'], ['hold_at_hint', 'holdAtHint'], ['exit', 'exit'],
+];
+const hintActions: Binding[] = [
+  ['exit', 'exit'], ['left_click', 'leftClick'], ['left_click_exit', 'leftClickAndExit'],
+  ['double_click', 'doubleClick'], ['double_click_exit', 'doubleClickAndExit'],
+  ['right_click', 'rightClick'], ['right_click_exit', 'rightClickAndExit'],
+  ['middle_click', 'middleClick'], ['middle_click_exit', 'middleClickAndExit'],
+];
+const directions = ['up', 'down', 'left', 'right'] as const;
+
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ availableKeysData }) => {
   const { t } = useTranslation();
-  const form = Form.useFormInstance<Config>();
   const keyOptions = useKeyOptions(availableKeysData);
+  const field = (path: string[], label: string) => (
+    <Form.Item key={path.join('.')} className="setting-row shortcut-row" layout="horizontal"
+      label={t(`keybinding.${label}`)} tooltip={t(`keybinding.${label}Tooltip`)} name={['keybinding', ...path]}>
+      <Select mode="tags" options={keyOptions} placeholder={t('keybinding.selectKeys')} />
+    </Form.Item>
+  );
+  const directionFields = (scope: string, action: string, label: string) => (
+    <div className="direction-fields">
+      {directions.map(direction => field([scope, action, direction], `${label}${direction[0].toUpperCase()}${direction.slice(1)}`))}
+    </div>
+  );
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
-      <Form.Item layout="horizontal"
-        className="config-section-title"
-        label={t('keybinding.mainHotkey')}
-        tooltip={t('keybinding.mainHotkeyTooltip')}
-        name={['keybinding', 'hotkey_buoy']}
-      >
-        <Input />
-      </Form.Item>
-
-      {/* Global Shortcuts Section */}
-      <Paragraph className="config-section-title">{t('keybinding.globalKeybindings')}</Paragraph>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveToHint')}
-        tooltip={t('keybinding.moveToHintTooltip')}
-        name={['keybinding', 'global', 'move_to_hint']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveAndExit')}
-        tooltip={t('keybinding.moveAndExitTooltip')}
-        name={['keybinding', 'global', 'move_to_hint_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.leftClickAndExit')}
-        tooltip={t('keybinding.leftClickAndExitTooltip')}
-        name={['keybinding', 'global', 'left_click_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.holdAtHint')}
-        tooltip={t('keybinding.holdAtHintTooltip')}
-        name={['keybinding', 'global', 'hold_at_hint']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.exit')}
-        tooltip={t('keybinding.exitTooltip')}
-        name={['keybinding', 'global', 'exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      {/* Move (Translate) Directions for Global */}
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveUp')}
-        tooltip={t('keybinding.moveUpTooltip')}
-        name={['keybinding', 'global', 'translate', 'up']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveDown')}
-        tooltip={t('keybinding.moveDownTooltip')}
-        name={['keybinding', 'global', 'translate', 'down']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveLeft')}
-        tooltip={t('keybinding.moveLeftTooltip')}
-        name={['keybinding', 'global', 'translate', 'left']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveRight')}
-        tooltip={t('keybinding.moveRightTooltip')}
-        name={['keybinding', 'global', 'translate', 'right']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-
-      {/* At Hint Shortcuts Section */}
-      <Paragraph className="config-section-title">{t('keybinding.atHintKeybindings')}</Paragraph>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.exit')}
-        tooltip={t('keybinding.exitTooltip')}
-        name={['keybinding', 'at_hint', 'exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.leftClick')}
-        tooltip={t('keybinding.leftClickTooltip')}
-        name={['keybinding', 'at_hint', 'left_click']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.leftClickAndExit')}
-        tooltip={t('keybinding.leftClickAndExitTooltip')}
-        name={['keybinding', 'at_hint', 'left_click_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.doubleClick')}
-        tooltip={t('keybinding.doubleClickTooltip')}
-        name={['keybinding', 'at_hint', 'double_click']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.doubleClickAndExit')}
-        tooltip={t('keybinding.doubleClickAndExitTooltip')}
-        name={['keybinding', 'at_hint', 'double_click_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.rightClick')}
-        tooltip={t('keybinding.rightClickTooltip')}
-        name={['keybinding', 'at_hint', 'right_click']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.rightClickAndExit')}
-        tooltip={t('keybinding.rightClickAndExitTooltip')}
-        name={['keybinding', 'at_hint', 'right_click_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.middleClick')}
-        tooltip={t('keybinding.middleClickTooltip')}
-        name={['keybinding', 'at_hint', 'middle_click']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.middleClickAndExit')}
-        tooltip={t('keybinding.middleClickAndExitTooltip')}
-        name={['keybinding', 'at_hint', 'middle_click_exit']}
-      >
-        <Select
-          mode="tags"
-          style={{ width: '100%' }}
-          options={keyOptions}
-          placeholder={t('keybinding.selectKeys')}
-        />
-      </Form.Item>
-
-      {/* Move (Translate) Directions for At Hint */}
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveUp')}
-        tooltip={t('keybinding.moveUpTooltip')}
-        name={['keybinding', 'at_hint', 'translate', 'up']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveDown')}
-        tooltip={t('keybinding.moveDownTooltip')}
-        name={['keybinding', 'at_hint', 'translate', 'down']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveLeft')}
-        tooltip={t('keybinding.moveLeftTooltip')}
-        name={['keybinding', 'at_hint', 'translate', 'left']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.moveRight')}
-        tooltip={t('keybinding.moveRightTooltip')}
-        name={['keybinding', 'at_hint', 'translate', 'right']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      {/* Drag Directions for At Hint */}
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.dragUp')}
-        tooltip={t('keybinding.dragUpTooltip')}
-        name={['keybinding', 'at_hint', 'drag', 'up']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.dragDown')}
-        tooltip={t('keybinding.dragDownTooltip')}
-        name={['keybinding', 'at_hint', 'drag', 'down']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.dragLeft')}
-        tooltip={t('keybinding.dragLeftTooltip')}
-        name={['keybinding', 'at_hint', 'drag', 'left']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.dragRight')}
-        tooltip={t('keybinding.dragRightTooltip')}
-        name={['keybinding', 'at_hint', 'drag', 'right']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      {/* Scroll Directions for At Hint */}
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.scrollUp')}
-        tooltip={t('keybinding.scrollUpTooltip')}
-        name={['keybinding', 'at_hint', 'scroll', 'up']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.scrollDown')}
-        tooltip={t('keybinding.scrollDownTooltip')}
-        name={['keybinding', 'at_hint', 'scroll', 'down']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.scrollLeft')}
-        tooltip={t('keybinding.scrollLeftTooltip')}
-        name={['keybinding', 'at_hint', 'scroll', 'left']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-      <Form.Item
-        layout="horizontal"
-        label={t('keybinding.scrollRight')}
-        tooltip={t('keybinding.scrollRightTooltip')}
-        name={['keybinding', 'at_hint', 'scroll', 'right']}
-      >
-        <Select mode="tags" style={{ width: '100%' }} options={keyOptions} placeholder={t('keybinding.selectKeys')} />
-      </Form.Item>
-    </Space>
+    <div className="settings-stack">
+      <SettingSection title={t('keybinding.mainHotkey')} description={t('settings.groups.activation')} className="activation-section">
+        <Form.Item name={['keybinding', 'hotkey_buoy']} className="hotkey-field">
+          <Input aria-label={t('keybinding.mainHotkey')} spellCheck={false} />
+        </Form.Item>
+        <p className="setting-note">{t('keybinding.mainHotkeyTooltip')}</p>
+      </SettingSection>
+      <SettingSection title={t('keybinding.globalKeybindings')} description={t('settings.groups.global')}>
+        {globalActions.map(([name, label]) => field(['global', name], label))}
+        <h4 className="setting-subheading">{t('settings.groups.translate')}</h4>
+        {directionFields('global', 'translate', 'move')}
+      </SettingSection>
+      <SettingSection title={t('keybinding.atHintKeybindings')} description={t('settings.groups.atHint')}>
+        {hintActions.map(([name, label]) => field(['at_hint', name], label))}
+        <h4 className="setting-subheading">{t('settings.groups.translate')}</h4>
+        {directionFields('at_hint', 'translate', 'move')}
+        <h4 className="setting-subheading">{t('settings.groups.drag')}</h4>
+        {directionFields('at_hint', 'drag', 'drag')}
+        <h4 className="setting-subheading">{t('settings.groups.scroll')}</h4>
+        {directionFields('at_hint', 'scroll', 'scroll')}
+      </SettingSection>
+    </div>
   );
 };

@@ -1,4 +1,6 @@
 mod generator;
+#[cfg(target_os = "macos")]
+mod occlusion_macos;
 pub mod hint;
 pub mod overlay;
 
@@ -27,6 +29,8 @@ pub async fn show_hints(window: WebviewWindow) {
         let _ = window.set_focus();
         return;
     }
+    #[cfg(target_os = "macos")]
+    let (activation, started) = (occlusion_macos::begin_activation(), std::time::Instant::now());
     // 清空之前的 hints 数据
     clear_hints();
 
@@ -39,7 +43,14 @@ pub async fn show_hints(window: WebviewWindow) {
     // 设置键盘状态为监听
     input::keyboard::switch_keyboard_ctrl(true, Some(&app_handle));
     debug!("[show_hints] switch keyboard ctrl to true");
+    // Resolve native point receivers before any hint window is made visible.
+    #[cfg(target_os = "macos")]
+    let Some(hints_generator) = hints_generator.prepare_visibility(app_handle, activation).await else {
+        return;
+    };
     let monitor_grid_hints = hints_generator.generate_hints_grid(&mut hints_count);
+    #[cfg(target_os = "macos")]
+    let grid_count = hints_count;
     let mut monitor_hints = hints_generator.generate_hints_batch1(&mut position_set, &mut hints_count);
     for (window_label, grid_hints) in &monitor_grid_hints {
         if let Some(hints) = monitor_hints.get_mut(window_label) {
@@ -49,6 +60,10 @@ pub async fn show_hints(window: WebviewWindow) {
         }
     }
     for (window_label, hints) in &monitor_hints {
+        #[cfg(target_os = "macos")]
+        if !occlusion_macos::is_active(activation) {
+            return;
+        }
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             if let Err(e) = overlay_window.emit(
                 "show-hints",
@@ -70,6 +85,10 @@ pub async fn show_hints(window: WebviewWindow) {
 
     let monitor_hints = hints_generator.generate_hints_batch2(&mut position_set, &mut hints_count);
     for (window_label, hints) in &monitor_hints {
+        #[cfg(target_os = "macos")]
+        if !occlusion_macos::is_active(activation) {
+            return;
+        }
         if let Some(overlay_window) = app_handle.get_webview_window(window_label) {
             if let Err(e) = overlay_window.emit(
                 "show-hints2",
@@ -88,9 +107,13 @@ pub async fn show_hints(window: WebviewWindow) {
     if !config::get_config().unwrap().system.debug_mode {
         ensure_all_overlays_topmost(app_handle);
     }
+    #[cfg(target_os = "macos")]
+    hints_generator.log_performance(activation, hints_count, grid_count, started.elapsed());
 }
 
 pub async fn hide_hints(app_handle: tauri::AppHandle) {
+    #[cfg(target_os = "macos")]
+    occlusion_macos::cancel_activation();
     // 获取所有overlay窗口并发送hide-hints事件
     let window = app_handle.get_webview_window("main").unwrap();
     if let Err(e) = window.emit("hide-hints", ()) {

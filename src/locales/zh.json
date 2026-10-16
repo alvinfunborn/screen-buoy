@@ -1,8 +1,11 @@
 {
   "permissions": {
-    "title": "允许 Screen Buoy 控制你的 Mac",
+    "troubleshooting": "权限排障详情",
+    "keyboardRecovery": "辅助功能已授权，但键盘监听尚未连接。请先重启 Screen Buoy；如果仍无法连接，再尝试允许输入监视。",
+    "keyboardUnavailable": "快捷键暂不可用",
+    "title": "允许辅助功能权限",
     "ready": "Screen Buoy 已就绪",
-    "description": "辅助功能权限用于识别控件和执行鼠标操作。如果键盘监听尚未连接，请同时允许输入监视。准备就绪前不会进入 Hint 模式。",
+    "description": "在系统设置 → 隐私与安全 → 辅助功能中允许 Screen Buoy，用于识别控件和执行点击。",
     "accessibility": "辅助功能",
     "inputMonitoring": "输入监视",
     "keyboardHook": "键盘监听",
@@ -23,7 +26,7 @@
     "propagationModifierTooltip": "指定不监听的修饰键（如Alt、Ctrl、Shift、Win），这些修饰键按下时按键事件会穿透到其他窗口。",
     "selectModifiers": "选择修饰键",
     "availableKeys": "可用按键",
-    "availableKeysTooltip": "定义所有可用于自定义快捷键的按键，每个按键都映射到其Windows虚拟键码。",
+    "availableKeysTooltip": "定义快捷键可用的按键名称及其对应的平台键码。",
     "hintKeyTooltip": "与当前hint最后一个字符对应的物理按键。",
     "hintRightKeyTooltip": "HintKey右侧的物理按键，由下方leftRightMapping表决定。",
     "hintLeftKeyTooltip": "HintKey左侧的物理按键，由下方leftRightMapping表决定。",
@@ -178,6 +181,46 @@
       "uiAutomation": "UI自动化",
       "keyboard": "键盘",
       "system": "系统"
-    }
+    },
+    "description": {
+      "keybinding": "让操作更顺手，为定位、点击和移动设置熟悉的按键。",
+      "mouse": "按修饰键组合，调整移动、滚动和拖拽的步长。",
+      "hint": "调整屏幕提示的字符、网格布局与外观。",
+      "uiAutomation": "设置界面元素的扫描频率和缓存时间。",
+      "keyboard": "管理修饰键、键码，以及按键之间的左右关系。",
+      "system": "管理启动方式、托盘显示和应用诊断。"
+    },
+    "groups": {
+      "activation": "在任意应用中，用这个快捷键唤出屏幕提示。",
+      "global": "输入提示字符时可使用的操作。",
+      "atHint": "按住提示的最后一个字符时可使用的操作。",
+      "translate": "移动提示",
+      "drag": "拖拽",
+      "scroll": "滚动",
+      "startup": "启动与系统托盘",
+      "diagnostics": "诊断",
+      "application": "应用管理",
+      "detection": "扫描与缓存",
+      "detectionDescription": "时间单位为毫秒。设置控制元素的更新频率与缓存有效期。",
+      "characterRows": "按顺序使用的字符集",
+      "gridDescription": "在屏幕的固定网格位置显示提示。",
+      "typesDescription": "为不同类型的提示设置样式和对应的界面元素。"
+    },
+    "help": {
+      "startAtLogin": "登录系统时自动启动 Screen Buoy。",
+      "startInTray": "启动时不显示设置窗口。",
+      "showTrayIcon": "在菜单栏或系统托盘中保留 Screen Buoy 入口。"
+    },
+    "save": {
+      "idle": "修改后自动保存",
+      "saving": "正在保存…",
+      "saved": "修改已提交",
+      "error": "保存失败"
+    },
+    "loading": "正在加载设置…",
+    "loadError": "无法加载设置",
+    "retry": "重试",
+    "saveError": "设置保存失败，请重新修改后再试。",
+    "removeItem": "移除 {{name}}"
   }
 }

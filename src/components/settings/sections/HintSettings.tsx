@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Space, Typography, Spin, Input, Button, InputNumber, Collapse, Select } from 'antd';
+import { Form, Space, Input, Button, InputNumber, Collapse, Select } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import '../../../styles/global.css';
+import { SettingSection } from '../SettingSection';
 import { useTranslation } from 'react-i18next';
 
-const { Title, Paragraph } = Typography;
 
 interface HintSettingsProps {
   onValuesChange?: (changedValues: any, allValues: Config) => void;
@@ -360,9 +359,10 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   };
 
   return (
-    <Space direction="vertical" style={{ width: '100%' }}>
+    <div className="settings-stack">
+      <SettingSection title={t('hint.charsets')} description={t('hint.charsetsTooltip')}>
       {/* Hint Charsets Section (Existing) */}
-      <Form.Item label={t('hint.charsets')} className="config-section-title" tooltip={t('hint.charsetsTooltip')}>
+      <Form.Item label={t('settings.groups.characterRows')}>
         <Form.List name={['hint', 'charsets']}>
           {(fields, { add, remove }) => (
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -371,25 +371,27 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 // Use field.key for managing raw input state map
                 const fieldKey = field.key;
                 return (
-                  <Space key={fieldKey} align="baseline" style={{ width: '100%' }}>
+                  <div key={fieldKey} className="charset-row">
                     <Form.Item
                       {...restField}
                       name={name} // Use field.name for AntD Form binding
                       validateTrigger={['onChange', 'onBlur']}
-                      rules={[{ required: true, message: 'Please enter the charset' }]}
+                      rules={[{ required: true, message: t('hint.placeholderCharset') }]}
                       style={{ flex: 1 }}
                     >
                       <Input
-                        placeholder="Enter the charset, separated by commas"
+                        placeholder={t('hint.placeholderCharset')}
                         // Ensure value defaults to empty string if state entry is missing
                         value={rawCharsetInputs[fieldKey] ?? ''}
-                        style={{ width: '400px' }}
+                        style={{ width: '100%' }}
                         onChange={(e) => handleRawCharsetChange(fieldKey, e.target.value)}
                         onBlur={() => handleRawCharsetBlur(fieldKey, name)}
                       />
                     </Form.Item>
-                    <MinusCircleOutlined style={{ marginLeft: 8 }} onClick={() => remove(field.name)} />
-                  </Space>
+                    <Button type="text" danger icon={<MinusCircleOutlined />}
+                      aria-label={t('settings.removeItem', { name: `${t('hint.charsets')} ${index + 1}` })}
+                      onClick={() => remove(field.name)} />
+                  </div>
                 );
               })}
               <Button type="dashed" onClick={() => add([])} block icon={<PlusOutlined />}>
@@ -417,9 +419,9 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         />
       </Form.Item>
 
-      {/* Hint Grid Section */}
-      <Paragraph className="config-section-title">{t('hint.grid')}</Paragraph>
-      <Space direction="vertical" style={{ width: '100%' }}>
+      </SettingSection>
+      <SettingSection title={t('hint.grid')} description={t('settings.groups.gridDescription')}>
+      <div className="hint-grid-fields">
         <Form.Item
           label={t('hint.rows')}
           tooltip={t('hint.rowsTooltip')}
@@ -449,7 +451,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_rows: vals } } });
               }
             }}
-            style={{ width: 400 }}
+            style={{ width: '100%' }}
             placeholder={t('hint.placeholderRows')}
           />
         </Form.Item>
@@ -466,7 +468,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                 onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), grid: { ...(allValues.hint?.grid || {}), show_at_columns: vals } } });
               }
             }}
-            style={{ width: 400 }}
+            style={{ width: '100%' }}
             placeholder={t('hint.placeholderColumns')}
           />
         </Form.Item>
@@ -478,21 +480,23 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         >
           <Select
             options={hintTypeNames.map(name => ({ value: name, label: name }))}
-            style={{ width: 200 }}
+            style={{ width: '100%' }}
             placeholder={t('hint.hintType')}
           />
         </Form.Item>
-      </Space>
+      </div>
+      </SettingSection>
 
+      <SettingSection title={t('hint.defaultStyle')} description={t('hint.defaultStyleTooltip')}>
       {/* Default Style Section */}
       <Form.Item
-        label={t('hint.defaultStyle')}
-        className="config-section-title"
-        tooltip={t('hint.defaultStyleTooltip')}
+        className="code-field"
         name={['hint', 'style']}
       >
         <Input.TextArea
-          rows={10}
+          rows={7}
+          aria-label={t('hint.defaultStyle')}
+          spellCheck={false}
           placeholder={t('hint.placeholderStyle')}
           value={rawDefaultStyle}
           onChange={(e) => handleRawDefaultStyleChange(e.target.value)}
@@ -500,22 +504,23 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         />
       </Form.Item>
 
-      <Paragraph className="config-section-title">{t('hint.types')}</Paragraph>
+      </SettingSection>
+      <SettingSection title={t('hint.types')} description={t('settings.groups.typesDescription')}>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
       <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (
           <Collapse.Panel
             key={typeName}
-            header={`Type: ${typeName}`}
+            header={<span className="hint-type-name">{typeName}</span>}
             extra={ // Move remove button to panel extra
               <Button
                 danger
                 size="small"
                 onClick={(e) => { e.stopPropagation(); handleRemoveType(typeName); }} // Prevent collapse toggle on button click
                 icon={<MinusCircleOutlined />}
-                aria-label={`Remove ${typeName}`}
+                aria-label={t('settings.removeItem', { name: typeName })}
               >
-                Remove
+                {t('hint.remove')}
               </Button>}
           >
             {/* The existing Space containing Form Items */}
@@ -530,18 +535,20 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
               >
                 <Input.TextArea
                   rows={6}
+                  spellCheck={false}
+                  className="code-input"
                   placeholder={t('hint.placeholderTypeStyle', { typeName })}
                   value={rawStyleInputs[typeName] ?? ''}
                   onChange={(e) => handleRawStyleChange(typeName, e.target.value)}
                   onBlur={() => handleRawStyleBlur(typeName)}
-                  style={{ width: '100%', maxWidth: '400px' }}
+                  style={{ width: '100%' }}
                 />
               </Form.Item>
               <Form.Item
                 label={t('hint.zIndex')}
                 name={['hint', 'types', typeName, 'z_index']}
                 tooltip={t('hint.zIndexTooltip')}
-                rules={[{ required: true, type: 'number', message: 'Please enter a z-index' }]}
+                rules={[{ required: true, type: 'number', message: t('hint.zIndex') }]}
                 style={{ width: '100%', marginBottom: '10px' }}
               >
                 <InputNumber
@@ -559,7 +566,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                   value={rawElementControlTypesInputs[typeName] ?? ''}
                   onChange={(e) => handleRawElementControlTypeChange(typeName, e.target.value)}
                   onBlur={() => handleRawElementControlTypeBlur(typeName)}
-                  style={{ width: '100%', maxWidth: '300px' }}
+                  style={{ width: '100%' }}
                 />
               </Form.Item>
             </Space>
@@ -568,18 +575,18 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       </Collapse>
 
       {/* Add New Hint Type Section */}
-      <Space style={{ marginBottom: '32px' }}>
+      <div className="add-type-row">
         <Input
           placeholder={t('hint.placeholderNewType')}
           value={newTypeNameInput}
           onChange={(e) => setNewTypeNameInput(e.target.value)}
-          style={{ width: '200px' }}
+          style={{ width: '100%' }}
         />
         <Button type="dashed" onClick={handleAddType} icon={<PlusOutlined />}>
           {t('hint.addHintType')}
         </Button>
-      </Space>
-
-    </Space>
+      </div>
+      </SettingSection>
+    </div>
   );
 }; 
