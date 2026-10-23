@@ -55,7 +55,8 @@
     <script type="module">
         // import { invoke } from "@tauri-apps/api/tauri"; // v1
         import { invoke } from "@tauri-apps/api/core"; // v2
-        import { listen, emit } from "@tauri-apps/api/event";
+        import { HintState } from "./src/overlay/hint-state.js";
+        const hintState = new HintState();
         import { getCurrentWebview } from "@tauri-apps/api/webview";
 
         // 使用导入的 API 直接获取当前窗口
@@ -72,7 +73,8 @@
 
                 const hintElement = document.createElement('div');
                 hintElement.className = 'hint visible hint-style' + hint.hint_type;
-                hintElement.textContent = text;
+                hintElement.dataset.code = text;
+                applyFilter(hintElement);
 
                 // 直接使用相对坐标
                 hintElement.style.left = x + 'px';
@@ -104,20 +106,14 @@
             container.style.transform = `translate(${currentX + x}px, ${currentY + y}px)`;
         }
 
-        // 过滤提示
-        function filterHints(letters) {
-            const hints = document.querySelectorAll('.hint.visible');
-            requestAnimationFrame(() => {
-                hints.forEach(hint => {
-                    const text = hint.textContent;
-                    const char = letters.charAt(letters.length - 1);
-                    if (!text.startsWith(char)) {
-                        hint.classList.add('filtered');
-                    } else {
-                        hint.textContent = text.substring(1);
-                    }
-                });
-            });
+        function applyFilter(element) {
+            const { visible, text } = hintState.display(element.dataset.code);
+            element.classList.toggle('filtered', !visible);
+            element.textContent = text;
+        }
+
+        function filterHints() {
+            document.querySelectorAll('.hint').forEach(applyFilter);
         }
 
         // 获取hint默认样式配置
@@ -180,88 +176,29 @@
                     applyStyles(css);
                 }
 
-                // 设置 show-hints 事件监听
-                const unlistenShow = await currentWindow.listen('show-hints', (event) => {
-                    // 验证事件是否是发给当前窗口的
-                    const payload = event.payload;
-                    if (payload.windowLabel !== currentWindow.label) {
-                        console.log(`[listenShow] window: ${currentWindow.label} ignore event from other window: ${payload.windowLabel}`);
-                        return;
-                    }
-
-                    const hints = payload.hints;
-                    if (!Array.isArray(hints)) {
-                        return;
-                    }
-                    console.log(`[listenShow] window: ${currentWindow.label} received ${hints.length} hints`);
-
-                    // 清除现有的 hints
-                    const container = document.getElementById('hintsContainer');
-                    container.innerHTML = '';
-
-                    // 创建新的 hints
-                    hints.forEach((hint, index) => {
-                        const hintElement = createHintElement(hint);
-                        if (hintElement) {
-                            container.appendChild(hintElement);
-                        }
-                    });
-                });
-                console.log(`[listenShow] window: ${currentWindow.label} show-hints listener set`);
-
-                // 设置 show-hints2 事件监听
-                const unlistenShow2 = await currentWindow.listen('show-hints2', (event) => {
-                    // 验证事件是否是发给当前窗口的
-                    const payload = event.payload;
-                    if (payload.windowLabel !== currentWindow.label) {
-                        console.log(`[listenShow] window: ${currentWindow.label} ignore event from other window: ${payload.windowLabel}`);
-                        return;
-                    }
-
-                    const hints = payload.hints;
-                    if (!Array.isArray(hints)) {
-                        return;
-                    }
-                    console.log(`[listenShow] window: ${currentWindow.label} received ${hints.length} hints`);
-
-                    // 获取容器
-                    const container = document.getElementById('hintsContainer');
-                    // 创建新的 hints
-                    hints.forEach((hint, index) => {
-                        console.log(`[listenShow] window: ${currentWindow.label} hint: ${hint.text}`);
-                        const hintElement = createHintElement(hint);
-                        if (hintElement) {
-                            container.appendChild(hintElement);
-                        }
-                    });
-                });
-                console.log(`[listenShow] window: ${currentWindow.label} show-hints2 listener set`);
-
-                // 设置 hide-hints 事件监听
-                const unlistenHide = await currentWindow.listen('hide-hints', (event) => {
-                    console.log(`[listenHide] window: ${currentWindow.label} received hide-hints event`);
-                    clearHints();
-                });
-                console.log(`[listenHide] window: ${currentWindow.label} hide-hints listener set`);
-
-                // 设置 hints-move 事件监听
-                const unlistenMove = await currentWindow.listen('move-hints', (event) => {
-                    console.log(`[listenMove] window: ${currentWindow.label} received move-hints event: ${event.payload}`);
-                    const payload = event.payload;
-                    if (payload && typeof payload === 'object' && 'x' in payload && 'y' in payload) {
-                        const { x, y } = payload;
-                        moveHints(x, y);
+                const unlistenShow = await currentWindow.listen('show-hints', ({ payload }) => {
+                    if (payload.windowLabel === currentWindow.label && hintState.begin(payload.session)) {
+                        clearHints();
                     }
                 });
-                console.log(`[listenMove] window: ${currentWindow.label} move-hints listener set`);
-
-                // 设置 hints-filter 事件监听
-                const unlistenFilter = await currentWindow.listen('filter-hints', (event) => {
-                    console.log(`[listenFilter] window: ${currentWindow.label} received filter-hints event: ${event.payload}`);
-                    const letters = event.payload;
-                    filterHints(letters);
+                const unlistenShow2 = await currentWindow.listen('append-hints', ({ payload }) => {
+                    if (payload.windowLabel !== currentWindow.label || !Array.isArray(payload.hints)) return;
+                    const fragment = document.createDocumentFragment();
+                    for (const hint of hintState.append(payload.session, payload.hints)) {
+                        const element = createHintElement(hint);
+                        if (element) fragment.appendChild(element);
+                    }
+                    document.getElementById('hintsContainer').appendChild(fragment);
                 });
-                console.log(`[listenFilter] window: ${currentWindow.label} filter-hints listener set`);
+                const unlistenHide = await currentWindow.listen('hide-hints', ({ payload }) => {
+                    if (hintState.hide(payload.session)) clearHints();
+                });
+                const unlistenMove = await currentWindow.listen('move-hints', ({ payload }) => {
+                    if (hintState.active && payload.session === hintState.session) moveHints(payload.x, payload.y);
+                });
+                const unlistenFilter = await currentWindow.listen('filter-hints', ({ payload }) => {
+                    if (hintState.filter(payload.session, payload.revision, payload.letters)) filterHints();
+                });
 
                 // 设置清理函数
                 window.addEventListener('unload', () => {

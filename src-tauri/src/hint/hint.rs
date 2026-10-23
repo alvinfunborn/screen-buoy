@@ -59,7 +59,7 @@ fn reset_hints_offset() {
 }
 
 // 保存 hints 信息
-pub async fn save_hints(window_label: String, hints: Vec<Hint>) {
+pub fn save_hints(window_label: String, hints: Vec<Hint>) {
     if let Ok(mut hints_map) = ACTIVE_HINTS_STORAGE.lock() {
         debug!("[save_hints] save {} hints to ACTIVE_HINTS_STORAGE: {}", hints.len(), window_label);
         if hints_map.contains_key(&window_label) {
@@ -67,7 +67,7 @@ pub async fn save_hints(window_label: String, hints: Vec<Hint>) {
                 hints_map
                     .get_mut(&window_label)
                     .unwrap()
-                    .insert(hint.text.clone(), hint.clone());
+                    .entry(hint.text.clone()).or_insert_with(|| hint.clone());
             });
         } else {
             hints_map.insert(

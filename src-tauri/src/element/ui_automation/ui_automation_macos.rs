@@ -10,15 +10,14 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::c_void;
 use std::ptr;
 use std::sync::Mutex;
-use std::time::{SystemTime, UNIX_EPOCH};
+use super::ScanControl;
 
-use crate::config;
 use crate::config::hint::HINT_CONTROL_TYPES_ID_Z_MAP;
 use crate::window::WindowElement;
 
 pub struct UIAutomationRequest;
 
-#[derive(Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UIElement {
     pub text: String,
     pub x: i32,
@@ -30,9 +29,6 @@ pub struct UIElement {
     pub control_type: i32,
     pub element_type: usize,
 }
-
-static ELEMENTS_CACHE_WITH_EXPIRATION: Lazy<Mutex<HashMap<i64, (Vec<UIElement>, u128)>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
 
 static ENHANCED_UI_PIDS: Lazy<Mutex<HashSet<i32>>> = Lazy::new(|| Mutex::new(HashSet::new()));
 
@@ -92,48 +88,14 @@ const K_AXVALUE_CGPOINT: u32 = 1;
 const K_AXVALUE_CGSIZE: u32 = 2;
 
 impl UIAutomationRequest {
-    pub fn new() -> Self {
-        UIAutomationRequest
+    pub fn new() -> Option<Self> {
+        Some(UIAutomationRequest)
     }
 
-    pub fn get_elements_for_window(&self, window: &WindowElement) -> Option<Vec<UIElement>> {
-        get_elements_for_window_inner(window)
+    pub fn get_elements_for_window(&self, window: &WindowElement, control: &mut ScanControl<'_>) -> Option<Vec<UIElement>> {
+        if control.cancelled() { return None; }
+        get_elements_for_window_inner(window, control)
     }
-
-    pub fn get_cached_elements_for_window(&self, window: &WindowElement) -> Option<Vec<UIElement>> {
-        let window_handle = window.window_handle;
-        let expired = {
-            let cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
-            if let Some((elements, expire_at)) = cache.get(&window_handle) {
-                if SystemTime::now()
-                    .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_millis()
-                    <= *expire_at
-                {
-                    debug!(
-                        "[get_cached_elements_for_window] macos cached {} for {}",
-                        elements.len(),
-                        window_handle
-                    );
-                    return Some(elements.clone());
-                }
-                true
-            } else {
-                false
-            }
-        };
-        if expired {
-            let mut cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
-            cache.remove(&window_handle);
-        }
-        self.get_elements_for_window(window)
-    }
-}
-
-pub fn get_cached_elements_for_window(window: &WindowElement) -> Option<Vec<UIElement>> {
-    let request = UIAutomationRequest::new();
-    request.get_cached_elements_for_window(window)
 }
 
 fn ax_copy_attribute(element: AXUIElementRef, attr: CFStringRef) -> Option<CFType> {
@@ -294,12 +256,12 @@ fn find_dock_list(app: AXUIElementRef) -> Option<(CFType, f64, f64, f64, f64)> {
     None
 }
 
+// Geometry only, populated by the Dock scan worker. Window-list enumeration
+// reads this without issuing AX requests to an external process.
+static DOCK_FRAMES: Lazy<Mutex<HashMap<i32, crate::utils::Rect>>> = Lazy::new(|| Mutex::new(HashMap::new()));
+
 pub fn dock_frame(pid: i32) -> Option<crate::utils::Rect> {
-    if unsafe { AXIsProcessTrusted() } == 0 { return None; }
-    let app = unsafe { CFType::wrap_under_create_rule(AXUIElementCreateApplication(pid)) };
-    let (_, x, y, width, height) = find_dock_list(app.as_CFTypeRef())?;
-    let (x, y, width, height) = ax_rect_in_screen_points(x, y, width, height);
-    Some(crate::utils::Rect::new(x, y, width, height))
+    DOCK_FRAMES.lock().unwrap().get(&pid).cloned()
 }
 
 fn is_clickable_dock_item(subrole: &str) -> bool {
@@ -351,8 +313,9 @@ fn walk_element(
     nodes: &mut usize,
     out: &mut HashMap<(i32, i32), UIElement>,
     role_stats: &mut HashMap<String, usize>,
+    control: &mut ScanControl<'_>,
 ) {
-    if depth > MAX_DEPTH || *nodes > MAX_NODES {
+    if depth > MAX_DEPTH || *nodes >= MAX_NODES || control.cancelled() {
         return;
     }
     *nodes += 1;
@@ -395,12 +358,15 @@ fn walk_element(
         }
     }
 
+    control.checkpoint(out);
+    if control.cancelled() { return; }
     let Some(ch) = ax_copy_attribute(element, AX_CHILDREN.as_cf()) else {
         return;
     };
     let arr = unsafe { CFArray::<CFType>::wrap_under_get_rule(ch.as_CFTypeRef() as CFArrayRef) };
     let nc = arr.len() as usize;
     for i in 0..nc {
+        if control.cancelled() || *nodes >= MAX_NODES { break; }
         let Some(item) = arr.get(i as CFIndex) else {
             continue;
         };
@@ -418,16 +384,14 @@ fn walk_element(
                 nodes,
                 out,
                 role_stats,
+                control,
             );
         }
     }
 }
 
 fn ensure_enhanced_ui(app: AXUIElementRef, pid: i32) {
-    let mut set = ENHANCED_UI_PIDS.lock().unwrap();
-    if set.contains(&pid) {
-        return;
-    }
+    if !ENHANCED_UI_PIDS.lock().unwrap().insert(pid) { return; }
     let val = CFBoolean::true_value();
     let rc = unsafe {
         AXUIElementSetAttributeValue(app, AX_ENHANCED_UI.as_cf(), val.as_CFTypeRef())
@@ -435,10 +399,9 @@ fn ensure_enhanced_ui(app: AXUIElementRef, pid: i32) {
     if rc == AX_SUCCESS {
         info!("[ui_automation macos] AXEnhancedUserInterface set for pid={}", pid);
     }
-    set.insert(pid);
 }
 
-fn get_elements_for_window_inner(window: &WindowElement) -> Option<Vec<UIElement>> {
+fn get_elements_for_window_inner(window: &WindowElement, control: &mut ScanControl<'_>) -> Option<Vec<UIElement>> {
     if unsafe { AXIsProcessTrusted() } == 0 {
         warn!("[ui_automation macos] AXIsProcessTrusted=false — grant Accessibility in System Settings");
         return None;
@@ -461,6 +424,15 @@ fn get_elements_for_window_inner(window: &WindowElement) -> Option<Vec<UIElement
         ensure_enhanced_ui(app.as_CFTypeRef(), window.owner_pid);
         find_ax_window(app.as_CFTypeRef(), window)?
     };
+    let mut target = window.clone();
+    if window.class_name == DOCK_WINDOW_CLASS {
+        let (x, y, width, height) = ax_rect_in_screen_points(rpx, rpy, rpw, rph);
+        let mut frames = DOCK_FRAMES.lock().unwrap();
+        frames.retain(|pid, _| *pid == window.owner_pid);
+        frames.insert(window.owner_pid, crate::utils::Rect::new(x, y, width, height));
+        target.x = x; target.y = y; target.width = width; target.height = height;
+    }
+    let window = &target;
     let sx = window.width as f64 / rpw.max(1.0);
     let sy = window.height as f64 / rph.max(1.0);
     let mut nodes = 0usize;
@@ -478,20 +450,12 @@ fn get_elements_for_window_inner(window: &WindowElement) -> Option<Vec<UIElement
         &mut nodes,
         &mut map,
         &mut role_stats,
+        control,
     );
     drop(root);
     drop(app);
 
     let elements: Vec<UIElement> = map.values().cloned().collect();
-    let expire_at = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_millis()
-        + config::get_config().unwrap().ui_automation.cache_ttl as u128;
-    ELEMENTS_CACHE_WITH_EXPIRATION
-        .lock()
-        .unwrap()
-        .insert(window.window_handle, (elements.clone(), expire_at));
     debug!(
         "[get_elements_for_window] macos {} elements (nodes={}) for {} ({}) roles={:?}",
         elements.len(),
@@ -501,12 +465,6 @@ fn get_elements_for_window_inner(window: &WindowElement) -> Option<Vec<UIElement
         role_stats
     );
     Some(elements)
-}
-
-pub fn clean_expired_cache() {
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();
-    let mut cache = ELEMENTS_CACHE_WITH_EXPIRATION.lock().unwrap();
-    cache.retain(|_, (_, expire_at)| *expire_at > now);
 }
 
 #[cfg(test)]

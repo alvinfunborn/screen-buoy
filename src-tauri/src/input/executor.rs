@@ -2,7 +2,7 @@ use log::debug;
 
 use crate::{
     config,
-    hint::{filter_hints, hide_hints, move_hints, hint::get_hint_position_by_text},
+    hint::{filter_hints, move_hints, hint::get_hint_position_by_text},
 };
 
 use super::{keyboard::KeyboardState, mouse};
@@ -107,13 +107,14 @@ impl<'a> Executor<'a> {
 
     fn execute_move_to_hint(&self, exit: bool) -> bool {
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         if let Some((monitor_id, x, y)) =
             get_hint_position_by_text(&self.state.pressed_hint_keys.clone().unwrap())
         {
             tauri::async_runtime::spawn(async move {
                 mouse::mouse_move(monitor_id, x, y).await;
                 if exit {
-                    hide_hints(app_handle_clone).await;
+                    crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
                 }
             });
             return true;
@@ -138,6 +139,7 @@ impl<'a> Executor<'a> {
         let hold_duration = now - self.state.final_hint_key_hold_start;
 
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         if hold_duration < 300 {
             debug!("[execute_quick_click] execute quick click since hold_duration: {} < 300", hold_duration);
             #[cfg(target_os = "macos")]
@@ -156,7 +158,7 @@ impl<'a> Executor<'a> {
                 #[cfg(not(target_os = "macos"))]
                 mouse::mouse_click_left().await;
                 if exit {
-                    hide_hints(app_handle_clone).await;
+                    crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
                 }
             });
             return true;
@@ -176,19 +178,18 @@ impl<'a> Executor<'a> {
             if self.state.final_hint_key.clone().unwrap().is_empty() {
                 // 未找到末位hint, 提前进入hold状态
                 debug!("[execute_hold_at_hint] no final hint, directly to hold state, filter hints");
-                tauri::async_runtime::spawn(async move {
-                    filter_hints(app_handle_clone, "_removeAllHints".to_string()).await;
-                });
+                filter_hints(&app_handle_clone, "_removeAllHints".to_string());
             }
         } else {
             let is_dragging = self.state.is_dragging;
             debug!("[execute_hold_at_hint] already in hold state, hide hints, currently is_dragging: {}", is_dragging);
             let app_handle_clone = self.app_handle.clone();
+            let activation = crate::hint::current_activation();
             tauri::async_runtime::spawn(async move {
                 if is_dragging {
                     mouse::mouse_drag_end().await;
                 }
-                hide_hints(app_handle_clone).await;
+                crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
             });
         }
         true
@@ -198,6 +199,7 @@ impl<'a> Executor<'a> {
         // 执行右键点击
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         let is_dragging = self.state.is_dragging;
         #[cfg(target_os = "macos")]
         let click_ticket = mouse::click_ticket();
@@ -215,7 +217,7 @@ impl<'a> Executor<'a> {
             #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_left().await;
             if exit {
-                hide_hints(app_handle_clone).await;
+                crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
             }
         });
         true
@@ -226,6 +228,7 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         #[cfg(target_os = "macos")]
         let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
@@ -242,7 +245,7 @@ impl<'a> Executor<'a> {
             #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_right().await;
             if exit {
-                hide_hints(app_handle_clone).await;
+                crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
             }
         });
         true
@@ -253,6 +256,7 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         #[cfg(target_os = "macos")]
         let click_ticket = mouse::click_ticket();
         tauri::async_runtime::spawn(async move {
@@ -269,7 +273,7 @@ impl<'a> Executor<'a> {
             #[cfg(not(target_os = "macos"))]
             mouse::mouse_click_middle().await;
             if exit {
-                hide_hints(app_handle_clone).await;
+                crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
             }
         });
         true
@@ -280,6 +284,7 @@ impl<'a> Executor<'a> {
         let pressed_hint_keys = self.state.pressed_hint_keys.clone().unwrap();
         let is_dragging = self.state.is_dragging;
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         self.state.double_click_key_hold = true;
         #[cfg(target_os = "macos")]
         let click_ticket = mouse::click_ticket();
@@ -297,7 +302,7 @@ impl<'a> Executor<'a> {
             #[cfg(not(target_os = "macos"))]
             mouse::mouse_double_click().await;
             if exit {
-                hide_hints(app_handle_clone).await;
+                crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
             }
         });
         true
@@ -307,13 +312,14 @@ impl<'a> Executor<'a> {
         #[cfg(target_os = "macos")]
         mouse::cancel_pending_clicks();
         let app_handle_clone = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
         let is_dragging = self.state.is_dragging;
         tauri::async_runtime::spawn(async move {
             if is_dragging {
                 debug!("[execute_exit] end dragging and exit");
                 mouse::mouse_drag_end().await;
             }
-            hide_hints(app_handle_clone).await;
+            crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
         });
         true
     }
@@ -336,9 +342,11 @@ impl<'a> Executor<'a> {
             calculate_direction_delta(key_binddings, self.state, mouse_step.x, mouse_step.y);
         if dx != 0 || dy != 0 {
             let app_handle_clone = self.app_handle.clone();
+            let activation = crate::hint::current_activation();
             // 发送事件到前端更新显示
             tauri::async_runtime::spawn(async move {
-                move_hints(app_handle_clone, (dx, dy)).await;
+                if !crate::hint::is_active(activation) { return; }
+                move_hints(app_handle_clone, activation, (dx, dy)).await;
                 mouse::mouse_move_relative(dx, dy).await;
             });
             return true;

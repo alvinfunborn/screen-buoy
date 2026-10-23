@@ -191,7 +191,10 @@ pub fn calculate_top_windows(windows: &Vec<WindowElement>) -> HashSet<WindowElem
 }
 
 pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
-    let windows = get_all_windows();
+    covered_areas_for_windows(&get_all_windows())
+}
+
+pub fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
     let mut uncovered_windows = HashSet::new();
     let mut covered_areas: IndexMap<WindowElement, Vec<Rect>> = IndexMap::new();
 

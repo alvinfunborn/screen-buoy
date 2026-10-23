@@ -1,5 +1,5 @@
 use crate::config;
-use crate::hint::{filter_hints, hide_hints};
+use crate::hint::filter_hints;
 use crate::input::{executor, mouse};
 use log::{debug, info};
 use once_cell::sync::Lazy;
@@ -42,7 +42,7 @@ impl KeyboardState {
 pub static KEYBOARD_STATE: Lazy<Mutex<KeyboardState>> =
     Lazy::new(|| Mutex::new(KeyboardState::new()));
 
-pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>) {
+pub fn switch_keyboard_ctrl(visible: bool) {
     #[cfg(target_os = "macos")]
     if visible { mouse::cancel_pending_clicks(); }
     if let Ok(mut state) = KEYBOARD_STATE.lock() {
@@ -59,12 +59,6 @@ pub fn switch_keyboard_ctrl(visible: bool, app_handle: Option<&tauri::AppHandle>
                 state.final_hint_key_hold = false;
                 state.final_hint_key_hold_start = 0;
                 state.is_dragging = false;
-                if let Some(app_handle) = app_handle {
-                    let app_handle_clone = app_handle.clone();
-                    tauri::async_runtime::spawn(async move {
-                        hide_hints(app_handle_clone).await;
-                    });
-                }
             }
         }
     }
@@ -82,21 +76,19 @@ fn key_in_keys(key: &str, keys: &Vec<String>) -> bool {
 fn filter_hints_by_state(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {
     let prefix = state.pressed_hint_keys.clone().unwrap();
     debug!("[filter_hints_by_state] prefix: {}", prefix);
-    let app_handle_clone = app_handle.clone();
-    tauri::async_runtime::spawn(async move {
-        filter_hints(app_handle_clone, prefix).await;
-    });
+    filter_hints(app_handle, prefix);
 }
 
 fn hide_hints_when_session_end(state: &mut KeyboardState, app_handle: &tauri::AppHandle) {
     let app_handle_clone = app_handle.clone();
     let is_dragging = state.is_dragging;
+    let activation = crate::hint::current_activation();
     debug!("[hide_hints_when_session_end] is_dragging: {}", is_dragging);
     tauri::async_runtime::spawn(async move {
         if is_dragging {
             mouse::mouse_drag_end().await;
         }
-        hide_hints(app_handle_clone).await;
+        crate::hint::hide_hints_for_session(app_handle_clone, activation).await;
     });
 }
 

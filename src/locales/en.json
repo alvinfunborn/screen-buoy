@@ -164,9 +164,9 @@
   },
   "uiAutomation": {
     "collectInterval": "Collection Interval (ms)",
-    "collectIntervalTooltip": "Time interval between UI element scans in milliseconds.",
+    "collectIntervalTooltip": "Minimum interval between background scans. Valid caches skip scans; switching windows, clicking, or opening hints prioritizes related windows.",
     "cacheTtl": "Cache TTL (ms)",
-    "cacheTtlTooltip": "Time to live for cached UI element data in milliseconds. When scanning windows that are not on top, cached element data will be used."
+    "cacheTtlTooltip": "How long completed scans can be reused in the background; recommended: 60000 ms. Interaction refreshes and live hint updates bypass this limit."
   },
   "settings": {
     "title": "Settings",
@@ -188,7 +188,7 @@
       "hint": "Choose the characters, grid and appearance of your on-screen hints.",
       "uiAutomation": "Control how often Screen Buoy finds and refreshes interface elements.",
       "keyboard": "Manage modifier keys, key codes and neighboring key relationships.",
-      "system": "Adjust startup, tray behavior and application diagnostics."
+      "system": "Manage startup, app updates, tray visibility and diagnostics."
     },
     "groups": {
       "activation": "Your shortcut to show hints, from any application.",
@@ -222,5 +222,25 @@
     "retry": "Try again",
     "saveError": "Could not save settings. Please try your change again.",
     "removeItem": "Remove {{name}}"
+  },
+  "updates": {
+    "title": "App updates",
+    "description": "Check GitHub Releases when you need to. No background update checks.",
+    "currentVersion": "Current version: {{version}}",
+    "check": "Check for updates",
+    "releases": "GitHub Releases",
+    "latest": "You are up to date.",
+    "available": "Version {{version}} is available",
+    "installHelp": "The update is verified before installation. Your settings are preserved. Installation may close the app; on macOS, you may need to allow Accessibility again.",
+    "manualHelp": "Download this release from GitHub Releases. In-app installation is not available for this release.",
+    "install": "Download and install",
+    "downloading": "Downloading and verifying the update…",
+    "installing": "Installing the update…",
+    "ready": "Update installed. Restart to use the new version.",
+    "restart": "Restart now",
+    "failed": "The operation could not be completed. Review the error details and try again.",
+    "details": "Error details",
+    "notes": "Release notes",
+    "manifestUnavailable": "The release update manifest is not ready. Please try again later."
   }
 }

@@ -8,6 +8,7 @@ pub mod monitor;
 pub mod utils;
 pub mod window;
 pub mod permissions;
+pub mod updates;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
 #[cfg(target_os = "macos")]
@@ -193,6 +194,7 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             None,
         ))
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             let _ = app
@@ -205,6 +207,8 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             get_hint_types_styles,
             get_config_for_frontend,
             save_config_for_frontend,
+            updates::get_release_status,
+            updates::open_releases_page,
             permissions::get_permission_status,
             permissions::open_permission_settings,
         ])

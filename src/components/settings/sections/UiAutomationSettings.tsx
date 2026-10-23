@@ -10,7 +10,7 @@ export const UiAutomationSettings: React.FC = () => {
       <Form.Item className="setting-row" layout="horizontal"
         label={<span>{t('uiAutomation.collectInterval')}<small>{t('uiAutomation.collectIntervalTooltip')}</small></span>}
         name={['ui_automation', 'collect_interval']}>
-        <InputNumber min={50} max={10000} step={50} />
+        <InputNumber min={100} max={10000} step={50} />
       </Form.Item>
       <Form.Item className="setting-row" layout="horizontal"
         label={<span>{t('uiAutomation.cacheTtl')}<small>{t('uiAutomation.cacheTtlTooltip')}</small></span>}

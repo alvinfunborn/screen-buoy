@@ -1,5 +1,5 @@
 identifier = "com.screen-buoy.dev"
-version = "1.2.3"
+version = "1.3.0"
 productName = "screen-buoy"
 
 [build]
@@ -12,7 +12,7 @@ frontendDist = ["../dist"] # v2 需要明确指定
 macOSPrivateApi = true
 
 [app.security]
-capabilities = ["main-capability"]
+capabilities = ["main-capability", "updater-capability"]
 
 # # v2 需要显式设置 security
 # [app.security]
@@ -45,8 +45,9 @@ visible = false
 
 [bundle]
 active = true
-targets = ["app"] # 只生成便携式exe
+targets = ["app"] # Release CI also builds an NSIS installer on Windows.
 icon = [
+  "icons/icon.icns", # macOS rounded icon with transparent margins
   "icons/icon.ico",
   "icons/icon.png",
 ]
@@ -73,4 +74,8 @@ iconPath = "icons/icon.png"
 iconAsTemplate = false
 
 [plugins.updater]
-active = false
+pubkey = "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY5QTc0NUE2QTJFRTBBMjQKUldRa0N1Nmlwa1duYWFoZTlMOWl2SGIxaXgzcnhvVzdzSGkzY2pCZHI3UmhKUWhqMkxlNnN0WDgK"
+endpoints = ["https://github.com/alvinfunborn/screen-buoy/releases/latest/download/latest.json"]
+
+[plugins.updater.windows]
+installMode = "passive"

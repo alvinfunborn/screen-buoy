@@ -35,7 +35,13 @@ jobs:
         run: npm run check:version
 
       - name: Build frontend & Tauri
-        run: npm run tauri build -- --no-bundle
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          if (-not $env:TAURI_SIGNING_PRIVATE_KEY) { throw 'Configure TAURI_SIGNING_PRIVATE_KEY before releasing' }
+          npm run tauri build -- --bundles nsis --config src-tauri/tauri.updater.conf.json
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Run regression tests
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
@@ -43,12 +49,17 @@ jobs:
       - name: Create screen-buoy-windows.zip
         run: |
           Compress-Archive -Path src-tauri\target\release\screen-buoy.exe, src-tauri\config.toml -DestinationPath screen-buoy-windows.zip -Force
+          Copy-Item src-tauri/target/release/bundle/nsis/*-setup.exe screen-buoy-windows-setup.exe
+          Copy-Item src-tauri/target/release/bundle/nsis/*-setup.exe.sig screen-buoy-windows-setup.exe.sig
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-windows
-          path: screen-buoy-windows.zip
+          path: |
+            screen-buoy-windows.zip
+            screen-buoy-windows-setup.exe
+            screen-buoy-windows-setup.exe.sig
           if-no-files-found: error
 
   release-macos:
@@ -86,7 +97,11 @@ jobs:
           # With no Developer ID credentials, produce an explicitly ad-hoc
           # signed universal app. See docs/macos-release.md for notarized builds.
           APPLE_SIGNING_IDENTITY: '-'
-        run: npm run tauri build -- --target universal-apple-darwin --bundles app
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: |
+          test -n "$TAURI_SIGNING_PRIVATE_KEY" || { echo 'Configure TAURI_SIGNING_PRIVATE_KEY before releasing'; exit 1; }
+          npm run tauri build -- --target universal-apple-darwin --bundles app --config src-tauri/tauri.updater.conf.json
 
       - name: Run regression tests
         run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
@@ -101,12 +116,17 @@ jobs:
       - name: Create screen-buoy-macos.zip
         run: |
           ditto -c -k --keepParent src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app screen-buoy-macos.zip
+          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app.tar.gz screen-buoy-macos.app.tar.gz
+          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app.tar.gz.sig screen-buoy-macos.app.tar.gz.sig
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: release-macos
-          path: screen-buoy-macos.zip
+          path: |
+            screen-buoy-macos.zip
+            screen-buoy-macos.app.tar.gz
+            screen-buoy-macos.app.tar.gz.sig
           if-no-files-found: error
 
   prepare-release:
@@ -115,14 +135,28 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Checkout manifest generator
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Download both platform artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: release-*
           merge-multiple: true
 
-      - name: Generate archive checksums
-        run: sha256sum screen-buoy-macos.zip screen-buoy-windows.zip > SHA256SUMS
+      - name: Generate complete update manifest and checksums
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+        run: |
+          node --test scripts/create-update-manifest.test.mjs
+          node scripts/create-update-manifest.mjs . "$RELEASE_TAG" "$RELEASE_REPOSITORY"
+          sha256sum screen-buoy-macos.zip screen-buoy-windows.zip screen-buoy-macos.app.tar.gz screen-buoy-windows-setup.exe latest.json > SHA256SUMS
 
       - name: Create complete draft release
         uses: softprops/action-gh-release@v2
@@ -132,6 +166,11 @@ jobs:
           files: |
             screen-buoy-macos.zip
             screen-buoy-windows.zip
+            screen-buoy-macos.app.tar.gz
+            screen-buoy-macos.app.tar.gz.sig
+            screen-buoy-windows-setup.exe
+            screen-buoy-windows-setup.exe.sig
+            latest.json
             SHA256SUMS
           generate_release_notes: true
         env:

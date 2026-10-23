@@ -164,9 +164,9 @@
   },
   "uiAutomation": {
     "collectInterval": "采集间隔（毫秒）",
-    "collectIntervalTooltip": "UI元素扫描的时间间隔（毫秒）。",
+    "collectIntervalTooltip": "后台扫描的最短间隔。缓存有效时跳过扫描；切换窗口、点击或打开 hint 会优先刷新相关窗口。",
     "cacheTtl": "缓存有效期（毫秒）",
-    "cacheTtlTooltip": "UI元素数据缓存的有效期（毫秒）。扫描非顶层窗口时会使用缓存。"
+    "cacheTtlTooltip": "后台复用完整扫描结果的时间，建议 60000 毫秒。操作触发的刷新和 hint 显示期间的持续更新不受此限制。"
   },
   "settings": {
     "title": "设置",
@@ -188,7 +188,7 @@
       "hint": "调整屏幕提示的字符、网格布局与外观。",
       "uiAutomation": "设置界面元素的扫描频率和缓存时间。",
       "keyboard": "管理修饰键、键码，以及按键之间的左右关系。",
-      "system": "管理启动方式、托盘显示和应用诊断。"
+      "system": "管理启动方式、应用更新、托盘显示和诊断。"
     },
     "groups": {
       "activation": "在任意应用中，用这个快捷键唤出屏幕提示。",
@@ -222,5 +222,25 @@
     "retry": "重试",
     "saveError": "设置保存失败，请重新修改后再试。",
     "removeItem": "移除 {{name}}"
+  },
+  "updates": {
+    "title": "应用更新",
+    "description": "需要时从 GitHub Releases 检查更新，不在后台定时检查。",
+    "currentVersion": "当前版本：{{version}}",
+    "check": "检查更新",
+    "releases": "GitHub Releases",
+    "latest": "当前已是最新版本。",
+    "available": "发现新版本 {{version}}",
+    "installHelp": "安装前会校验更新包，保留已有设置。安装可能关闭应用；macOS 更新后可能需要重新允许辅助功能。",
+    "manualHelp": "请从 GitHub Releases 下载此版本，该版本暂不支持应用内安装。",
+    "install": "下载并安装",
+    "downloading": "正在下载并校验更新包…",
+    "installing": "正在安装更新…",
+    "ready": "更新已安装，重启后使用新版本。",
+    "restart": "立即重启",
+    "failed": "操作未完成，请查看错误详情后重试。",
+    "details": "错误详情",
+    "notes": "更新说明",
+    "manifestUnavailable": "此版本的更新清单尚未就绪，请稍后重试。"
   }
 }

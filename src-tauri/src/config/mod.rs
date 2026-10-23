@@ -29,9 +29,9 @@ pub struct Config {
 }
 
 pub fn get_config_path() -> Option<String> {
-    #[cfg(all(target_os = "macos", not(debug_assertions)))]
+    #[cfg(all(any(target_os = "macos", target_os = "windows"), not(debug_assertions)))]
     {
-        let user_path = macos_user_config_path().expect("Cannot locate macOS user configuration");
+        let user_path = user_config_path().expect("Cannot locate user configuration");
         if user_path.is_file() {
             return Some(user_path.to_string_lossy().into_owned());
         }
@@ -79,14 +79,14 @@ pub fn get_config_path() -> Option<String> {
 }
 
 pub fn load_config() -> Config {
-    #[cfg(all(target_os = "macos", not(debug_assertions)))]
+    #[cfg(all(any(target_os = "macos", target_os = "windows"), not(debug_assertions)))]
     {
-        let destination = macos_user_config_path().expect("Cannot locate macOS user configuration");
-        // Migrate a sidecar config once. A standalone .app gets embedded macOS
-        // defaults; subsequent upgrades preserve the user's writable copy.
+        let destination = user_config_path().expect("Cannot locate user configuration");
+        // Migrate a sidecar config once. Standalone apps and Windows installers
+        // get embedded defaults; subsequent upgrades preserve the writable copy.
         let legacy = get_config_path();
         initialize_user_config(&destination, legacy.as_deref().map(Path::new))
-            .expect("Could not initialize macOS configuration");
+            .expect("Could not initialize user configuration");
     }
     if let Some(path) = get_config_path() {
         let config_str = fs::read_to_string(&path)
@@ -99,15 +99,20 @@ pub fn load_config() -> Config {
     panic!("please check the config file: config.toml exists");
 }
 
-#[cfg(all(target_os = "macos", not(debug_assertions)))]
-fn macos_user_config_path() -> Option<std::path::PathBuf> {
-    std::env::var_os("HOME").map(|home| {
+#[cfg(all(any(target_os = "macos", target_os = "windows"), not(debug_assertions)))]
+fn user_config_path() -> Option<std::path::PathBuf> {
+    #[cfg(target_os = "macos")]
+    return std::env::var_os("HOME").map(|home| {
         std::path::PathBuf::from(home)
             .join("Library/Application Support/com.screen-buoy.dev/config_macos.toml")
-    })
+    });
+    #[cfg(target_os = "windows")]
+    return std::env::var_os("APPDATA").map(|app_data| {
+        std::path::PathBuf::from(app_data).join("com.screen-buoy.dev/config.toml")
+    });
 }
 
-#[cfg(all(target_os = "macos", any(not(debug_assertions), test)))]
+#[cfg(any(not(debug_assertions), test))]
 fn initialize_user_config(destination: &Path, legacy: Option<&Path>) -> std::io::Result<()> {
     use std::io::Write;
     if destination.is_file() {
@@ -115,7 +120,13 @@ fn initialize_user_config(destination: &Path, legacy: Option<&Path>) -> std::io:
     }
     let contents = match legacy {
         Some(path) => fs::read_to_string(path)?,
-        None => include_str!("../../config_macos.toml").to_owned(),
+        None => {
+            #[cfg(target_os = "macos")]
+            let defaults = include_str!("../../config_macos.toml");
+            #[cfg(not(target_os = "macos"))]
+            let defaults = include_str!("../../config.toml");
+            defaults.to_owned()
+        },
     };
     if let Some(parent) = destination.parent() {
         fs::create_dir_all(parent)?;
@@ -127,7 +138,7 @@ fn initialize_user_config(destination: &Path, legacy: Option<&Path>) -> std::io:
     }
 }
 
-#[cfg(all(test, target_os = "macos"))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -172,12 +183,16 @@ mod tests {
     }
 
     #[test]
-    fn standalone_app_creates_valid_macos_defaults() {
+    fn standalone_app_creates_valid_platform_defaults() {
         let dir = ConfigDir::new();
         let destination = dir.0.join("settings/config_macos.toml");
         initialize_user_config(&destination, None).unwrap();
         let config: Config = toml::from_str(&fs::read_to_string(destination).unwrap()).unwrap();
+        #[cfg(target_os = "macos")]
         assert_eq!(config.keyboard.available_key["LCmd"], 55);
+        assert_eq!(config.ui_automation.collect_interval, 250);
+        assert_eq!(config.ui_automation.cache_ttl, 60000);
+        assert_eq!(config.system.logging_level, "none");
         assert_eq!(config.keybinding.hotkey_buoy, "Alt+H");
     }
 

@@ -1,26 +1,8 @@
 //! Per-activation macOS visibility checks. Windows retains its rectangle policy.
-use crate::{input::keyboard::KEYBOARD_STATE, macos_window};
+use crate::macos_window;
+use super::is_active;
 use std::collections::{hash_map::Entry, HashMap};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
-
-static ACTIVATION: AtomicU64 = AtomicU64::new(0);
-
-pub fn begin_activation() -> u64 {
-    ACTIVATION.fetch_add(1, Ordering::Relaxed) + 1
-}
-
-pub fn cancel_activation() {
-    ACTIVATION.fetch_add(1, Ordering::Relaxed);
-}
-
-pub fn is_active(activation: u64) -> bool {
-    ACTIVATION.load(Ordering::Relaxed) == activation
-        && KEYBOARD_STATE
-            .lock()
-            .map(|state| state.in_ctrl_session)
-            .unwrap_or(false)
-}
 
 #[derive(Default)]
 pub struct PointVisibility {

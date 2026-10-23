@@ -557,5 +557,5 @@ logging_level = "none"
 debug_mode = false
 
 [ui_automation]
-collect_interval = 100
+collect_interval = 250
 cache_ttl = 60000

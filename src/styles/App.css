@@ -103,6 +103,11 @@ body { background: var(--canvas); color: var(--ink); }
 .add-type-row > .ant-input { flex: 1; min-width: 0; }
 .code-field textarea, .code-input { font-size: 12px; line-height: 1.75; background: #faf9fc; }
 .application-actions { display: flex; gap: 10px; padding-top: 12px; }
+.app-updates { display: grid; gap: 14px; padding-top: 16px; }
+.app-updates > .ant-btn { justify-self: start; }
+.update-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.app-updates pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; max-height: 240px; overflow-y: auto; margin: 12px 0 0; }
+.app-updates summary { cursor: pointer; }
 .settings-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 15px 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; background: var(--surface); }
 .settings-footer > span:first-child { display: inline-flex; align-items: center; gap: 8px; }
 .footer-dot { width: 5px; height: 5px; border-radius: 50%; background: #a39bad; flex: none; }

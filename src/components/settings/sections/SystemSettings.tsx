@@ -4,6 +4,7 @@ import { PoweroffOutlined, ReloadOutlined } from '@ant-design/icons';
 import { exit, relaunch } from '@tauri-apps/plugin-process';
 import { useTranslation } from 'react-i18next';
 import { SettingSection } from '../SettingSection';
+import { AppUpdates } from '../AppUpdates';
 
 export const SystemSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ export const SystemSettings: React.FC = () => {
   );
   return (
     <div className="settings-stack">
+      <AppUpdates />
       <SettingSection title={t('settings.groups.startup')}>
         {toggle('start_at_login', 'system.startAtLogin', 'settings.help.startAtLogin')}
         {toggle('start_in_tray', 'system.startInTray', 'settings.help.startInTray')}

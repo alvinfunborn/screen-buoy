@@ -53,6 +53,6 @@ Replacing an ad-hoc signed binary may require re-adding the installed app in Pri
 
 ## GitHub release procedure
 
-The tag workflow builds and tests Windows and macOS independently. Only after both jobs succeed does a single job create a draft containing both archives and `SHA256SUMS`. This prevents a partial public release and duplicate generated notes.
+The tag workflow builds and tests Windows and macOS independently. Only after both jobs succeed does a single job create a draft containing both archives, signed updater artifacts, `latest.json` and `SHA256SUMS`. This prevents a partial public release and duplicate generated notes. Configure the updater signing secrets before tagging; see [App updates](app-updates.md).
 
 Before publishing the draft, verify the tagged commit, download both archives, check their checksums and executable versions, and inspect the macOS universal binary and signature. Add release notes that distinguish tested runtime behavior from unverified hardware/OS combinations, then publish the draft as the latest release.

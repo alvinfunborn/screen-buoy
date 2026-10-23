@@ -9,8 +9,8 @@ use windows::Win32::{
             GetKeyboardState, ToUnicode, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS
         },
         WindowsAndMessaging::{
-            CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HHOOK, KBDLLHOOKSTRUCT,
-            WH_KEYBOARD_LL, WM_KEYDOWN,
+            CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HHOOK, KBDLLHOOKSTRUCT, MSLLHOOKSTRUCT,
+            WH_KEYBOARD_LL, WH_MOUSE_LL, WM_KEYDOWN, WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP,
         },
     },
 };
@@ -117,6 +117,16 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     CallNextHookEx(None, code, wparam, lparam)
 }
 
+unsafe extern "system" fn mouse_hook_proc(code: i32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+    if code >= 0 && matches!(wparam.0 as u32, WM_LBUTTONUP | WM_RBUTTONUP | WM_MBUTTONUP) {
+        let point = (*(lparam.0 as *const MSLLHOOKSTRUCT)).pt;
+        crate::element::request_refresh_at(point.x, point.y);
+    }
+    CallNextHookEx(None, code, wparam, lparam)
+}
+
+static MOUSE_HOOK_ID: Lazy<Mutex<Option<HookHandle>>> = Lazy::new(|| Mutex::new(None));
+
 // 全局钩子ID
 static HOOK_ID: Lazy<Mutex<Option<HookHandle>>> = Lazy::new(|| Mutex::new(None));
 static APP_HANDLE: Lazy<Mutex<Option<tauri::AppHandle>>> = Lazy::new(|| Mutex::new(None));
@@ -125,6 +135,10 @@ pub fn init(app_handle: tauri::AppHandle) {
     *APP_HANDLE.lock().unwrap() = Some(app_handle);
 
     unsafe {
+        match SetWindowsHookExW(WH_MOUSE_LL, Some(mouse_hook_proc), None, 0) {
+            Ok(hook) => *MOUSE_HOOK_ID.lock().unwrap() = Some(HookHandle(hook)),
+            Err(error) => error!("[init] mouse observation failed: {error}"),
+        }
         if let Ok(hook) = SetWindowsHookExW(WH_KEYBOARD_LL, Some(keyboard_hook_proc), None, 0) {
             *HOOK_ID.lock().unwrap() = Some(HookHandle(hook));
         } else {
@@ -134,6 +148,9 @@ pub fn init(app_handle: tauri::AppHandle) {
 }
 
 pub fn cleanup() {
+    if let Some(hook) = MOUSE_HOOK_ID.lock().unwrap().take() {
+        unsafe { let _ = UnhookWindowsHookEx(hook.0); }
+    }
     if let Ok(mut hook_id) = HOOK_ID.lock() {
         if let Some(hook) = hook_id.take() {
             unsafe {

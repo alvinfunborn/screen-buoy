@@ -158,9 +158,11 @@ pub fn get_all_windows() -> Vec<WindowElement> {
             if is_dock {
                 use crate::element::dock_frame;
                 if included_docks.contains(&owner_pid) { continue; }
-                let Some(frame) = dock_frame(owner_pid) else { continue; };
-                if !frame.intersects(&Rect::new(x, y, width, height)) { continue; }
-                (x, y, width, height) = (frame.x, frame.y, frame.width, frame.height);
+                if let Some(frame) = dock_frame(owner_pid) {
+                    if frame.intersects(&Rect::new(x, y, width, height)) {
+                        (x, y, width, height) = (frame.x, frame.y, frame.width, frame.height);
+                    }
+                }
                 included_docks.insert(owner_pid);
             } else if is_system_desktop_surface(path, layer, &Rect::new(x, y, width, height), &displays) {
                 continue;
@@ -264,7 +266,7 @@ pub fn calculate_covered_areas() -> (HashSet<WindowElement>, IndexMap<WindowElem
     covered_areas_for_windows(&windows)
 }
 
-fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
+pub fn covered_areas_for_windows(windows: &[WindowElement]) -> (HashSet<WindowElement>, IndexMap<WindowElement, Vec<Rect>>) {
     let mut uncovered_windows = HashSet::new();
     let mut covered_areas: IndexMap<WindowElement, Vec<Rect>> = IndexMap::new();
 

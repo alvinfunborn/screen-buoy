@@ -38,6 +38,7 @@ extern "C" {
     fn CGEventTapEnable(tap: core_foundation::mach_port::CFMachPortRef, enable: bool);
     fn CGEventTapIsEnabled(tap: core_foundation::mach_port::CFMachPortRef) -> bool;
     fn CGEventGetFlags(event: CGEventRef) -> u64;
+    fn CGEventGetLocation(event: CGEventRef) -> core_graphics::geometry::CGPoint;
     fn CGEventSourceKeyState(state_id: u32, key_code: CGKeyCode) -> bool;
     fn CGEventKeyboardGetUnicodeString(
         event: CGEventRef,
@@ -167,6 +168,14 @@ unsafe extern "C" fn tap_callback(
         return event_ref;
     }
 
+    // Observe releases without intercepting the mouse or decoding ordinary typing.
+    // Both physical and injected clicks use this path, including Dock/Space changes.
+    if matches!(etype, 2 | 4 | 26) {
+        let point = unsafe { CGEventGetLocation(event_ref) };
+        crate::element::request_refresh_at(point.x as i32, point.y as i32);
+        return event_ref;
+    }
+
     // Outside Hint mode, forward input without decoding or logging typed text.
     // Tap-disable notifications above still recover the capture connection.
     if !KEYBOARD_STATE.lock().map(|state| state.in_ctrl_session).unwrap_or(false) {
@@ -271,7 +280,8 @@ pub fn init(app_handle: tauri::AppHandle) {
         .name("keyboard-tap".into())
         .spawn(|| {
             let mask =
-                (1u64 << CG_KEY_DOWN) | (1u64 << CG_KEY_UP) | (1u64 << CG_FLAGS_CHANGED);
+                (1u64 << CG_KEY_DOWN) | (1u64 << CG_KEY_UP) | (1u64 << CG_FLAGS_CHANGED)
+                | (1u64 << 2) | (1u64 << 4) | (1u64 << 26);
 
             let port_ref;
             let mut recovery_shown = false;
