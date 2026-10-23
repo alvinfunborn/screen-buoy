@@ -26,7 +26,10 @@ Typical scenarios:
 - 🛠️ Fully configurable hint styles, types, and behaviors
 - 🪟 Window occlusion detection for smarter hint ordering
 - 🏁 One-click launch, tray management, auto-start on boot
+- 🌐 17 languages with automatic system detection, saved language selection and Arabic RTL
 - 🧩 High performance: Tauri + React + Rust
+
+The app and [website](https://alvinfunborn.github.io/screen-buoy/) support the same languages. Change the app language at the top of Settings; choose **Follow system** to use your OS language. See [internationalization](docs/internationalization.md) for locale details and contributions.
 
 ## Demo
 

@@ -566,6 +566,7 @@ right = '\'
 right = "1"
 
 [system]
+language = "auto"
 start_in_tray = true
 show_tray_icon = true
 start_at_login = false

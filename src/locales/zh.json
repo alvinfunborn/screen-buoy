@@ -170,10 +170,10 @@
   },
   "settings": {
     "title": "设置",
-    "restart": "重启以应用更改",
+    "restart": "语言立即生效，其他配置修改后请重启应用",
     "language": "语言",
     "language.en": "English",
-    "language.zh": "中文",
+    "language.zh": "简体中文",
     "tab": {
       "keybinding": "快捷键",
       "mouse": "鼠标",
@@ -186,7 +186,7 @@
       "keybinding": "让操作更顺手，为定位、点击和移动设置熟悉的按键。",
       "mouse": "按修饰键组合，调整移动、滚动和拖拽的步长。",
       "hint": "调整屏幕提示的字符、网格布局与外观。",
-      "uiAutomation": "设置界面元素的扫描频率和缓存时间。",
+      "uiAutomation": "设置 Screen Buoy 扫描界面元素的频率和缓存时间。",
       "keyboard": "管理修饰键、键码，以及按键之间的左右关系。",
       "system": "管理启动方式、应用更新、托盘显示和诊断。"
     },
@@ -221,7 +221,11 @@
     "loadError": "无法加载设置",
     "retry": "重试",
     "saveError": "设置保存失败，请重新修改后再试。",
-    "removeItem": "移除 {{name}}"
+    "removeItem": "移除 {{name}}",
+    "languageAuto": "跟随系统",
+    "windowTitle": "Screen Buoy — 设置",
+    "panicError": "应用发生错误，请查看日志了解详情。",
+    "runtimeError": "发生错误：{{error}}"
   },
   "updates": {
     "title": "应用更新",

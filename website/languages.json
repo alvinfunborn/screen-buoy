@@ -1,0 +1,206 @@
+[
+  {
+    "code": "en",
+    "label": "English",
+    "htmlLang": "en",
+    "antd": "en_US",
+    "direction": "ltr",
+    "tray": [
+      "Settings",
+      "Restart",
+      "Exit"
+    ]
+  },
+  {
+    "code": "zh",
+    "label": "简体中文",
+    "htmlLang": "zh-CN",
+    "antd": "zh_CN",
+    "direction": "ltr",
+    "tray": [
+      "设置",
+      "重新启动",
+      "退出"
+    ]
+  },
+  {
+    "code": "zh-TW",
+    "label": "繁體中文",
+    "htmlLang": "zh-TW",
+    "antd": "zh_TW",
+    "direction": "ltr",
+    "tray": [
+      "設定",
+      "重新啟動",
+      "結束"
+    ]
+  },
+  {
+    "code": "ja",
+    "label": "日本語",
+    "htmlLang": "ja",
+    "antd": "ja_JP",
+    "direction": "ltr",
+    "tray": [
+      "設定",
+      "再起動",
+      "終了"
+    ]
+  },
+  {
+    "code": "ko",
+    "label": "한국어",
+    "htmlLang": "ko",
+    "antd": "ko_KR",
+    "direction": "ltr",
+    "tray": [
+      "설정",
+      "다시 시작",
+      "종료"
+    ]
+  },
+  {
+    "code": "es",
+    "label": "Español",
+    "htmlLang": "es",
+    "antd": "es_ES",
+    "direction": "ltr",
+    "tray": [
+      "Configuración",
+      "Reiniciar",
+      "Salir"
+    ]
+  },
+  {
+    "code": "fr",
+    "label": "Français",
+    "htmlLang": "fr",
+    "antd": "fr_FR",
+    "direction": "ltr",
+    "tray": [
+      "Paramètres",
+      "Redémarrer",
+      "Quitter"
+    ]
+  },
+  {
+    "code": "de",
+    "label": "Deutsch",
+    "htmlLang": "de",
+    "antd": "de_DE",
+    "direction": "ltr",
+    "tray": [
+      "Einstellungen",
+      "Neu starten",
+      "Beenden"
+    ]
+  },
+  {
+    "code": "pt",
+    "label": "Português",
+    "htmlLang": "pt",
+    "antd": "pt_BR",
+    "direction": "ltr",
+    "tray": [
+      "Configurações",
+      "Reiniciar",
+      "Sair"
+    ]
+  },
+  {
+    "code": "ru",
+    "label": "Русский",
+    "htmlLang": "ru",
+    "antd": "ru_RU",
+    "direction": "ltr",
+    "tray": [
+      "Настройки",
+      "Перезапустить",
+      "Выйти"
+    ]
+  },
+  {
+    "code": "it",
+    "label": "Italiano",
+    "htmlLang": "it",
+    "antd": "it_IT",
+    "direction": "ltr",
+    "tray": [
+      "Impostazioni",
+      "Riavvia",
+      "Esci"
+    ]
+  },
+  {
+    "code": "ar",
+    "label": "العربية",
+    "htmlLang": "ar",
+    "antd": "ar_EG",
+    "direction": "rtl",
+    "tray": [
+      "الإعدادات",
+      "إعادة التشغيل",
+      "خروج"
+    ]
+  },
+  {
+    "code": "hi",
+    "label": "हिन्दी",
+    "htmlLang": "hi",
+    "antd": "hi_IN",
+    "direction": "ltr",
+    "tray": [
+      "सेटिंग्स",
+      "पुनः प्रारंभ करें",
+      "बाहर निकलें"
+    ]
+  },
+  {
+    "code": "id",
+    "label": "Bahasa Indonesia",
+    "htmlLang": "id",
+    "antd": "id_ID",
+    "direction": "ltr",
+    "tray": [
+      "Pengaturan",
+      "Mulai ulang",
+      "Keluar"
+    ]
+  },
+  {
+    "code": "vi",
+    "label": "Tiếng Việt",
+    "htmlLang": "vi",
+    "antd": "vi_VN",
+    "direction": "ltr",
+    "tray": [
+      "Cài đặt",
+      "Khởi động lại",
+      "Thoát"
+    ]
+  },
+  {
+    "code": "th",
+    "label": "ไทย",
+    "htmlLang": "th",
+    "antd": "th_TH",
+    "direction": "ltr",
+    "tray": [
+      "การตั้งค่า",
+      "เริ่มใหม่",
+      "ออก"
+    ]
+  },
+  {
+    "code": "tr",
+    "label": "Türkçe",
+    "htmlLang": "tr",
+    "antd": "tr_TR",
+    "direction": "ltr",
+    "tray": [
+      "Ayarlar",
+      "Yeniden başlat",
+      "Çıkış"
+    ]
+  }
+]

@@ -8,7 +8,7 @@ import {
 import { invoke } from '@tauri-apps/api/core';
 import { debounce } from 'lodash';
 import { useTranslation } from 'react-i18next';
-import type { Config } from '../../types/config';
+import type { Config, LanguagePreference } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
 import { KeyboardSettings } from './sections/KeyboardSettings';
 import { MouseSettings } from './sections/MouseSettings';
@@ -16,14 +16,16 @@ import { KeybindingSettings } from './sections/KeybindingSettings';
 import { SystemSettings } from './sections/SystemSettings';
 import { UiAutomationSettings } from './sections/UiAutomationSettings';
 import { MacPermissions } from './MacPermissions';
-import i18n from '../../i18n';
+import i18n, { applyLanguage } from '../../i18n';
+import { languages } from '../../language.js';
 
 const appIconUrl = new URL('../../../src-tauri/icons/icon.png', import.meta.url).href;
 
 type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
 const Settings: React.FC = () => {
-  const { t, i18n: language } = useTranslation();
+  const { t } = useTranslation();
+  const [languagePreference, setLanguagePreference] = useState<LanguagePreference>('auto');
   const [form] = Form.useForm<Config>();
   const screens = Grid.useBreakpoint();
   const [loading, setLoading] = useState(true);
@@ -38,6 +40,8 @@ const Settings: React.FC = () => {
     try {
       const config = await invoke<Config>('get_config_for_frontend');
       setInitialConfig(config);
+      setLanguagePreference(config.system.language ?? 'auto');
+      await applyLanguage(config.system.language ?? 'auto');
       setAvailableKeys(config.keyboard?.available_key);
     } catch (err) {
       console.error('Failed to load config:', err);
@@ -97,9 +101,18 @@ const Settings: React.FC = () => {
             className="language-select"
             aria-label={t('settings.language')}
             prefix={<GlobalOutlined />}
-            value={language.resolvedLanguage}
-            onChange={lng => { void language.changeLanguage(lng); document.documentElement.lang = lng; }}
-            options={[{ value: 'en', label: 'English' }, { value: 'zh', label: '中文' }]}
+            value={languagePreference}
+            disabled={loading || !initialConfig}
+            onChange={(lng: LanguagePreference) => {
+              setLanguagePreference(lng);
+              void applyLanguage(lng);
+              form.setFieldValue(['system', 'language'], lng);
+              handleValuesChange({}, form.getFieldsValue(true));
+              debouncedSave.flush();
+            }}
+            showSearch
+            optionFilterProp="label"
+            options={[{ value: 'auto', label: t('settings.languageAuto') }, ...languages.map(({ code, label }) => ({ value: code, label }))]}
           />
         </div>
       </header>
@@ -111,7 +124,7 @@ const Settings: React.FC = () => {
           <Tabs
             className="settings-tabs"
             defaultActiveKey="keybinding"
-            tabPosition={screens.md ? 'left' : 'top'}
+            tabPosition={screens.md ? (i18n.dir() === 'rtl' ? 'right' : 'left') : 'top'}
             items={pages.map(page => ({
               key: page.key,
               label: <span className="settings-nav-label">{page.icon}<span>{t(`settings.tab.${page.key}`)}</span></span>,

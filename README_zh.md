@@ -7,6 +7,8 @@
 
 ---
 
+App 和[官网](https://alvinfunborn.github.io/screen-buoy/)现支持 17 种语言。App 默认跟随系统，可在设置页顶部手动选择并自动保存；阿拉伯语采用从右到左布局。详见[国际化说明](docs/internationalization.md)。
+
 ## 需求背景
 
 典型场景：

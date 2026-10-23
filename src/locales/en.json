@@ -170,10 +170,10 @@
   },
   "settings": {
     "title": "Settings",
-    "restart": "Restart to apply changes",
+    "restart": "Language applies immediately. Restart to apply other changes.",
     "language": "Language",
     "language.en": "English",
-    "language.zh": "中文",
+    "language.zh": "简体中文",
     "tab": {
       "keybinding": "Keybinding",
       "mouse": "Mouse",
@@ -221,7 +221,11 @@
     "loadError": "Could not load your settings",
     "retry": "Try again",
     "saveError": "Could not save settings. Please try your change again.",
-    "removeItem": "Remove {{name}}"
+    "removeItem": "Remove {{name}}",
+    "languageAuto": "Follow system",
+    "windowTitle": "Screen Buoy — Settings",
+    "panicError": "The app encountered an error. Check the logs for details.",
+    "runtimeError": "Error: {{error}}"
   },
   "updates": {
     "title": "App updates",

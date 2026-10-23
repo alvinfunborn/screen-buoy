@@ -23,7 +23,7 @@ body { background: var(--canvas); color: var(--ink); }
 .settings-brand strong { display: block; font-size: 16px; line-height: 24px; letter-spacing: -.35px; }
 .settings-brand div > span { font-size: 12px; color: var(--muted); }
 .settings-header-actions { gap: 24px; }
-.language-select { width: 120px; }
+.language-select { width: 168px; }
 .save-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
 .save-status-saved { color: #247f64; }
 .save-status-error { color: #b84040; }
@@ -31,17 +31,17 @@ body { background: var(--canvas); color: var(--ink); }
 .settings-tabs > .ant-tabs-nav {
   width: 192px; padding: 28px 16px; background: #f3f1f7; border-right: 1px solid var(--line);
 }
-.settings-tabs.ant-tabs-left > .ant-tabs-nav .ant-tabs-tab {
+.settings-tabs:is(.ant-tabs-left, .ant-tabs-right) > .ant-tabs-nav .ant-tabs-tab {
   margin: 4px 0 !important; padding: 12px 14px; border-radius: 8px; text-align: left;
 }
 .settings-tabs .ant-tabs-nav::before, .settings-tabs .ant-tabs-ink-bar { display: none; }
 .settings-tabs .ant-tabs-tab-active { background: #ebe4f8; }
 .settings-tabs .ant-tabs-tab-btn { width: 100%; color: #706b7c; }
 .settings-tabs .ant-tabs-tab-active .ant-tabs-tab-btn { color: var(--accent); text-shadow: none; font-weight: 600; }
-.settings-nav-label { display: flex; align-items: center; gap: 11px; white-space: nowrap; }
+.settings-nav-label { display: flex; align-items: center; gap: 11px; white-space: normal; }
 .settings-nav-label > .anticon { font-size: 17px; }
-.settings-tabs.ant-tabs-left > .ant-tabs-content-holder { border-left: 0; min-width: 0; }
-.settings-tabs.ant-tabs-left > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane { padding: 0; }
+.settings-tabs:is(.ant-tabs-left, .ant-tabs-right) > .ant-tabs-content-holder { border-inline-start: 0; min-width: 0; }
+.settings-tabs:is(.ant-tabs-left, .ant-tabs-right) > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane { padding: 0; }
 .settings-page { padding: 30px 32px 36px; max-width: 1020px; margin: 0 auto; }
 .settings-page-heading { margin-bottom: 26px; }
 .settings-page-heading h1 { margin: 0 0 7px; font-size: 25px; line-height: 1.35; font-weight: 650; letter-spacing: -.6px; }
@@ -143,7 +143,7 @@ body { background: var(--canvas); color: var(--ink); }
   .save-status > span:last-child { display: none; }
   .settings-brand { gap: 10px; }
   .brand-mark { width: 34px; height: 34px; }
-  .language-select { width: 105px; }
+  .language-select { width: 150px; }
   .settings-page { padding: 20px 12px; }
   .setting-section-heading { padding: 16px; }
   .setting-section-body { padding: 4px 16px 16px; }
@@ -167,3 +167,22 @@ body { background: var(--canvas); color: var(--ink); }
 .permissions-summary { display: inline-flex; align-items: center; gap: 7px; color: #247f64; font-weight: 500; }
 .permission-details { display: flex; flex-wrap: wrap; gap: 4px 18px; color: var(--muted); }
 .settings-permissions .ant-alert-description { font-size: 12px; }
+
+/* Ant Design mirrors controls; these rules mirror our surrounding layout. */
+.settings-tabs .ant-tabs-tab,.setting-row .ant-form-item-label { text-align: start; }
+:dir(rtl) .settings-tabs > .ant-tabs-nav { border-right: 0; border-left: 1px solid var(--line); }
+:dir(rtl) .settings-brand strong { direction: ltr; unicode-bidi: isolate; }
+@media (max-width: 767px) {
+  :dir(rtl) .settings-tabs > .ant-tabs-nav { border-left: 0; }
+}
+.code-input,.code-field textarea,.charset-row input,.hint-type-name,.hotkey-field input,.key-map-row input {
+  direction: ltr; unicode-bidi: isolate; text-align: left;
+}
+.shortcut-row .ant-select-selection-item-content { direction: ltr; unicode-bidi: isolate; }
+
+.settings-nav-label > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 767px) {
+  .settings-nav-label { white-space: nowrap; }
+  .settings-nav-label > span:last-child { overflow-wrap: normal; }
+}

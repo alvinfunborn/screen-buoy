@@ -9,6 +9,7 @@ pub mod utils;
 pub mod window;
 pub mod permissions;
 pub mod updates;
+pub mod language;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
 #[cfg(target_os = "macos")]
@@ -27,7 +28,7 @@ use log::{error, info, warn};
 use std::{panic, str::FromStr};
 use tauri::{
     image::Image,
-    menu::{MenuBuilder, MenuItemBuilder},
+    menu::{MenuBuilder, MenuItem, MenuItemBuilder},
     tray::{TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, WindowEvent,
 };
@@ -42,6 +43,18 @@ use windows::Win32::UI::WindowsAndMessaging::{
     GetWindowLongW, SetWindowLongW, GWL_EXSTYLE, WS_EX_LAYERED, WS_EX_TRANSPARENT,
 };
 
+struct TrayMenuLabels([MenuItem<tauri::Wry>; 3]);
+
+pub fn update_tray_language(app: &AppHandle, preference: &language::LanguagePreference) {
+    if let Some(menu) = app.try_state::<TrayMenuLabels>() {
+        for (item, label) in menu.0.iter().zip(language::tray_labels(preference)) {
+            if let Err(error) = item.set_text(label) {
+                warn!("[language] failed to update tray label: {error}");
+            }
+        }
+    }
+}
+
 pub fn setup_tray(
     app_handle: &AppHandle,
     config: &config::Config,
@@ -51,9 +64,10 @@ pub fn setup_tray(
         return Ok(());
     }
 
-    let exit_item = MenuItemBuilder::with_id("exit", "Exit").build(app_handle)?;
-    let restart_item = MenuItemBuilder::with_id("restart", "Restart").build(app_handle)?;
-    let settings_item = MenuItemBuilder::with_id("settings", "Settings").build(app_handle)?;
+    let [settings, restart, exit] = language::tray_labels(&config.system.language);
+    let exit_item = MenuItemBuilder::with_id("exit", exit).build(app_handle)?;
+    let restart_item = MenuItemBuilder::with_id("restart", restart).build(app_handle)?;
+    let settings_item = MenuItemBuilder::with_id("settings", settings).build(app_handle)?;
 
     let tray_menu = MenuBuilder::new(app_handle)
         .item(&settings_item)
@@ -100,6 +114,7 @@ pub fn setup_tray(
         .icon_as_template(true)
         .show_menu_on_left_click(true)
         .build(app_handle)?;
+    app_handle.manage(TrayMenuLabels([settings_item, restart_item, exit_item]));
     Ok(())
 }
 
@@ -207,6 +222,7 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             get_hint_types_styles,
             get_config_for_frontend,
             save_config_for_frontend,
+            language::get_system_languages,
             updates::get_release_status,
             updates::open_releases_page,
             permissions::get_permission_status,

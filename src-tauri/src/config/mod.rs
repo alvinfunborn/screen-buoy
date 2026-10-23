@@ -8,7 +8,7 @@ pub mod ui_automation;
 pub use hint::{get_hint_types_styles, HintConfig};
 pub use keybinding::KeybindingConfig;
 pub use keyboard::KeyboardConfig;
-use log::{debug, error, info};
+use log::{debug, info};
 pub use mouse::MouseConfig;
 pub use system::SystemConfig;
 pub use ui_automation::UiAutomationConfig;
@@ -244,64 +244,20 @@ pub fn get_config_for_frontend() -> Config {
 
 // 为前端提供的配置保存命令
 #[tauri::command]
-pub fn save_config_for_frontend(config: Config) {
-    let mut config = config;
+pub fn save_config_for_frontend(app: tauri::AppHandle, config: Config) -> Result<(), String> {
     debug!("[save_config_for_frontend] save config: {:?}", config);
-
-    // 更新内存中的配置
-    {
-        let mut config_guard = CONFIG.lock().unwrap();
-        *config_guard = Some(config.clone());
+    let config_path = get_config_path().ok_or("Cannot locate configuration file")?;
+    // A failed write must not report success or replace the in-memory preference.
+    let serialized = toml::to_string_pretty(&config).map_err(|error| error.to_string())?;
+    let language_changed = {
+        let mut current = CONFIG.lock().map_err(|error| error.to_string())?;
+        fs::write(&config_path, serialized).map_err(|error| error.to_string())?;
+        let changed = current.as_ref().map(|old| &old.system.language) != Some(&config.system.language);
+        *current = Some(config.clone());
+        changed
+    };
+    if language_changed {
+        crate::update_tray_language(&app, &config.system.language);
     }
-
-    // 重排序 keyboard.available_key
-    let mut available_keys_vec = config
-        .keyboard
-        .available_key
-        .into_iter()
-        .collect::<Vec<_>>();
-    available_keys_vec.sort_by_key(|k| k.1);
-    config.keyboard.available_key = available_keys_vec.into_iter().collect();
-
-    // 获取当前配置文件路径，如果不存在则使用默认路径
-    let config_path = get_config_path().unwrap_or_else(|| {
-        if cfg!(debug_assertions) {
-            "src-tauri/config.toml".to_string()
-        } else {
-            // Try to place config next to the executable
-            std::env::current_exe()
-                .ok()
-                .and_then(|p| p.parent().map(|d| d.join("config.toml").to_string_lossy().to_string()))
-                .unwrap_or_else(|| "config.toml".to_string())
-        }
-    });
-
-    // 确保目标目录存在
-    if let Some(parent) = Path::new(&config_path).parent() {
-        if !parent.exists() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                error!(
-                    "[save_config_for_frontend] Failed to create config directory: {}",
-                    e
-                );
-            }
-        }
-    }
-
-    match toml::to_string_pretty(&config) {
-        Ok(config_str) => {
-            if let Err(e) = fs::write(&config_path, config_str) {
-                error!(
-                    "[save_config_for_frontend] Failed to write config file: {}",
-                    e
-                );
-            }
-        }
-        Err(e) => {
-            error!(
-                "[save_config_for_frontend] Failed to serialize config: {}",
-                e
-            );
-        }
-    }
+    Ok(())
 }

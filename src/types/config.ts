@@ -84,7 +84,10 @@ export interface KeybindingConfig {
   hotkey_buoy: string;
 }
 
+export type LanguagePreference = 'auto' | 'en' | 'zh' | 'zh-TW' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'pt' | 'ru' | 'it' | 'ar' | 'hi' | 'id' | 'vi' | 'th' | 'tr';
+
 export interface SystemConfig {
+  language: LanguagePreference;
   start_in_tray: boolean;
   show_tray_icon: boolean;
   start_at_login: boolean;
