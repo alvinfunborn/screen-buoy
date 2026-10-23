@@ -1,4 +1,5 @@
 {
+  "footer.support": "開発を支援 ↗",
   "page.title": "Screen Buoy — キーボードで画面全体を操作する",
   "page.description": "Screen Buoy は macOS と Windows 向けのオープンソースのキーボード操作ツールです。文字のヒントを使い、複数のディスプレイでクリック、スクロール、ドラッグできます。",
   "page.ogTitle": "Screen Buoy — キーボードを離さずに画面を操作しましょう",
