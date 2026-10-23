@@ -1,5 +1,7 @@
 # Screen Buoy
 
+[Website](https://alvinfunborn.github.io/screen-buoy/) · [Download](https://github.com/alvinfunborn/screen-buoy/releases/latest)
+
 [English](./README.md) | [中文](./README_zh.md)
 
 > A cross-platform (Windows / macOS), fully interactive screen hint navigation and automation tool.
