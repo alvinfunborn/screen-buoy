@@ -1,6 +1,6 @@
 # Screen Buoy
 
-[官网](https://alvinfunborn.github.io/screen-buoy/) · [下载最新版](https://github.com/alvinfunborn/screen-buoy/releases/latest) · [通过 Ko-fi 支持开发](https://ko-fi.com/alvinfunborn)
+[官网](https://alvinfunborn.github.io/screen-buoy/) · [作者与更多项目](https://alvinfunborn.github.io/) · [下载最新版](https://github.com/alvinfunborn/screen-buoy/releases/latest) · [通过 Ko-fi 支持开发](https://ko-fi.com/alvinfunborn)
 
 > 跨平台（Windows / macOS）、全局可交互的屏幕Hint导航与自动化工具
 > 灵感源自Fluent Search与mousemaster，支持多屏与复杂交互
