@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "Lama hasil pemindaian yang selesai dapat digunakan kembali di latar belakang. Disarankan: 60000 ms. Penyegaran setelah interaksi dan pembaruan petunjuk langsung tidak terikat batas ini."
   },
   "settings": {
+    "restartRequired": "Pengaturan disimpan. Mulai ulang untuk menerapkan perubahan.",
     "title": "Pengaturan",
     "restart": "Bahasa ini langsung diterapkan. Mulai ulang untuk menerapkan perubahan lain.",
     "language": "Bahasa",

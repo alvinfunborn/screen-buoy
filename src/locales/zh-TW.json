@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "後臺複用完整掃描結果的時間，建議 60000 毫秒。操作觸發的重新整理和 hint 顯示期間的持續更新不受此限制。"
   },
   "settings": {
+    "restartRequired": "設定已儲存，重新啟動後生效",
     "title": "設定",
     "restart": "語言立即生效，其他配置修改後請重啟應用",
     "language": "語言",

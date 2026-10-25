@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "Tiempo durante el que se reutilizan los escaneos completados en segundo plano. Recomendado: 60000 ms. Las actualizaciones tras una interacción y las pistas en tiempo real no están sujetas a este límite."
   },
   "settings": {
+    "restartRequired": "Ajustes guardados. Reinicia para aplicar los cambios.",
     "title": "Configuración",
     "restart": "El idioma se aplica inmediatamente. Reiniciar para aplicar otros cambios.",
     "language": "Idioma",

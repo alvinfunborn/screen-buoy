@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "Dauer, für die abgeschlossene Scans im Hintergrund wiederverwendet werden. Empfohlen: 60000 ms. Aktualisierungen nach Interaktionen und Live-Hinweise umgehen diese Grenze."
   },
   "settings": {
+    "restartRequired": "Einstellungen gespeichert. Zum Anwenden neu starten.",
     "title": "Einstellungen",
     "restart": "Die Sprache wird sofort angewendet. Zum Anwenden weiterer Änderungen ist ein Neustart erforderlich.",
     "language": "Sprache",

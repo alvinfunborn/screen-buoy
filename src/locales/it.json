@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "Durata del riutilizzo in background delle scansioni completate. Valore consigliato: 60000 ms. Gli aggiornamenti dopo le interazioni e i suggerimenti in tempo reale ignorano questo limite."
   },
   "settings": {
+    "restartRequired": "Impostazioni salvate. Riavvia per applicare le modifiche.",
     "title": "Impostazioni",
     "restart": "La lingua si applica immediatamente. Riavvia per applicare altre modifiche.",
     "language": "Lingua",

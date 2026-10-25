@@ -27,6 +27,7 @@ body { background: var(--canvas); color: var(--ink); }
 .save-status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
 .save-status-saved { color: #247f64; }
 .save-status-error { color: #b84040; }
+.settings-restart-alert { margin: 16px 32px; }
 .settings-tabs { min-height: calc(100vh - 154px); }
 .settings-tabs > .ant-tabs-nav {
   width: 192px; padding: 28px 16px; background: #f3f1f7; border-right: 1px solid var(--line);

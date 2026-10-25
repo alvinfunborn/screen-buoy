@@ -169,6 +169,7 @@
     "cacheTtlTooltip": "后台复用完整扫描结果的时间，建议 60000 毫秒。操作触发的刷新和 hint 显示期间的持续更新不受此限制。"
   },
   "settings": {
+    "restartRequired": "设置已保存，重启后生效",
     "title": "设置",
     "restart": "语言立即生效，其他配置修改后请重启应用",
     "language": "语言",
