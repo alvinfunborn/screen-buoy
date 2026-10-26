@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Paramètres d'encodage",
-    "charsetsTooltip": "Caractères utilisés pour les indications. Le premier caractère de chaque indication provient de la première ligne de caractères, le second de la deuxième ligne, et ainsi de suite.",
+    "charsetsTooltip": "Chaque ligne correspond à une position du repère : la première fournit le premier caractère, la deuxième le suivant. Placez en tête les caractères familiers et faciles à saisir. Leurs combinaisons sont utilisées en premier, puis les caractères suivants sont introduits progressivement, en alternant les initiales dans chaque groupe.",
     "charsetExtra": "Caractères supplémentaires des repères",
-    "charsetExtraTooltip": "Lorsque le nombre de suggestions dépasse le nombre de caractères disponibles, les caractères supplémentaires seront utilisés. Ces caractères supplémentaires seront ajoutés comme le premier caractère de la suggestion, et les caractères suivants circuleront à travers les principaux ensembles de caractères.",
+    "charsetExtraTooltip": "Un préfixe est ajouté seulement après épuisement de toutes les combinaisons principales. Placez en tête les préfixes familiers et faciles à saisir. Les préfixes et les caractères suivants sont introduits progressivement dans l’ordre configuré, en alternant les préfixes dans chaque groupe.",
+    "charsetPrefixConflict": "Les préfixes supplémentaires ne peuvent pas figurer dans le jeu de caractères de la première position. Caractères en conflit : {{characters}}.",
+    "charsetSideKeyWarning": "En fin de repère, {{characters}} peut rendre les actions des touches voisines indisponibles ou difficiles à utiliser. Vous pouvez enregistrer et ignorer cet avertissement si vous n’utilisez pas ces actions.",
     "grid": "Suggestion : Grille",
     "rows": "Lignes",
     "rowsTooltip": "Nombre de lignes pour diviser l'écran et afficher des indications à des positions fixes.",
@@ -202,7 +204,7 @@
       "application": "Application",
       "detection": "Analyse et cache",
       "detectionDescription": "Temps en millisecondes entre les scans des éléments et avant que les résultats en cache expirent.",
-      "characterRows": "Ensembles de caractères, dans l'ordre",
+      "characterRows": "Jeux de caractères par position",
       "gridDescription": "Placez des indices à des positions fixes à l'écran.",
       "typesDescription": "Personnalisez l'apparence et l'attribution des éléments pour chaque type d'indication."
     },

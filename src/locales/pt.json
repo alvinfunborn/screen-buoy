@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Sugestão: Conjuntos de Caracteres",
-    "charsetsTooltip": "Caracteres usados para dicas. O primeiro caractere de cada dica vem da primeira linha de charset, o segundo da segunda linha, e assim por diante.",
+    "charsetsTooltip": "Cada linha corresponde a uma posição da dica: a primeira fornece o primeiro caractere, a segunda o seguinte. Coloque primeiro os caracteres familiares e fáceis de pressionar. Suas combinações são usadas primeiro; os caracteres posteriores são introduzidos gradualmente, alternando as iniciais dentro de cada grupo.",
     "charsetExtra": "Hint: Conjunto de Caracteres",
-    "charsetExtraTooltip": "Quando o número de dicas excede o número de caracteres disponíveis, os caracteres extras serão utilizados. Os caracteres extras são adicionados como o primeiro caractere da dica, e os caracteres subsequentes percorrem os conjuntos de caracteres principais.",
+    "charsetExtraTooltip": "Um prefixo só é adicionado depois de esgotar todas as combinações principais. Coloque primeiro os prefixos familiares e fáceis de pressionar. Prefixos e caracteres seguintes são introduzidos gradualmente na ordem configurada, alternando os prefixos dentro de cada grupo.",
+    "charsetPrefixConflict": "Os prefixos extras não podem coincidir com o conjunto de caracteres da primeira posição. Caracteres em conflito: {{characters}}.",
+    "charsetSideKeyWarning": "Como último caractere de uma dica, {{characters}} pode tornar as ações das teclas adjacentes indisponíveis ou difíceis de usar. Você ainda pode salvar e ignorar este aviso se não usar essas ações.",
     "grid": "Sugestão: Grade",
     "rows": "Linhas",
     "rowsTooltip": "Número de linhas para dividir a tela e exibir dicas em posições fixas.",
@@ -202,7 +204,7 @@
       "application": "Aplicação",
       "detection": "Varredura & cache",
       "detectionDescription": "Tempo em milissegundos entre as leituras dos elementos e antes da expiração dos resultados em cache.",
-      "characterRows": "Conjuntos de caracteres, em ordem",
+      "characterRows": "Conjuntos de caracteres por posição",
       "gridDescription": "Marque dicas em posições fixas na tela.",
       "typesDescription": "Personalize a aparência e a atribuição de elementos para cada tipo de dica."
     },

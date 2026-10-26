@@ -34,37 +34,9 @@ pub fn has_capacity(count: i32) -> bool {
 pub fn init_hint_text_list_storage() {
     let configs = config::get_config().unwrap();
     let hint_config = &configs.hint;
-    let mut list = Vec::new();
-    generate_n_digit_hints(&hint_config.charsets, String::new(), 0, &mut list);
-    // 如果有额外字符集，生成n+1位hints
-    if *config::hint::HAS_EXTRA_CHARSET {
-        for &extra_char in hint_config.charset_extra.iter() {
-            let mut prefix = String::new();
-            prefix.push(extra_char);
-            generate_n_digit_hints(&hint_config.charsets, prefix, 0, &mut list);
-        }
-    }
+    let list = super::codes::generate(&hint_config.charsets, &hint_config.charset_extra);
     info!("[init_hint_text_list_storage] init hint text list storage: {}", list.len());
     *HINT_TEXT_LIST_STORAGE.lock().unwrap() = list;
-}
-
-// 生成n位hints
-fn generate_n_digit_hints(
-    charsets: &[Vec<char>],
-    current: String,
-    depth: usize,
-    result: &mut Vec<String>,
-) {
-    if depth == charsets.len() {
-        result.push(current);
-        return;
-    }
-
-    for &c in charsets[depth].iter() {
-        let mut new_current = current.clone();
-        new_current.push(c);
-        generate_n_digit_hints(charsets, new_current, depth + 1, result);
-    }
 }
 
 // Geometry is shared by every candidate batch until the window layout changes.
@@ -122,8 +94,7 @@ impl HintsGenerator {
     pub async fn prepare_visibility(
         mut self,
         app: &tauri::AppHandle,
-        activation: u64,
-    ) -> Option<Self> {
+    ) -> Self {
         let windows = self.layout.uncovered_windows.iter().map(|window| (window, &[][..]))
             .chain(self.layout.windows_covered_areas.iter().map(|(window, areas)| (window, areas.as_slice())));
         for (window, areas) in windows {
@@ -137,16 +108,38 @@ impl HintsGenerator {
                 }
             }
         }
-        if self.visibility.prepare(app, activation).await {
-            Some(self)
-        } else {
-            None
-        }
+        self.visibility.prepare(app).await;
+        self
     }
 
     #[cfg(target_os = "macos")]
-    pub fn log_performance(&self, activation: u64, hints: i32, grid: i32, total: std::time::Duration) {
-        self.visibility.log_performance(activation, hints, grid, total);
+    pub fn log_performance(&self, epoch: u64, visible: usize, total: std::time::Duration) {
+        self.visibility.log_performance(epoch, visible, total);
+    }
+
+    fn point_visible(&self, window: &WindowElement, element: &UIElement, areas: &[Rect]) -> bool {
+        if !self.layout.contains_point(element.x, element.y) {
+            return false;
+        }
+        let covered = areas.iter().any(|area| area.contains_point(element.x, element.y));
+        #[cfg(target_os = "macos")]
+        return self.visibility.visible(window.window_handle, (element.x, element.y), covered);
+        #[cfg(target_os = "windows")]
+        return !covered;
+    }
+
+    // Filtering is independent of assigned hint codes. Recheck already displayed
+    // points too, so a newly hidden point is absent from the next activation.
+    pub(super) fn visible_elements(&self, window: &WindowElement) -> Vec<UIElement> {
+        let areas = if self.layout.uncovered_windows.contains(window) {
+            &[][..]
+        } else if let Some(areas) = self.layout.windows_covered_areas.get(window) {
+            areas.as_slice()
+        } else {
+            return Vec::new();
+        };
+        self.ui_elements.get(window).into_iter().flat_map(|elements| elements.iter())
+            .filter(|element| self.point_visible(window, element, areas)).cloned().collect()
     }
 
     pub fn generate_hints_grid(
@@ -187,56 +180,10 @@ impl HintsGenerator {
         monitor_hints
     }
 
-    pub fn generate_hints_batch1(
-        &self,
-        position_set: &mut HashSet<(i32, i32)>,
-        hints_count: &mut i32,
-    ) -> HashMap<String, Vec<Hint>> {
-        let mut monitor_hints = HashMap::new();
-
-        for window_element in self.layout.uncovered_windows.iter() {
-            if let Some(elements) = self.ui_elements.get(window_element) {
-                self.do_generate_hints(
-                    &mut monitor_hints,
-                    window_element,
-                    elements,
-                    &Vec::new(),
-                    position_set,
-                    hints_count,
-                    false,
-                );
-            }
-        }
-        debug!("[generate_hints_batch1] generate hints for {} windows", monitor_hints.len());
-        monitor_hints
-    }
-
-    pub fn generate_hints_batch2(
-        &self,
-        position_set: &mut HashSet<(i32, i32)>,
-        hints_count: &mut i32,
-    ) -> HashMap<String, Vec<Hint>> {
-        let mut monitor_hints = HashMap::new();
-        for (window_element, areas) in &self.layout.windows_covered_areas {
-            if let Some(elements) = self.ui_elements.get(window_element) {
-                self.do_generate_hints(
-                    &mut monitor_hints,
-                    window_element,
-                    elements,
-                    areas,
-                    position_set,
-                    hints_count,
-                    false,
-                );
-            }
-        }
-        debug!("[generate_hints_batch2] generate hints for {} windows", monitor_hints.len());
-        monitor_hints
-    }
-
-    // Call only with the intersection of recent verified coordinates and the
-    // current source snapshots, after checking the complete window layout.
-    pub(super) fn generate_verified_hints(
+    // Replay previously filtered coordinates immediately, even if visibility is stale.
+    // The empty activation layout needs only current display bounds; no window
+    // intersections or native visibility checks are needed on this path.
+    pub(super) fn generate_cached_hints(
         &self,
         windows: &[WindowElement],
         position_set: &mut HashSet<(i32, i32)>,
@@ -245,7 +192,7 @@ impl HintsGenerator {
         let mut hints = HashMap::new();
         for window in windows {
             if let Some(elements) = self.ui_elements.get(window) {
-                self.do_generate_hints(&mut hints, window, elements, &[], position_set, hints_count, true);
+                self.do_generate_hints(&mut hints, window, elements, position_set, hints_count);
             }
         }
         hints
@@ -256,10 +203,8 @@ impl HintsGenerator {
         monitor_hints: &mut HashMap<String, Vec<Hint>>,
         window_element: &WindowElement,
         ui_elements: &Vec<UIElement>,
-        covered_areas: &[Rect],
         position_set: &mut HashSet<(i32, i32)>,
         hints_count: &mut i32,
-        verified: bool,
     ) {
         for hint in ui_elements {
             for (index, (monitor, bounds)) in self.layout.monitors.iter()
@@ -268,71 +213,47 @@ impl HintsGenerator {
                     continue;
                 }
 
-                let mut is_covered = false;
-                for area in covered_areas {
-                    if area.contains_point(hint.x, hint.y) {
-                        is_covered = true;
-                        #[cfg(target_os = "windows")]
-                        debug!(
-                            "[generator] skip window:{}, hint:{}:({},{}) was covered by {:?}",
-                            window_element.title, hint.text, hint.x, hint.y, area
-                        );
-                        break;
-                    }
+                if !position_set.insert((hint.x, hint.y)) {
+                    break;
+                }
+                if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
+                    debug!("[generator] skip hint:{}:({},{}) due to hint text is out of use",
+                        hint.text, hint.x, hint.y);
+                    return;
                 }
 
+                let mut hint = hint.clone();
                 #[cfg(target_os = "macos")]
-                let is_covered = !self.visibility.visible(
-                    window_element.window_handle,
-                    (hint.x, hint.y),
-                    is_covered,
-                );
-
-                if verified || !is_covered {
-                    // A rejected transparent host / hidden element must not claim
-                    // the coordinate before its visible owner is considered.
-                    if !position_set.insert((hint.x, hint.y)) {
-                        break;
-                    }
-                    if *hints_count >= HINT_TEXT_LIST_STORAGE.lock().unwrap().len() as i32 {
-                        debug!("[generator] skip hint:{}:({},{}) due to hint text is out of use",
-                            hint.text, hint.x, hint.y);
-                        return;
-                    }
-
-                    let mut hint = hint.clone();
-                    #[cfg(target_os = "macos")]
-                    {
-                        hint.x -= bounds.x;
-                        hint.y -= bounds.y;
-                    }
-                    #[cfg(target_os = "windows")]
-                    {
-                        hint.x -= monitor.x;
-                        hint.y -= monitor.y;
-                        hint.x = (hint.x as f64 / monitor.scale_factor) as i32;
-                        hint.y = (hint.y as f64 / monitor.scale_factor) as i32;
-                    }
-                    let hint_letter =
-                        HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
-                    let hint_type = hint.element_type;
-                    debug!("[generator] add window:{}, NO.{}hint:{},type:{},ctrl_type:{},pos:({},{}):{} to monitor:{}",
-                        window_element.title, *hints_count, hint_letter, hint_type, hint.control_type, hint.x, hint.y, hint.text, monitor.id);
-                    let hint = Hint {
-                        text: hint_letter,
-                        x: hint.x,
-                        y: hint.y,
-                        z: hint.z,
-                        scale: monitor.scale_factor,
-                        hint_type,
-                    };
-                    let window_label = format!("{}{}", OVERLAY_WINDOW_PREFIX, index);
-                    monitor_hints
-                        .entry(window_label.clone())
-                        .or_default()
-                        .push(hint);
-                    *hints_count += 1;
+                {
+                    hint.x -= bounds.x;
+                    hint.y -= bounds.y;
                 }
+                #[cfg(target_os = "windows")]
+                {
+                    hint.x -= monitor.x;
+                    hint.y -= monitor.y;
+                    hint.x = (hint.x as f64 / monitor.scale_factor) as i32;
+                    hint.y = (hint.y as f64 / monitor.scale_factor) as i32;
+                }
+                let hint_letter =
+                    HINT_TEXT_LIST_STORAGE.lock().unwrap()[*hints_count as usize].clone();
+                let hint_type = hint.element_type;
+                debug!("[generator] add window:{}, NO.{}hint:{},type:{},ctrl_type:{},pos:({},{}):{} to monitor:{}",
+                    window_element.title, *hints_count, hint_letter, hint_type, hint.control_type, hint.x, hint.y, hint.text, monitor.id);
+                let hint = Hint {
+                    text: hint_letter,
+                    x: hint.x,
+                    y: hint.y,
+                    z: hint.z,
+                    scale: monitor.scale_factor,
+                    hint_type,
+                };
+                let window_label = format!("{}{}", OVERLAY_WINDOW_PREFIX, index);
+                monitor_hints
+                    .entry(window_label.clone())
+                    .or_default()
+                    .push(hint);
+                *hints_count += 1;
                 break;
             }
         }
@@ -342,6 +263,8 @@ impl HintsGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    static CODE_TEST_LOCK: Mutex<()> = Mutex::new(());
 
     #[test]
     fn prefilter_matches_render_bounds_for_negative_and_mixed_scale_displays() {
@@ -364,6 +287,7 @@ mod tests {
 
     #[test]
     fn append_preserves_allocations_and_deduplicates_coordinates_across_scans() {
+        let _guard = CODE_TEST_LOCK.lock().unwrap();
         *HINT_TEXT_LIST_STORAGE.lock().unwrap() = vec!["AA".into(), "AS".into(), "AD".into()];
         let window = WindowElement {
             window_handle: 1, owner_pid: 1, x: 0, y: 0, width: 800, height: 600,
@@ -382,17 +306,57 @@ mod tests {
         let mut assigned = HashSet::new();
         let mut count = 0;
         generator.ui_elements.insert(window.clone(), Arc::new(vec![element(100), element(200)]));
-        let first = generator.generate_hints_batch1(&mut assigned, &mut count);
+        let first = generator.generate_cached_hints(std::slice::from_ref(&window), &mut assigned, &mut count);
         let first = first.values().next().unwrap();
         assert_eq!((&first[0].text, first[0].x), (&"AA".to_owned(), 100));
         assert_eq!((&first[1].text, first[1].x), (&"AS".to_owned(), 200));
         // The first point disappeared, another moved, and the second is duplicated.
-        generator.ui_elements.insert(window, Arc::new(vec![element(200), element(300), element(400)]));
-        let appended = generator.generate_hints_batch1(&mut assigned, &mut count);
+        generator.ui_elements.insert(window.clone(), Arc::new(vec![element(200), element(300), element(400)]));
+        let appended = generator.generate_cached_hints(std::slice::from_ref(&window), &mut assigned, &mut count);
         let appended = appended.values().next().unwrap();
         assert_eq!(appended.len(), 1); // Capacity exhaustion never recycles AA/AS.
         assert_eq!((&appended[0].text, appended[0].x), (&"AD".to_owned(), 300));
         assert_eq!(first[0].x, 100);
+        assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn previously_filtered_points_replay_without_rechecking_then_new_points_append() {
+        let _guard = CODE_TEST_LOCK.lock().unwrap();
+        *HINT_TEXT_LIST_STORAGE.lock().unwrap() = vec!["AA".into(), "AS".into(), "AD".into()];
+        let front = WindowElement {
+            window_handle: 1, owner_pid: 1, x: 0, y: 0, width: 800, height: 600,
+            title: String::new(), class_name: String::new(), z_index: 0,
+            visible: true, is_task_bar: false,
+        };
+        let behind = WindowElement { window_handle: 2, owner_pid: 2, ..front.clone() };
+        let windows = vec![front.clone(), behind.clone()];
+        let layout = Arc::new(HintLayout::with_monitors(&windows, vec![
+            MonitorInfo { id: 0, x: 0, y: 0, width: 800, height: 600, scale_factor: 1.0 },
+        ]));
+        let element = |x| UIElement { text: String::new(), x, y: 100, z: 1, width: 10,
+            height: 10, window_handle: 2, control_type: 0, element_type: 0 };
+        let mut generator = HintsGenerator::new(layout, HashMap::from([
+            (behind, Arc::new(vec![element(-100), element(100), element(100), element(200)])),
+        ]));
+        let mut assigned = HashSet::new();
+        let mut count = 0;
+        // Both points were visible earlier but are now behind the front window.
+        // A new background check rejects them; replay of the old cache is allowed.
+        assert!(generator.visible_elements(&windows[1]).is_empty());
+        let initial = generator.generate_cached_hints(&windows, &mut assigned, &mut count);
+        let initial = initial.values().next().unwrap();
+        assert_eq!(initial.iter().map(|h| (h.text.as_str(), h.x)).collect::<Vec<_>>(),
+            vec![("AA", 100), ("AS", 200)]);
+        assert_eq!(assigned, HashSet::from([(100, 100), (200, 100)]));
+
+        // A fresh foreground scan adds one point, retaining both cached codes.
+        generator.ui_elements = HashMap::from([(front, Arc::new(vec![element(200), element(300)]))]);
+        let appended = generator.generate_cached_hints(&windows, &mut assigned, &mut count);
+        let appended = appended.values().next().unwrap();
+        assert_eq!(appended.len(), 1);
+        assert_eq!((appended[0].text.as_str(), appended[0].x), ("AD", 300));
+        assert_eq!((initial[0].text.as_str(), initial[0].x), ("AA", 100));
         assert_eq!(count, 3);
     }
 }

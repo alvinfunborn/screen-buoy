@@ -263,6 +263,28 @@ element_control_types = [50021, 50026, ...]
 
 ---
 
+## Hint Character Order
+
+Each row in `hint.charsets` supplies one character position. Put familiar,
+easy-to-press characters first in each row. Hints first use combinations of the
+earliest characters, then gradually include later characters. Within each stage,
+different first characters are interleaved whenever possible. For rows `A S D`
+and `J K L`, the order is `AJ | SJ AK SK | DJ AL DK SL DL`.
+
+All main combinations are used before adding a prefix from `charset_extra`
+(normally all two-character hints before any three-character hints). The longer
+codes expand their prefixes and following characters together by the same rule.
+Order the extra prefixes from easiest to hardest as well. Codes already visible
+in a hint session stay fixed when more hints arrive. Interleaving reduces runs
+of matching prefixes; it does not guarantee that nearby labels never overlap.
+
+The defaults keep 28 characters per position: the first position starts with
+`F J D K`, while the final position starts with `D K S L` for holding a hint and
+using its neighboring keys. Digits come last. `I`, `0`, `1`, `5`, and `8` stay
+excluded for readability. Extra prefixes are `A Q Z ; -`; they must not
+overlap the first-position character set. Capacity remains 784 two-character
+hints and 4,704 hints in total.
+
 ## Performance
 
 Screen Buoy is designed for low resource usage while maintaining responsive hint generation.

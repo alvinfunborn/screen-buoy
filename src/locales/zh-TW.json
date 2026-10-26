@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint字符集",
-    "charsetsTooltip": "用於生成hint的字元，每個hint的第一位來自第一行，第二位來自第二行，依此類推。",
+    "charsetsTooltip": "每一行對應 hint 的一位：第一行是首位，第二行是後續位。每行把熟悉、好按的字元放前面；先用靠前字元的組合，再逐步加入後面的字元，同一階段內交錯首字元。",
     "charsetExtra": "Hint額外字符集",
-    "charsetExtraTooltip": "當hint數量超過可用字元時，會使用這些額外字元。額外字元作為hint首位，後續字元從主字符集迴圈。",
+    "charsetExtraTooltip": "僅在主字符集的所有組合用完後，才增加一位前綴。把熟悉、好按的前綴放前面；前綴和後續字元按設定順序逐步擴展，同一階段內交錯前綴。",
+    "charsetPrefixConflict": "三位前綴不能與首位字元集重複，衝突字元：{{characters}}。",
+    "charsetSideKeyWarning": "以下字元作為 hint 末位時，左右側鍵功能可能無法使用或不便按下：{{characters}}。仍可儲存；不使用此功能可忽略。",
     "grid": "Hint網格",
     "rows": "行數",
     "rowsTooltip": "將螢幕劃分為多少行，用於在固定位置顯示hint。",
@@ -202,7 +204,7 @@
       "application": "應用管理",
       "detection": "掃描與快取",
       "detectionDescription": "時間單位為毫秒。設定控制元素的更新頻率與快取有效期。",
-      "characterRows": "按順序使用的字符集",
+      "characterRows": "按位設定字符集",
       "gridDescription": "在螢幕的固定網格位置顯示提示。",
       "typesDescription": "為不同型別的提示設定樣式和對應的介面元素。"
     },

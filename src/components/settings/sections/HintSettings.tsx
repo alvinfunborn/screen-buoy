@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Space, Input, Button, InputNumber, Collapse, Select } from 'antd';
+import { Alert, Form, Space, Input, Button, InputNumber, Collapse, Select } from 'antd';
 import type { NamePath } from 'antd/es/form/interface';
 import type { Config, HintType } from '../../../types/config';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { SettingSection } from '../SettingSection';
 import { useTranslation } from 'react-i18next';
+import { CharsetInput } from '../CharsetInput';
+import { getHintPrefixConflicts, getHintSideKeyWarnings } from '../hint-validation.js';
 
 
 interface HintSettingsProps {
@@ -18,10 +20,17 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
   const { t } = useTranslation();
   const form = Form.useFormInstance<Config>(); // Get form instance from context
 
+  const charsets = Form.useWatch(['hint', 'charsets'], form) ?? form.getFieldValue(['hint', 'charsets']);
+  const charsetExtra = Form.useWatch(['hint', 'charset_extra'], form) ?? form.getFieldValue(['hint', 'charset_extra']);
+  const sideKeyMapping = Form.useWatch(['keyboard', 'map_left_right'], { form, preserve: true })
+    ?? form.getFieldValue(['keyboard', 'map_left_right']);
+  const conflicts = getHintPrefixConflicts({ charsets, charset_extra: charsetExtra });
+  const conflictMessage = conflicts.length
+    ? t('hint.charsetPrefixConflict', { characters: conflicts.join(', ') }) : undefined;
+  const sideKeyWarnings = getHintSideKeyWarnings({ charsets }, sideKeyMapping);
+
   // States for raw input values (comma-separated strings)
   const [rawStyleInputs, setRawStyleInputs] = useState<Record<string, string>>({});
-  const [rawCharsetInputs, setRawCharsetInputs] = useState<Record<number, string>>({});
-  const [rawExtraCharsetInput, setRawExtraCharsetInput] = useState<string>('');
   const [rawDefaultStyle, setRawDefaultStyle] = useState<string>('');
   // State for element_control_types raw input
   const [rawElementControlTypesInputs, setRawElementControlTypesInputs] = useState<Record<string, string>>({});
@@ -60,22 +69,6 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       setHintTypeNames([]); // Ensure empty if no types initially
       setRawStyleInputs({});
       setRawElementControlTypesInputs({});
-    }
-
-    if (initialHintConfig?.charsets) {
-      const initialRawCharsets = initialHintConfig.charsets.reduce((acc: Record<number, string>, value: string[], index: number) => {
-        acc[index] = Array.isArray(value) ? value.join(', ') : '';
-        return acc;
-      }, {} as Record<number, string>);
-      setRawCharsetInputs(initialRawCharsets);
-    } else {
-      setRawCharsetInputs({});
-    }
-
-    if (initialHintConfig?.charset_extra) {
-      setRawExtraCharsetInput(Array.isArray(initialHintConfig.charset_extra) ? initialHintConfig.charset_extra.join(', ') : '');
-    } else {
-      setRawExtraCharsetInput('');
     }
 
     if (initialHintConfig?.style) {
@@ -121,60 +114,6 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       const changedValues = { hint: { types: { [typeName]: { style: valueToSet } } } }; // More specific change
       const allValues = form.getFieldsValue(true);
       onValuesChange(changedValues, { ...allValues, hint: { ...(allValues.hint || {}), types: updatedHintTypes } });
-    }
-  };
-
-  // Charsets List Handlers
-  const handleRawCharsetChange = (fieldKey: number, value: string) => {
-    setRawCharsetInputs(prev => ({ ...prev, [fieldKey]: value }));
-  };
-
-  const handleRawCharsetBlur = (fieldKey: number, fieldName: number) => {
-    const rawValue = rawCharsetInputs[fieldKey] ?? '';
-    const newArrayValue = rawValue ? rawValue.split(',').map(s => s.trim()).filter(s => s) : [];
-    const fieldPath: NamePath = ['hint', 'charsets', fieldName];
-    form.setFieldValue(fieldPath, newArrayValue);
-
-    if (onValuesChange) {
-      const currentCharsets = form.getFieldValue(['hint', 'charsets']) || [];
-      // Create a new array representing the state after the update
-      const updatedCharsets = [...currentCharsets];
-      if (fieldName >= updatedCharsets.length) {
-        updatedCharsets.length = fieldName + 1; // Ensure array is long enough
-      }
-      updatedCharsets[fieldName] = newArrayValue; // Place the new value
-
-      const changedValues = { hint: { charsets: updatedCharsets } }; // Reflect the whole array change potentially
-      const allValues = form.getFieldsValue(true);
-      // Ensure allValues reflects the change we just made
-      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charsets: updatedCharsets } };
-      onValuesChange(changedValues, updatedAllValues);
-      form.validateFields([fieldPath]); // Use the path directly
-    } else {
-      form.validateFields([fieldPath]);
-    }
-  };
-
-  // Extra Charset Handlers
-  const handleRawExtraCharsetChange = (value: string) => {
-    setRawExtraCharsetInput(value);
-  };
-
-  const handleRawExtraCharsetBlur = () => {
-    const rawValue = rawExtraCharsetInput ?? '';
-    const newArrayValue = rawValue ? rawValue.split(',').map(s => s.trim()).filter(s => s) : [];
-    const fieldPath: NamePath = ['hint', 'charset_extra'];
-    form.setFieldValue(fieldPath, newArrayValue);
-
-    if (onValuesChange) {
-      const changedValues = { hint: { charset_extra: newArrayValue } };
-      const allValues = form.getFieldsValue(true);
-      // Ensure allValues reflects the change
-      const updatedAllValues = { ...allValues, hint: { ...(allValues.hint || {}), charset_extra: newArrayValue } };
-      onValuesChange(changedValues, updatedAllValues);
-      form.validateFields([fieldPath]);
-    } else {
-      form.validateFields([fieldPath]);
     }
   };
 
@@ -368,7 +307,6 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
             <Space direction="vertical" style={{ width: '100%' }}>
               {fields.map((field, index) => {
                 const { key, name, ...restField } = field;
-                // Use field.key for managing raw input state map
                 const fieldKey = field.key;
                 return (
                   <div key={fieldKey} className="charset-row">
@@ -377,16 +315,11 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                       name={name} // Use field.name for AntD Form binding
                       validateTrigger={['onChange', 'onBlur']}
                       rules={[{ required: true, message: t('hint.placeholderCharset') }]}
+                      validateStatus={index === 0 && conflictMessage ? 'error' : undefined}
+                      help={index === 0 ? conflictMessage : undefined}
                       style={{ flex: 1 }}
                     >
-                      <Input
-                        placeholder={t('hint.placeholderCharset')}
-                        // Ensure value defaults to empty string if state entry is missing
-                        value={rawCharsetInputs[fieldKey] ?? ''}
-                        style={{ width: '100%' }}
-                        onChange={(e) => handleRawCharsetChange(fieldKey, e.target.value)}
-                        onBlur={() => handleRawCharsetBlur(fieldKey, name)}
-                      />
+                      <CharsetInput placeholder={t('hint.placeholderCharset')} style={{ width: '100%' }} />
                     </Form.Item>
                     <Button type="text" danger icon={<MinusCircleOutlined />}
                       aria-label={t('settings.removeItem', { name: `${t('hint.charsets')} ${index + 1}` })}
@@ -408,17 +341,14 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
         className="config-section-title"
         tooltip={t('hint.charsetExtraTooltip')}
         name={['hint', 'charset_extra']}
+        validateStatus={conflictMessage ? 'error' : undefined}
+        help={conflictMessage}
       >
-        <Input
-          placeholder={t('hint.placeholderCharsetExtra')}
-          // Value comes from local raw state
-          value={rawExtraCharsetInput}
-          onChange={(e) => handleRawExtraCharsetChange(e.target.value)}
-          // Commit to form state on blur
-          onBlur={handleRawExtraCharsetBlur}
-        />
+        <CharsetInput placeholder={t('hint.placeholderCharsetExtra')} />
       </Form.Item>
 
+      {sideKeyWarnings.length > 0 && <Alert type="warning" showIcon style={{ marginBottom: 16 }}
+        message={t('hint.charsetSideKeyWarning', { characters: sideKeyWarnings.join(', ') })} />}
       </SettingSection>
       <SettingSection title={t('hint.grid')} description={t('settings.groups.gridDescription')}>
       <div className="hint-grid-fields">

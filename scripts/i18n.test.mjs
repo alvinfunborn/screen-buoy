@@ -61,8 +61,9 @@ for (const folder of ['src/locales', 'website/locales']) {
       if (folder === 'src/locales') {
         const instance = createInstance();
         await instance.init({ lng: code, resources: { [code]: { translation: catalog } }, fallbackLng: false });
-        for (const key of ['mouse.addStep', 'settings.removeItem', 'updates.available', 'hint.placeholderTypeStyle']) {
-          const value = instance.t(key, { label: 'TEST', name: 'TEST', version: 'TEST', typeName: 'TEST' });
+        for (const key of ['mouse.addStep', 'settings.removeItem', 'updates.available', 'hint.placeholderTypeStyle',
+          'hint.charsetPrefixConflict', 'hint.charsetSideKeyWarning']) {
+          const value = instance.t(key, { label: 'TEST', name: 'TEST', version: 'TEST', typeName: 'TEST', characters: 'TEST' });
           assert.ok(value.includes('TEST') && !value.includes('{{'), `${code}: ${key}`);
         }
       }

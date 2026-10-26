@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint字符集",
-    "charsetsTooltip": "用于生成hint的字符，每个hint的第一位来自第一行，第二位来自第二行，依此类推。",
+    "charsetsTooltip": "每一行对应 hint 的一位：第一行是首位，第二行是跟随位。每行把熟悉、好按的字符放前面；先用靠前字符的组合，再逐步加入后面的字符，同一档内交错首字母。",
     "charsetExtra": "Hint额外字符集",
-    "charsetExtraTooltip": "当hint数量超过可用字符时，会使用这些额外字符。额外字符作为hint首位，后续字符从主字符集循环。",
+    "charsetExtraTooltip": "仅在主字符集的所有组合用完后，才增加一位前缀。把熟悉、好按的前缀放前面；前缀和后续字符按配置顺序逐步扩展，同一档内交错前缀。",
+    "charsetPrefixConflict": "三位前缀不能与首位字符集重复，冲突字符：{{characters}}。",
+    "charsetSideKeyWarning": "以下字符作为 hint 末位时，左右侧键功能可能不可用或不便按下：{{characters}}。仍可保存；不使用此功能可忽略。",
     "grid": "Hint网格",
     "rows": "行数",
     "rowsTooltip": "将屏幕划分为多少行，用于在固定位置显示hint。",
@@ -202,7 +204,7 @@
       "application": "应用管理",
       "detection": "扫描与缓存",
       "detectionDescription": "时间单位为毫秒。设置控制元素的更新频率与缓存有效期。",
-      "characterRows": "按顺序使用的字符集",
+      "characterRows": "按位设置字符集",
       "gridDescription": "在屏幕的固定网格位置显示提示。",
       "typesDescription": "为不同类型的提示设置样式和对应的界面元素。"
     },

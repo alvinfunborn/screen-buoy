@@ -210,6 +210,61 @@ mod tests {
         assert_eq!(fs::read_to_string(&destination).unwrap(), "user edits");
         assert_eq!(fs::read_to_string(&legacy).unwrap(), "legacy preferences");
     }
+
+    #[test]
+    fn overlapping_hint_prefixes_leave_disk_and_memory_unchanged() {
+        let dir = ConfigDir::new();
+        let path = dir.0.join("config.toml");
+        let original: Config = toml::from_str(include_str!("../../config_macos.toml")).unwrap();
+        let before = toml::to_string_pretty(&original).unwrap();
+        fs::write(&path, &before).unwrap();
+        let mut current = Some(original.clone());
+        let mut edited = original;
+        edited.hint.charsets = vec![vec!['F', 'D'], vec!['A', 'Z']];
+        edited.hint.charset_extra = vec!['d', 'Q', 'F', 'D'];
+        edited.hint.style = "unsaved edit".into();
+        let error = save_config_to_path(&path, &edited, &mut current).unwrap_err();
+        assert_eq!(error, SaveConfigError::HintPrefixOverlap { characters: vec!['D', 'F'] });
+        assert_eq!(serde_json::to_value(error).unwrap(), serde_json::json!({
+            "code": "hint_prefix_overlap", "characters": ["D", "F"]
+        }));
+        assert_eq!(fs::read_to_string(&path).unwrap(), before);
+        assert_eq!(toml::to_string_pretty(current.as_ref().unwrap()).unwrap(), before);
+
+        // Sharing only the final position is allowed, including edge keys.
+        edited.hint.charset_extra = vec!['A', 'Z'];
+        save_config_to_path(&path, &edited, &mut current).unwrap();
+        let expected = toml::to_string_pretty(&edited).unwrap();
+        assert_eq!(fs::read_to_string(&path).unwrap(), expected);
+        assert_eq!(toml::to_string_pretty(current.as_ref().unwrap()).unwrap(), expected);
+        edited.hint.charset_extra.clear();
+        assert!(save_config_to_path(&path, &edited, &mut current).is_ok());
+    }
+
+    #[test]
+    fn failed_config_write_preserves_in_memory_preferences() {
+        let dir = ConfigDir::new();
+        let config: Config = toml::from_str(include_str!("../../config_macos.toml")).unwrap();
+        let mut current = None;
+        assert!(matches!(save_config_to_path(&dir.0, &config, &mut current),
+            Err(SaveConfigError::SaveFailed { .. })));
+        assert!(current.is_none());
+    }
+
+    #[test]
+    fn shipped_hint_defaults_have_disjoint_prefixes_and_comfortable_keys() {
+        for contents in [include_str!("../../config.default"), include_str!("../../config.toml"),
+            include_str!("../../config_macos.toml")] {
+            let config: Config = toml::from_str(contents).unwrap();
+            assert!(config.hint.prefix_conflicts().is_empty());
+            assert_eq!(config.hint.charset_extra, vec!['A', 'Q', 'Z', ';', '-']);
+            assert_eq!(config.hint.charsets.iter().map(Vec::len).collect::<Vec<_>>(), vec![28, 28]);
+            for character in config.hint.charsets.last().unwrap() {
+                assert!(config.keyboard.get_left_key(&character.to_string()).is_some());
+                assert!(config.keyboard.get_right_key(&character.to_string()).is_some());
+            }
+        }
+    }
 }
 
 // 全局配置实例
@@ -242,19 +297,45 @@ pub fn get_config_for_frontend() -> Config {
     })
 }
 
+#[derive(Debug, Serialize, PartialEq)]
+#[serde(tag = "code", rename_all = "snake_case")]
+pub enum SaveConfigError {
+    HintPrefixOverlap { characters: Vec<char> },
+    SaveFailed { message: String },
+}
+
+impl SaveConfigError {
+    fn save_failed(error: impl std::fmt::Display) -> Self {
+        Self::SaveFailed { message: error.to_string() }
+    }
+}
+
+fn save_config_to_path(
+    path: &Path,
+    config: &Config,
+    current: &mut Option<Config>,
+) -> Result<bool, SaveConfigError> {
+    let characters = config.hint.prefix_conflicts();
+    if !characters.is_empty() {
+        return Err(SaveConfigError::HintPrefixOverlap { characters });
+    }
+    // Validate before touching either the persisted or in-memory preferences.
+    let serialized = toml::to_string_pretty(config).map_err(SaveConfigError::save_failed)?;
+    fs::write(path, serialized).map_err(SaveConfigError::save_failed)?;
+    let language_changed = current.as_ref().map(|old| &old.system.language) != Some(&config.system.language);
+    *current = Some(config.clone());
+    Ok(language_changed)
+}
+
 // 为前端提供的配置保存命令
 #[tauri::command]
-pub fn save_config_for_frontend(app: tauri::AppHandle, config: Config) -> Result<(), String> {
+pub fn save_config_for_frontend(app: tauri::AppHandle, config: Config) -> Result<(), SaveConfigError> {
     debug!("[save_config_for_frontend] save config: {:?}", config);
-    let config_path = get_config_path().ok_or("Cannot locate configuration file")?;
-    // A failed write must not report success or replace the in-memory preference.
-    let serialized = toml::to_string_pretty(&config).map_err(|error| error.to_string())?;
+    let config_path = get_config_path()
+        .ok_or_else(|| SaveConfigError::save_failed("Cannot locate configuration file"))?;
     let language_changed = {
-        let mut current = CONFIG.lock().map_err(|error| error.to_string())?;
-        fs::write(&config_path, serialized).map_err(|error| error.to_string())?;
-        let changed = current.as_ref().map(|old| &old.system.language) != Some(&config.system.language);
-        *current = Some(config.clone());
-        changed
+        let mut current = CONFIG.lock().map_err(SaveConfigError::save_failed)?;
+        save_config_to_path(Path::new(&config_path), &config, &mut current)?
     };
     if language_changed {
         crate::update_tray_language(&app, &config.system.language);

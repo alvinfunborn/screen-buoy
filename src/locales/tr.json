@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "İpucu karakter kümeleri",
-    "charsetsTooltip": "İpuçları için kullanılan karakterler. Her ipucunun ilk karakteri, ilk satırdan alınır, ikinci karakteri ikinci satırdan, vb.",
+    "charsetsTooltip": "Her satır ipucundaki bir karakter konumunu belirler: ilk satır ilk karakteri, ikinci satır sonraki karakteri sağlar. Her satırda tanıdık ve kolay basılan karakterleri öne koyun. Önce bunların birleşimleri kullanılır, sonraki karakterler aşamalı olarak eklenir; her grupta ilk karakterler dönüşümlü atanır.",
     "charsetExtra": "Ek ipucu karakterleri",
-    "charsetExtraTooltip": "Eğer ipucu sayısı mevcut karakter sayısını aşıyor, bu ek karakterler kullanılır. Ek karakterler, ipucunun ilk harfi olarak eklenir; diğer harfler ana karakter kümesi içinde döner.",
+    "charsetExtraTooltip": "Tüm ana birleşimler kullanıldıktan sonra bir ön ek eklenir. Tanıdık ve kolay basılan ön ekleri öne koyun. Ön ekler ve sonraki karakterler, ayarlanan sırayla aşamalı olarak eklenir; her grupta ön ekler dönüşümlü atanır.",
+    "charsetPrefixConflict": "Ek önekler ilk konumun karakter kümesiyle örtüşemez. Çakışan karakterler: {{characters}}.",
+    "charsetSideKeyWarning": "İpucunun son karakteri olarak {{characters}}, bitişik tuş eylemlerini kullanılamaz veya basılması zor hâle getirebilir. Yine de kaydedebilirsiniz; bu eylemleri kullanmıyorsanız uyarıyı yok sayabilirsiniz.",
     "grid": "İpuçları Gridi",
     "rows": "Satırlar",
     "rowsTooltip": "Ekranı, sabit pozisyonlarda ipuçlarını göstermek için kaç satıra bölünecek.",
@@ -202,7 +204,7 @@
       "application": "Uygulama",
       "detection": "Tarama & önbellek",
       "detectionDescription": "Öğe taramaları arasındaki gecikme ve önbelleğe alınan sonuçların geçerlilik süresi.",
-      "characterRows": "Karakter kümeleri, sırayla",
+      "characterRows": "Konuma göre karakter kümeleri",
       "gridDescription": "İpuçlarını ekranda sabit konumlarda göster.",
       "typesDescription": "Her bir ipucu türü için görünümü ve öğe atamalarını özelleştirin."
     },

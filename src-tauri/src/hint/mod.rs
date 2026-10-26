@@ -1,3 +1,4 @@
+mod codes;
 mod generator;
 pub mod hint;
 #[cfg(target_os = "macos")]
@@ -15,18 +16,18 @@ use std::sync::{
     atomic::{AtomicU64, Ordering},
     Arc, Mutex,
 };
-use std::time::{Duration, Instant};
+use std::time::Instant;
 use tauri::{Emitter, Manager, WebviewWindow};
 
 pub use generator::init_hint_text_list_storage;
 pub use overlay::{create_overlay_windows, OVERLAY_WINDOW_PREFIX};
+pub use warm::setup_visibility_cache;
 
 // Odd epochs are active, even epochs are closed. Serialize storage + IPC with
 // session transitions, so a late native result cannot repopulate a closed session.
 static ACTIVATION: AtomicU64 = AtomicU64::new(0);
 static LIFECYCLE: Lazy<Mutex<()>> = Lazy::new(|| Mutex::new(()));
 static FILTER_REVISION: AtomicU64 = AtomicU64::new(0);
-static WARM_CONTROLS: Lazy<Mutex<warm::WarmControls>> = Lazy::new(|| Mutex::new(Default::default()));
 
 pub fn current_activation() -> u64 {
     ACTIVATION.load(Ordering::Acquire)
@@ -179,8 +180,11 @@ pub async fn show_hints(window: WebviewWindow) {
     let started = Instant::now();
     let app = window.app_handle();
     // Subscribe before requesting work: a fast scan cannot be missed.
-    let mut updates = element::subscribe();
-    let (activation, refresh) = {
+    let mut updates = warm::subscribe();
+    let mut seen = HashMap::new();
+    // Read the last filtered result immediately. A new check never gates replay.
+    let (cached_windows, cached_snapshots) = warm::snapshots_since(&mut seen);
+    let activation = {
         let _guard = LIFECYCLE.lock().unwrap();
         // Drain/reset old input before changing its session tag. Otherwise an
         // old key handler could stamp a prefix or deferred exit with the new ID.
@@ -188,6 +192,7 @@ pub async fn show_hints(window: WebviewWindow) {
         let old = current_activation();
         let activation = if old % 2 == 1 { old + 2 } else { old + 1 };
         ACTIVATION.store(activation, Ordering::Release);
+        warm::notify();
         clear_hints();
         // Reset every monitor, including those with no cached controls.
         for (label, overlay) in app.webview_windows() {
@@ -199,105 +204,47 @@ pub async fn show_hints(window: WebviewWindow) {
             }
         }
         input::keyboard::switch_keyboard_ctrl(true);
-        let refresh = element::set_hint_active(true);
+        element::set_hint_active(true);
         if !config::get_config().unwrap().system.debug_mode {
             overlay::ensure_all_overlays_topmost(app);
         }
-        (activation, refresh)
+        activation
     };
     let mut positions = HashSet::new();
     let mut count = 0;
-    let mut layout = Arc::new(HintLayout::new(&[]));
+    let layout = Arc::new(HintLayout::new(&[]));
     let grids = HintsGenerator::new(layout.clone(), HashMap::new()).generate_hints_grid(&mut count);
     publish(app, activation, grids);
-    let mut seen = HashMap::new();
-    let mut work_queue = WorkQueue::default();
-    let mut first_control = true;
-    let mut previous_windows = Vec::new();
-    let mut restored = false;
+    // Only previously filtered coordinates enter this path, never raw AX data.
+    // Their visibility may be stale, but the session keeps them as shortcuts.
+    let sources = cached_snapshots.len();
+    let cached = HintsGenerator::new(layout.clone(), cached_snapshots.into_iter()
+        .map(|snapshot| (snapshot.window, snapshot.elements)).collect());
+    let hints = cached.generate_cached_hints(&cached_windows, &mut positions, &mut count);
+    let added = publish(app, activation, hints);
+    log::info!("[hint_cache] session={} added={} sources={} activation_ms={:.1}",
+        activation, added, sources, started.elapsed().as_secs_f64() * 1000.0);
+    let mut first_control = added == 0;
+    drop(cached);
     while is_active(activation) {
         updates.borrow_and_update();
-        // Wait for a fresh window list before using warm data from a previous Space.
-        let Some((windows, snapshots)) = element::snapshots_since(&mut seen, refresh) else {
-            if updates.changed().await.is_err() {
-                break;
-            }
-            continue;
-        };
-        let topology_changed = previous_windows.len() != windows.len()
-            || previous_windows
-                .iter()
-                .zip(&windows)
-                .any(|(a, b)| !element::element::same_window(a, b) || a.z_index != b.z_index);
-        if topology_changed {
-            work_queue.clear();
-            layout = Arc::new(HintLayout::new(&windows));
-            previous_windows = windows.clone();
-        }
-        if !restored {
-            restored = true;
-            let ttl = Duration::from_millis(config::get_config().unwrap().ui_automation.cache_ttl.max(100));
-            let warm = WARM_CONTROLS.lock().unwrap().restore(
-                activation, &windows, &snapshots, Instant::now(), ttl,
-            );
-            let sources = warm.len();
-            if !warm.is_empty() {
-                let generator = HintsGenerator::new(layout.clone(), warm);
-                let hints = generator.generate_verified_hints(&windows, &mut positions, &mut count);
-                let added = publish(app, activation, hints);
-                if added > 0 {
-                    first_control = false;
-                    log::info!("[hint_warm] session={} restored={} sources={} activation_ms={:.1}",
-                        activation, added, sources, started.elapsed().as_secs_f64() * 1000.0);
-                }
-            }
-        }
-        let foreground = element::element::foreground(&windows);
+        let (windows, snapshots) = warm::snapshots_since(&mut seen);
         for snapshot in snapshots {
-            work_queue.update(snapshot, foreground, &layout, &positions);
-        }
-        if !generator::has_capacity(count) {
-            work_queue.clear();
-        }
-        let Some((snapshot, elements)) = work_queue.next(&positions) else {
-            if updates.changed().await.is_err() {
-                break;
+            if !generator::has_capacity(count) { break; }
+            let generator = HintsGenerator::new(layout.clone(),
+                HashMap::from([(snapshot.window.clone(), snapshot.elements.clone())]));
+            let hints = generator.generate_cached_hints(&windows, &mut positions, &mut count);
+            let added = publish(app, activation, hints);
+            if added > 0 {
+                log::info!("[hint_update] session={} window={} revision={} added={} total={} first_control={} activation_ms={:.1} snapshot_age_ms={:.1}",
+                    activation, snapshot.window.window_handle, snapshot.revision, added, count, first_control,
+                    started.elapsed().as_secs_f64() * 1000.0, snapshot.scanned_at.elapsed().as_secs_f64() * 1000.0);
+                first_control = false;
             }
-            continue;
-        };
-        // Bound visibility work between opportunities to consume foreground updates.
-        if elements.is_empty() {
-            continue;
         }
-        let elements = Arc::new(elements);
-        let generator = HintsGenerator::new(
-            layout.clone(),
-            HashMap::from([(snapshot.window.clone(), elements.clone())]),
-        );
-        #[cfg(target_os = "macos")]
-        let Some(generator) = generator.prepare_visibility(app, activation).await
-        else {
+        if !is_active(activation) || updates.changed().await.is_err() {
             break;
-        };
-        let before = count;
-        let mut hints = generator.generate_hints_batch1(&mut positions, &mut count);
-        for (label, batch) in generator.generate_hints_batch2(&mut positions, &mut count) {
-            hints.entry(label).or_default().extend(batch);
         }
-        let added = publish(app, activation, hints);
-        if added > 0 {
-            WARM_CONTROLS.lock().unwrap().record(
-                activation, &windows, snapshot.window.window_handle,
-                elements.iter().map(|e| (e.x, e.y)).filter(|p| positions.contains(p)),
-                Instant::now(),
-            );
-            log::info!("[hint_update] session={} window={} revision={} added={} total={} first_control={} activation_ms={:.1} snapshot_age_ms={:.1}",
-                activation, snapshot.window.window_handle, snapshot.revision, added, count, first_control,
-                started.elapsed().as_secs_f64() * 1000.0, snapshot.scanned_at.elapsed().as_secs_f64() * 1000.0);
-            first_control = false;
-        }
-        #[cfg(target_os = "macos")]
-        generator.log_performance(activation, count - before, 0, started.elapsed());
     }
 }
 
@@ -308,6 +255,7 @@ pub async fn hide_hints_for_session(app: tauri::AppHandle, activation: u64) {
     }
     let closed = activation + 1;
     ACTIVATION.store(closed, Ordering::Release);
+    warm::notify();
     input::keyboard::switch_keyboard_ctrl(false);
     element::set_hint_active(false);
     clear_hints();

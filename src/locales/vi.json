@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint Charsets\n\nCác bộ ký tự trợ giúp",
-    "charsetsTooltip": "Karakter dùng cho gợi ý. Ký tự đầu tiên của mỗi gợi ý đến từ dòng charset đầu tiên, ký tự thứ hai từ dòng thứ hai, và cứ tiếp tục như vậy.",
+    "charsetsTooltip": "Mỗi hàng tương ứng với một vị trí trong nhãn: hàng đầu cung cấp ký tự đầu tiên, hàng thứ hai cung cấp ký tự tiếp theo. Đặt các ký tự quen thuộc, dễ bấm ở đầu mỗi hàng. Các tổ hợp này được dùng trước, rồi các ký tự phía sau được thêm dần, luân phiên ký tự đầu trong từng nhóm.",
     "charsetExtra": "Giải thích bổ sung (charset)",
-    "charsetExtraTooltip": "Khi số lượng gợi ý vượt quá số lượng ký tự có sẵn, các ký tự thừa sẽ được sử dụng. Các ký tự thừa được thêm vào đầu của gợi ý, và các ký tự tiếp theo sẽ lặp lại qua bộ ký tự chính.",
+    "charsetExtraTooltip": "Chỉ thêm ký tự tiền tố sau khi dùng hết mọi tổ hợp chính. Đặt các tiền tố quen thuộc, dễ bấm ở đầu danh sách. Tiền tố và ký tự theo sau được thêm dần theo thứ tự đã đặt, luân phiên tiền tố trong từng nhóm.",
+    "charsetPrefixConflict": "Tiền tố bổ sung không được trùng với bộ ký tự ở vị trí đầu tiên. Ký tự trùng: {{characters}}.",
+    "charsetSideKeyWarning": "Khi là ký tự cuối của gợi ý, {{characters}} có thể khiến thao tác bằng các phím bên cạnh không khả dụng hoặc khó nhấn. Bạn vẫn có thể lưu; hãy bỏ qua cảnh báo nếu không dùng các thao tác này.",
     "grid": "Hint Grid\n\nMẹo lưới",
     "rows": "Hàng",
     "rowsTooltip": "Số lượng hàng để chia màn hình để hiển thị gợi ý ở các vị trí cố định.",
@@ -202,7 +204,7 @@
       "application": "Ứng dụng",
       "detection": "Quét & bộ nhớ cache",
       "detectionDescription": "Thời gian (tính bằng mili giây) giữa các lần quét phần tử và trước khi kết quả đã lưu bị hết hạn.",
-      "characterRows": "Bộ ký tự, theo thứ tự",
+      "characterRows": "Bộ ký tự theo vị trí",
       "gridDescription": "Hiển thị gợi ý ở các vị trí cố định trên màn hình.",
       "typesDescription": "Tùy chỉnh giao diện và phân bổ các thành phần cho từng loại gợi ý."
     },

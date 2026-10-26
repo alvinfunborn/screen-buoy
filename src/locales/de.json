@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hinweise: Zeichenkodierungen",
-    "charsetsTooltip": "Zeichen für Hinweise. Das erste Zeichen für jeden Hinweis stammt aus der ersten Zeile, das zweite aus der zweiten Zeile usw.",
+    "charsetsTooltip": "Jede Zeile entspricht einer Zeichenposition im Hinweis: Die erste liefert das erste Zeichen, die zweite das nächste. Stellen Sie vertraute, leicht zu drückende Zeichen nach vorn. Deren Kombinationen werden zuerst verwendet; spätere Zeichen kommen schrittweise hinzu. Innerhalb jeder Gruppe wechseln sich die Anfangszeichen ab.",
     "charsetExtra": "Zeige Zeichenkodierung zusätzlich",
-    "charsetExtraTooltip": "Wenn die Anzahl der Hinweise die verfügbaren Zeichen übersteigt, werden diese zusätzlichen Zeichen verwendet. Die zusätzlichen Zeichen werden als erstes Zeichen des Hinweises hinzugefügt, während die nachfolgenden Zeichen durch die Haupt-Zeichensätze zirkulieren.",
+    "charsetExtraTooltip": "Erst wenn alle Kombinationen der Hauptzeichensätze aufgebraucht sind, wird ein Präfix ergänzt. Stellen Sie vertraute, leicht zu drückende Präfixe nach vorn. Präfixe und Folgezeichen werden in der eingestellten Reihenfolge schrittweise ergänzt, wobei sich die Präfixe innerhalb jeder Gruppe abwechseln.",
+    "charsetPrefixConflict": "Zusätzliche Präfixe dürfen sich nicht mit dem Zeichensatz der ersten Position überschneiden. Betroffene Zeichen: {{characters}}.",
+    "charsetSideKeyWarning": "Als letztes Hinweiszeichen können {{characters}} die Aktionen der benachbarten Tasten unzugänglich oder schwer bedienbar machen. Speichern ist weiterhin möglich. Wenn Sie diese Aktionen nicht nutzen, können Sie die Warnung ignorieren.",
     "grid": "Hinweis-Matrix",
     "rows": "Zeilen",
     "rowsTooltip": "Anzahl der Zeilen, um den Bildschirm in für die Anzeige von Hinweisen an festen Positionen aufzuteilen.",
@@ -202,7 +204,7 @@
       "application": "Anwendung",
       "detection": "Scannen & Cache",
       "detectionDescription": "Zeit in Millisekunden zwischen Element-Scans und vor dem Ablauf von zwischengespeicherten Ergebnissen.",
-      "characterRows": "Zeichensätze, in folgender Reihenfolge:",
+      "characterRows": "Zeichensätze nach Position",
       "gridDescription": "Platzieren Sie Hinweise an festen Positionen auf dem Bildschirm.",
       "typesDescription": "Passen Sie das Aussehen und die Zuordnung von Elementen für jeden Hint-Typ an."
     },

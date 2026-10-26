@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Petunjuk Set Karakter",
-    "charsetsTooltip": "Karakter untuk petunjuk. Karakter pertama dari setiap petunjuk diambil dari baris pertama charset, yang kedua dari baris kedua, dan seterusnya.",
+    "charsetsTooltip": "Setiap baris menentukan satu posisi karakter petunjuk: baris pertama untuk karakter pertama, baris kedua untuk karakter berikutnya. Letakkan karakter yang familier dan mudah ditekan di awal setiap baris. Kombinasinya digunakan lebih dahulu, lalu karakter berikutnya ditambahkan secara bertahap, dengan karakter awal bergantian dalam setiap kelompok.",
     "charsetExtra": "Petunjuk Karakter Tambahan",
-    "charsetExtraTooltip": "Ketika jumlah petunjuk melebihi jumlah karakter yang tersedia, karakter-karakter tambahan ini akan digunakan. Karakter tambahan ditambahkan sebagai karakter pertama dari petunjuk, dan karakter-karakter selanjutnya akan berulang melalui set karakter utama.",
+    "charsetExtraTooltip": "Awalan tambahan hanya digunakan setelah semua kombinasi utama habis. Letakkan awalan yang familier dan mudah ditekan di awal. Awalan dan karakter berikutnya ditambahkan secara bertahap sesuai urutan pengaturan, dengan awalan bergantian dalam setiap kelompok.",
+    "charsetPrefixConflict": "Awalan tambahan tidak boleh tumpang tindih dengan kumpulan karakter posisi pertama. Karakter yang bentrok: {{characters}}.",
+    "charsetSideKeyWarning": "Sebagai karakter terakhir petunjuk, {{characters}} dapat membuat tindakan tombol di sebelahnya tidak tersedia atau sulit ditekan. Anda tetap dapat menyimpan; abaikan peringatan ini jika tidak menggunakan tindakan tersebut.",
     "grid": "Petunjuk Kisi",
     "rows": "Baris",
     "rowsTooltip": "Jumlah baris untuk membagi layar untuk menampilkan petunjuk pada posisi tetap.",
@@ -202,7 +204,7 @@
       "application": "Aplikasi",
       "detection": "Pemindaian & cache",
       "detectionDescription": "Waktu dalam milidetik antara pemindaian elemen dan sebelum hasil yang di-cache kedaluwarsa.",
-      "characterRows": "Kumpulan karakter, dalam urutan",
+      "characterRows": "Set karakter menurut posisi",
       "gridDescription": "Tampilkan petunjuk di posisi tetap di seluruh layar.",
       "typesDescription": "Sesuaikan tampilan dan penugasan elemen untuk setiap jenis *hint*."
     },

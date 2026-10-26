@@ -104,6 +104,7 @@ fn main() {
         // Create overlay windows
         create_overlay_windows(&app_handle);
         info!("[✓] overlay windows created");
+        hint::setup_visibility_cache(app_handle.clone());
 
         // Setup shortcuts
         setup_shortcut(&app_handle, &config, main_window.clone())

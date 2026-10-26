@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint: Character Sets",
-    "charsetsTooltip": "Caracteres para las подсказки. El primer carácter de cada подсказка proviene de la primera fila de caracteres, el segundo de la segunda fila, y así sucesivamente.",
+    "charsetsTooltip": "Cada fila corresponde a una posición de la etiqueta: la primera al primer carácter y la segunda al siguiente. Coloca primero los caracteres familiares y fáciles de pulsar. Se usan primero sus combinaciones y se incorporan gradualmente los caracteres posteriores, alternando los iniciales dentro de cada grupo.",
     "charsetExtra": "Hint: Conjunto de caracteres",
-    "charsetExtraTooltip": "Cuando el número de sugerencias excede los caracteres disponibles, se utilizarán los caracteres adicionales. Los caracteres adicionales se añadirán como el primer carácter de la sugerencia, y los caracteres subsiguientes se alternarán a través de los conjuntos de caracteres principales.",
+    "charsetExtraTooltip": "Solo se añade un prefijo tras agotar todas las combinaciones principales. Coloca primero los prefijos familiares y fáciles de pulsar. Los prefijos y los caracteres siguientes se incorporan gradualmente en el orden configurado, alternando los prefijos dentro de cada grupo.",
+    "charsetPrefixConflict": "Los prefijos adicionales no pueden coincidir con el juego de caracteres de la primera posición. Caracteres en conflicto: {{characters}}.",
+    "charsetSideKeyWarning": "Como último carácter de una pista, {{characters}} puede impedir o dificultar las acciones de las teclas adyacentes. Puedes guardar e ignorar esta advertencia si no usas estas acciones.",
     "grid": "Ayuda: Grilla",
     "rows": "Filas",
     "rowsTooltip": "Número de filas para dividir la pantalla y mostrar sugerencias en posiciones fijas.",
@@ -202,7 +204,7 @@
       "application": "Aplicación",
       "detection": "Escaneo y caché",
       "detectionDescription": "Tiempo en milisegundos entre las escaneos de los elementos y antes de que los resultados en caché caduquen.",
-      "characterRows": "Conjuntos de caracteres, en orden",
+      "characterRows": "Conjuntos de caracteres por posición",
       "gridDescription": "Coloca indicaciones en posiciones fijas en toda la pantalla.",
       "typesDescription": "Personalizar la apariencia y la asignación de elementos para cada tipo de indicador."
     },

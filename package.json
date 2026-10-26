@@ -13,7 +13,8 @@
     "check:version": "node scripts/check-version.mjs",
     "test:overlay": "node --test src/overlay/hint-state.test.js",
     "test:updater": "node --test scripts/create-update-manifest.test.mjs",
-    "test:i18n": "node --test scripts/i18n.test.mjs"
+    "test:i18n": "node --test scripts/i18n.test.mjs",
+    "test:settings": "node --test src/components/settings/hint-validation.test.js"
   },
   "dependencies": {
     "@ant-design/icons": "^6.0.0",

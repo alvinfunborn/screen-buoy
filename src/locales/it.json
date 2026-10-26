@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint: Caratteri",
-    "charsetsTooltip": "Caratteri per i suggerimenti. Il primo carattere di ogni suggerimento proviene dalla prima riga di caratteri, il secondo dalla seconda riga, e così via.",
+    "charsetsTooltip": "Ogni riga corrisponde a una posizione dell’etichetta: la prima fornisce il primo carattere, la seconda il successivo. Metti prima i caratteri familiari e facili da premere. Le loro combinazioni vengono usate per prime; i caratteri successivi vengono introdotti gradualmente, alternando le iniziali in ciascun gruppo.",
     "charsetExtra": "Hint Caratteri Esteso",
-    "charsetExtraTooltip": "Quando il numero di suggerimenti supera il numero di caratteri disponibili, verranno utilizzati i caratteri extra. I caratteri extra verranno aggiunti come primo carattere del suggerimento, mentre i caratteri successivi si alterneranno attraverso i caratteri principali.",
+    "charsetExtraTooltip": "Un prefisso viene aggiunto solo dopo aver esaurito tutte le combinazioni principali. Metti prima i prefissi familiari e facili da premere. Prefissi e caratteri successivi vengono introdotti gradualmente nell’ordine configurato, alternando i prefissi in ciascun gruppo.",
+    "charsetPrefixConflict": "I prefissi aggiuntivi non possono coincidere con i caratteri della prima posizione. Caratteri in conflitto: {{characters}}.",
+    "charsetSideKeyWarning": "Come ultimo carattere di un suggerimento, {{characters}} può rendere le azioni dei tasti adiacenti non disponibili o scomode. Puoi comunque salvare e ignorare questo avviso se non usi queste azioni.",
     "grid": "Suggerimento Griglia",
     "rows": "Righe",
     "rowsTooltip": "Numero di righe per dividere lo schermo in sezioni per visualizzare suggerimenti in posizioni fisse.",
@@ -202,7 +204,7 @@
       "application": "Applicazione",
       "detection": "Scansione & cache",
       "detectionDescription": "Tempo in millisecond tra le scansione degli elementi e prima che i risultati memorizzati scadano.",
-      "characterRows": "Caratteri, in ordine",
+      "characterRows": "Set di caratteri per posizione",
       "gridDescription": "Posiziona suggerimenti in posizioni fisse sullo schermo.",
       "typesDescription": "Personalizza l'aspetto e l'assegnazione degli elementi per ogni tipo di suggerimento."
     },

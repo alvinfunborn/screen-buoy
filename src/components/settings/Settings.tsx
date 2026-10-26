@@ -18,6 +18,7 @@ import { UiAutomationSettings } from './sections/UiAutomationSettings';
 import { MacPermissions } from './MacPermissions';
 import i18n, { applyLanguage } from '../../i18n';
 import { languages } from '../../language.js';
+import { getHintPrefixConflicts, getPrefixConflictsFromError } from './hint-validation.js';
 
 const appIconUrl = new URL('../../../src-tauri/icons/icon.png', import.meta.url).href;
 
@@ -56,12 +57,18 @@ const Settings: React.FC = () => {
   // Serialize writes so a slower earlier save cannot overwrite the latest edit.
   const debouncedSave = useMemo(() => debounce((values: Config, version: number) => {
     saveQueue.current = saveQueue.current.then(async () => {
+      if (revision.current !== version || getHintPrefixConflicts(values.hint).length) return;
       try {
         await invoke('save_config_for_frontend', { config: values });
         if (revision.current === version) setSaveState('saved');
       } catch (err) {
-        if (revision.current === version) setSaveState('error');
-        message.error(i18n.t('settings.saveError'));
+        if (revision.current === version) {
+          setSaveState('error');
+          const conflicts = getPrefixConflictsFromError(err);
+          message.error(conflicts
+            ? i18n.t('hint.charsetPrefixConflict', { characters: conflicts.join(', ') })
+            : i18n.t('settings.saveError'));
+        }
         console.error('Failed to save config:', err);
       }
     });
@@ -72,8 +79,14 @@ const Settings: React.FC = () => {
   const handleValuesChange = (changedValues: Partial<Config>, _allValues: Config) => {
     const values = form.getFieldsValue(true) as Config;
     if (changedValues.keyboard) setAvailableKeys(values.keyboard?.available_key);
+    const version = ++revision.current;
+    if (getHintPrefixConflicts(values.hint).length) {
+      debouncedSave.cancel();
+      setSaveState('error');
+      return;
+    }
     setSaveState('saving');
-    debouncedSave(values, ++revision.current);
+    debouncedSave(values, version);
   };
 
   const pages = [

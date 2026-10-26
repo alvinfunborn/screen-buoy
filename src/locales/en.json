@@ -97,9 +97,11 @@
   },
   "hint": {
     "charsets": "Hint Charsets",
-    "charsetsTooltip": "Characters used for hints. The first character of each hint comes from the first charset row, the second from the second row, and so on.",
+    "charsetsTooltip": "Each row supplies one hint position: the first row supplies the first character, the second row the next. Put familiar, easy-to-press characters first in each row. Earlier combinations are used first; later characters are introduced gradually, with first characters interleaved within each group.",
     "charsetExtra": "Hint Charset Extra",
-    "charsetExtraTooltip": "When the number of hints exceeds the available characters, these extra characters will be used. Extra characters are added as the first character of the hint; subsequent characters cycle through the main charsets.",
+    "charsetExtraTooltip": "Only after all main combinations are used, an extra prefix is added. Put familiar, easy-to-press prefixes first. Prefixes and following characters expand gradually in the configured order, with prefixes interleaved within each group.",
+    "charsetPrefixConflict": "Extra prefixes cannot overlap the first-position character set. Conflicting characters: {{characters}}.",
+    "charsetSideKeyWarning": "As the final hint character, {{characters}} may make the adjacent-key actions unavailable or awkward to press. You can still save; ignore this warning if you do not use these actions.",
     "grid": "Hint Grid",
     "rows": "Rows",
     "rowsTooltip": "Number of rows to divide the screen into for displaying hints at fixed positions.",
@@ -202,7 +204,7 @@
       "application": "Application",
       "detection": "Scanning & cache",
       "detectionDescription": "Time in milliseconds between element scans and before cached results expire.",
-      "characterRows": "Character sets, in order",
+      "characterRows": "Character sets by position",
       "gridDescription": "Place hints at fixed positions across the screen.",
       "typesDescription": "Customize appearance and element assignments for each hint type."
     },

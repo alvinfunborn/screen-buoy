@@ -18,7 +18,8 @@ queue the click coordinates; native enumeration and AX work stay off the hook.
 
 There is one UI-element cache per window. **A valid completed cache skips native
 scanning**, including the foreground window while idle. `cache_ttl` controls this
-reuse, as well as the age of coordinates accepted by a new hint session.
+reuse and the age of raw source updates used by visibility processing. A separate
+filtered-coordinate cache supplies the initial display while a refresh is pending.
 Recommended defaults are `collect_interval = 250` and `cache_ttl = 60000`.
 The interval is a delay after scan completion, not a fixed-rate schedule;
 a longer valid cache wins. The installed user's setting was changed live from
@@ -101,22 +102,33 @@ snapshot without accumulating a queue of all intermediate trees.
 
 ## Hint session
 
-The hotkey subscribes before requesting a refresh, resets the overlays, and
-publishes the grid immediately. Warm controls are used after the scheduler has
-sampled the current desktop/window list, preventing another Space's cache from
-being consumed before the switch is noticed. Fresh scan results continue to
-arrive while the session is open.
+The hotkey subscribes and captures the existing **filtered-coordinate cache**
+before requesting a refresh. After resetting the overlays, it publishes the
+grid and those cached on-screen coordinates without waiting for another window
+enumeration, AX/UIA scan or native occlusion check. Raw, unfiltered source points
+are never replayed. Background filtering also runs with hints closed, so the
+first activation after prewarming can use this cache.
 
-Reopening also reuses the recent **displayed-control snapshot**: coordinates
-that passed visibility checks are intersected with the latest unexpired source
-snapshots and published together, once per monitor. They do not repeat the
-128-candidate queue before appearing. The complete window order, identities,
-geometry and levels must still match; layout changes invalidate this view cache.
-Its accepted points expire after `cache_ttl`, and replay does not extend that
-lifetime. Codes are allocated for the new session using the current monitor
-mapping; moved hints from the previous session are not replayed at their offset.
-Unverified/new coordinates continue through the ordinary visibility pipeline.
-This view cache performs no extra background scans.
+One visibility worker listens for source and window-layout changes. Every hint
+activation also schedules a fresh visibility pass, even if the raw coordinates
+have not changed. The worker processes all candidates, including coordinates
+already displayed in the active session. A newly occluded point is removed from
+the reusable cache, and a point removed from a source is pruned there too. New
+accepted points are published progressively. Visibility results are independent
+of hint-code capacity or whether the user has closed the overlay.
+
+This keeps two intentionally different views: the current session only appends,
+while the reusable cache adds and removes points. For example, if cached point
+A is now covered and new point B is visible, the current session keeps A and
+appends B; the next activation gets B without A after that check completes.
+Until a recheck finishes, the prior filtered coordinates remain available for
+immediate replay. Closed windows and replaced window owners are pruned from the
+cache; unrelated layout changes do not flush all filtered points.
+
+Offscreen points and duplicate coordinates are skipped, and code capacity is
+respected. Codes use the current display mapping and start with zero movement
+offset each session. An empty cold cache shows grids first and appends controls
+as background filtering finishes.
 
 A session owns its used coordinates and next unused code. New coordinates are
 appended. Existing codes and coordinates are never reassigned, moved or deleted
@@ -128,8 +140,9 @@ codes run out, the session stops appending rather than recycling existing codes.
 Visibility work is split into groups of at most 128 candidates, with foreground
 updates considered between groups. Progressive replacement preserves traversal
 progress so repeated snapshots cannot starve controls later in the tree.
-Offscreen and previously assigned coordinates are filtered before cloning or
-entering this queue. The prefilter uses the same logical display bounds as hint
+Offscreen coordinates are filtered before cloning or entering this queue;
+already displayed coordinates still need checking for the next session's cache.
+The prefilter uses the same logical display bounds as hint
 rendering on macOS, including negative coordinates and mixed display scales;
 Windows keeps its physical-coordinate bounds. Window intersections and display
 bounds are shared across batches until the window layout changes.
@@ -139,10 +152,12 @@ of the same native walk. A changed snapshot from a new walk permits rejected
 points to be checked again after the existing queue has drained. An unfinished
 queue keeps its traversal progress across walks so frequent scans cannot keep
 restarting at element zero. A topology change clears both pending and completed
-work and reconsiders still-unassigned candidates. This state is bounded by the
-current visible windows and lasts only for the active hint session; it is not a
-cross-session native hit-test cache. Identical source results still do not
-publish a new revision merely because another scan completed.
+work and reconsiders all candidates. This state is bounded by the current visible
+windows and survives overlay closure. The worker sleeps when no source/layout
+change or new activation needs work. It pauses 20 ms between candidate batches
+with hints closed and 1 ms with hints open; these are cooperative pauses, not a
+hard native-call time limit. Identical filtered results do not republish cache
+vectors or wake the frontend.
 
 Storage and overlay publication are serialized with session transitions. Every
 begin/append/hide/filter/move event carries a session epoch, and deferred exits
@@ -162,8 +177,8 @@ the primary display's logical height, preserving negative display coordinates.
 
 Native queries run on the AppKit main thread in sequential tasks of at most 64
 points, stopping after a cooperative 2 ms budget. Query results are scoped to
-that candidate batch. Recently accepted display coordinates can be replayed as
-described above; raw native hit-test results are not shared. Failed queries use
+that candidate batch. Initial filtered-cache replay avoids repeating these checks
+on the activation path; raw native hit-test results are not shared. Failed queries use
 the conservative rectangle rule. A rejected point does not reserve its
 coordinate before a visible owner can claim it. Windows uses rectangle pruning.
 
@@ -180,11 +195,14 @@ but does not establish a fixed worst-case recognition time.
 added/total counts, first-control flag, elapsed activation time and snapshot age
 at INFO level. The first-control metric excludes grids but may describe a warm
 control; it does **not** prove the user's newly appeared target is ready.
-`[hint_warm]` reports the count restored together and elapsed backend activation
-time; it does not include frontend paint.
-`[hint_perf macos]` now describes one candidate batch's visibility work, including
-native query count/time, main-thread occupancy and visibility fallbacks. Its
-`total_ms` is elapsed time since activation, not a single-batch duration.
+`[hint_cache]` reports the initial cached-control count, source count and elapsed
+backend activation time, including when the cache is empty. It does not include
+frontend paint. `[hint_warm]` in older logs describes the previous verified-only
+replay path that required an unchanged desktop before reuse.
+`[visibility_perf macos]` reports one background worker batch, including epoch,
+whether hints were closed, accepted-point count, native query time and main-thread
+occupancy. `elapsed_ms` is batch processing time, not activation or paint latency.
+Older `[hint_perf macos]` records described visibility on the activation path.
 
 ### Hint queue work reduction (2026-10-23)
 

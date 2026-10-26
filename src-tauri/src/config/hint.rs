@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use indexmap::IndexMap;
 use log::info;
@@ -12,6 +12,19 @@ pub struct HintConfig {
     pub style: String,
     pub types: IndexMap<String, HintType>,
     pub grid: GridConfig,
+}
+
+impl HintConfig {
+    /// The input handler uses the first key to choose the hint length.
+    /// Extra prefixes may share later positions, but never the first one.
+    pub fn prefix_conflicts(&self) -> Vec<char> {
+        let first: HashSet<char> = self.charsets.first().into_iter().flatten()
+            .map(|character| character.to_ascii_uppercase()).collect();
+        let mut seen = HashSet::new();
+        self.charset_extra.iter().map(|character| character.to_ascii_uppercase())
+            .filter(|character| first.contains(character) && seen.insert(*character))
+            .collect()
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -29,11 +42,6 @@ pub struct GridConfig {
     pub show_at_columns: Vec<i32>,
     pub hint_type: String,
 }
-
-pub static HAS_EXTRA_CHARSET: Lazy<bool> = Lazy::new(|| {
-    let config = super::get_config().unwrap().hint;
-    !config.charset_extra.is_empty()
-});
 
 pub static HINT_TYPE_ID_MAP: Lazy<HashMap<String, usize>> = Lazy::new(|| {
     let config = super::get_config().unwrap().hint;

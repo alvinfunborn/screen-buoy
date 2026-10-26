@@ -1,13 +1,11 @@
-//! Per-activation macOS visibility checks. Windows retains its rectangle policy.
+//! Background macOS visibility checks. Windows retains its rectangle policy.
 use crate::macos_window;
-use super::is_active;
 use std::collections::{hash_map::Entry, HashMap};
 use std::time::{Duration, Instant};
 
 #[derive(Default)]
 pub struct PointVisibility {
-    // Never shared between activations: window geometry and click-through state
-    // may change even when the UI element cache still contains the same point.
+    // Native results belong to one batch. Only filtered coordinates are cached.
     hits: HashMap<(i32, i32), Option<i64>>,
     points: Vec<(i32, i32)>,
     candidates: usize,
@@ -41,7 +39,7 @@ impl PointVisibility {
         }
     }
 
-    pub async fn prepare(&mut self, app: &tauri::AppHandle, activation: u64) -> bool {
+    pub async fn prepare(&mut self, app: &tauri::AppHandle) {
         let started = Instant::now();
         let primary_height = core_graphics::display::CGDisplay::main()
             .bounds()
@@ -49,22 +47,19 @@ impl PointVisibility {
             .height;
         let mut offset = 0;
         while offset < self.points.len() {
-            if !is_active(activation) {
-                return false;
-            }
             // One short main-thread task at a time; never queue the entire scan.
             let points = self.points[offset..(offset + 64).min(self.points.len())].to_vec();
             let (tx, rx) = tokio::sync::oneshot::channel();
             if let Err(error) = app.run_on_main_thread(move || {
                 let main_started = Instant::now();
-                if !tx.is_closed() && is_active(activation) {
+                if !tx.is_closed() {
                     let mut result =
                         unsafe { macos_window::hit_test_points(&points, primary_height) };
                     result.main_elapsed = main_started.elapsed();
                     let _ = tx.send(result);
                 }
             }) {
-                log::warn!("[hint_perf macos] main-thread dispatch failed: {error}; using rectangle fallback");
+                log::warn!("[visibility_perf macos] main-thread dispatch failed: {error}; using rectangle fallback");
                 break;
             }
             let Ok(batch) = rx.await else {
@@ -82,7 +77,6 @@ impl PointVisibility {
         self.hit_test_elapsed = started.elapsed();
         // Drop planning allocations; keep only the point result cache.
         self.points = Vec::new();
-        is_active(activation)
     }
 
     pub fn visible(&self, window: i64, point: (i32, i32), suspect: bool) -> bool {
@@ -92,12 +86,12 @@ impl PointVisibility {
         }
     }
 
-    pub fn log_performance(&self, activation: u64, hints: i32, grid: i32, total: Duration) {
+    pub fn log_performance(&self, epoch: u64, visible: usize, total: Duration) {
         log::info!(
-            "[hint_perf macos] activation={} candidates={} offscreen={} rect_fast={} rect_suspect={} native_queries={} cache_hits={} failures={} unresolved={} hints={} grid_hints={} control_hints={} total_ms={:.3} hit_test_ms={:.3} query_ms={:.3} main_total_ms={:.3} main_max_ms={:.3} batches={}",
-            activation, self.candidates, self.offscreen, self.fast_passes, self.suspects,
+            "[visibility_perf macos] epoch={} background={} candidates={} offscreen={} rect_fast={} rect_suspect={} native_queries={} cache_hits={} failures={} unresolved={} visible={} elapsed_ms={:.3} hit_test_ms={:.3} query_ms={:.3} main_total_ms={:.3} main_max_ms={:.3} batches={}",
+            epoch, epoch % 2 == 0, self.candidates, self.offscreen, self.fast_passes, self.suspects,
             self.queries, self.suspects.saturating_sub(self.unique_points), self.failures,
-            self.unique_points.saturating_sub(self.queries) + self.failures, hints, grid, hints - grid,
+            self.unique_points.saturating_sub(self.queries) + self.failures, visible,
             total.as_secs_f64() * 1000.0, self.hit_test_elapsed.as_secs_f64() * 1000.0,
             self.query_elapsed.as_secs_f64() * 1000.0, self.main_total.as_secs_f64() * 1000.0,
             self.main_max.as_secs_f64() * 1000.0, self.batches,
