@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Modificador de propagación",
-    "propagationModifierTooltip": "Claves de modificación (por ejemplo, Alt, Ctrl, Shift, Win) que la aplicación ignorará, permitiendo que sus eventos se transmitan a otras ventanas.",
+    "propagationModifierTooltip": "Claves de modificación (por ejemplo, {{modifiers}}) que la aplicación ignorará, permitiendo que sus eventos se transmitan a otras ventanas.",
     "selectModifiers": "Seleccionar modificadores",
     "availableKeys": "Claves disponibles",
     "availableKeysTooltip": "Defina las claves disponibles para los atajos y sus códigos de clave de plataforma.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Define relaciones de izquierda/derecha para las claves. Se utiliza para combinaciones flexibles y acciones direccionales.",
     "left": "Izquierda",
     "right": "Derecha",
-    "addLeftRightMapping": "Añadir Mapeo Izquierda Derecha"
+    "addLeftRightMapping": "Añadir Mapeo Izquierda Derecha",
+    "macKeycode": "Código de tecla macOS",
+    "macKeycodeTooltip": "Códigos nativos de macOS en decimal: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dinámico",
+    "dynamicKeysTooltip": "HintKey y sus teclas vecinas dependen de la indicación actual y no tienen un código fijo."
   },
   "keybinding": {
     "mainHotkey": "Atajo principal",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Mover todos los consejos a la izquierda.",
     "moveRight": "Mover a la derecha",
     "moveRightTooltip": "Mover todos los consejos a la derecha.",
+    "hover": "Pasar el cursor y salir",
+    "hoverTooltip": "Mueve el cursor a la pista seleccionada y sale del modo de pistas sin hacer clic. No requiere un tiempo mínimo de pulsación.",
     "atHintKeybindings": "Atajos en la posición de la pista",
     "leftClick": "Clic izquierdo",
     "leftClickTooltip": "Haz clic con el ratón en la posición de la sugerencia.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Desplazar a la izquierda",
     "scrollLeftTooltip": "Desplázate hacia la izquierda en la posición de la pista.",
     "scrollRight": "Desplazar a la derecha",
-    "scrollRightTooltip": "Desplázate hacia la derecha en la posición de la pista."
+    "scrollRightTooltip": "Desplázate hacia la derecha en la posición de la pista.",
+    "cursorMoveTooltip": "Mueve el puntero según el paso configurado; las indicaciones lo acompañan."
   },
   "hint": {
     "charsets": "Hint: Character Sets",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Introducir el estilo predeterminado",
     "placeholderTypeStyle": "Introduzca el CSS para {{typeName}}",
     "placeholderElementTypes": "Introduce tipos, separados por coma",
-    "placeholderNewType": "Introducir nombre de nuevo tipo de pista"
+    "placeholderNewType": "Introducir nombre de nuevo tipo de pista",
+    "axRoles": "Roles de controles macOS",
+    "axRolesTooltip": "Selecciona roles de accesibilidad para este estilo o introduce un rol AX personalizado. Una lista vacía no coincide con controles; el estilo sigue disponible para la cuadrícula.",
+    "placeholderAxRoles": "Seleccionar o introducir roles AX",
+    "macTypesDescription": "Asigna estilos a roles de controles nativos de macOS. Los nombres de grupo identifican estilos; los roles AX seleccionados determinan los controles correspondientes."
   },
   "mouse": {
     "movementStep": "Paso de movimiento",
@@ -206,7 +217,10 @@
       "detectionDescription": "Tiempo en milisegundos entre las escaneos de los elementos y antes de que los resultados en caché caduquen.",
       "characterRows": "Conjuntos de caracteres por posición",
       "gridDescription": "Coloca indicaciones en posiciones fijas en toda la pantalla.",
-      "typesDescription": "Personalizar la apariencia y la asignación de elementos para cada tipo de indicador."
+      "typesDescription": "Personalizar la apariencia y la asignación de elementos para cada tipo de indicador.",
+      "cursor": "Mover el puntero",
+      "dragDescription": "Mantiene pulsado el botón izquierdo al mover el puntero.",
+      "scrollDescription": "Desplaza el contenido bajo el puntero sin moverlo."
     },
     "help": {
       "startAtLogin": "Iniciar Screen Buoy al iniciar sesión.",

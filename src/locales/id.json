@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Pengubah Penyebaran",
-    "propagationModifierTooltip": "Kunci modifier (misalnya Alt, Ctrl, Shift, Win) yang akan diabaikan oleh aplikasi, sehingga peristiwa-peristiwa terkaitnya dapat terus berjalan ke jendela-jendela lain.",
+    "propagationModifierTooltip": "Kunci modifier (misalnya {{modifiers}}) yang akan diabaikan oleh aplikasi, sehingga peristiwa-peristiwa terkaitnya dapat terus berjalan ke jendela-jendela lain.",
     "selectModifiers": "Pilih modifier",
     "availableKeys": "Kunci yang Tersedia",
     "availableKeysTooltip": "Tentukan kunci-kunci yang tersedia untuk pintasan dan kode kunci platform mereka.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Definisikan hubungan kiri/kanan untuk kunci. Digunakan untuk kombinasi yang fleksibel dan tindakan arah.",
     "left": "Kiri",
     "right": "Kanan",
-    "addLeftRightMapping": "Tambahkan Pemetaan Kiri Kanan"
+    "addLeftRightMapping": "Tambahkan Pemetaan Kiri Kanan",
+    "macKeycode": "Kode tombol macOS",
+    "macKeycodeTooltip": "Kode tombol asli macOS dalam desimal: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dinamis",
+    "dynamicKeysTooltip": "HintKey dan tombol di sebelahnya bergantung pada petunjuk saat ini dan tidak memiliki kode tetap."
   },
   "keybinding": {
     "mainHotkey": "Pintasan utama",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Pindahkan semua petunjuk ke kiri.",
     "moveRight": "Pindah ke kanan",
     "moveRightTooltip": "Pindahkan semua petunjuk ke kanan.",
+    "hover": "Arahkan kursor dan keluar",
+    "hoverTooltip": "Memindahkan penunjuk ke petunjuk yang dipilih dan keluar dari mode petunjuk tanpa mengeklik. Tidak perlu menahan tombol selama durasi minimum.",
     "atHintKeybindings": "Pintasan pada posisi petunjuk",
     "leftClick": "Klik kiri",
     "leftClickTooltip": "Klik kiri pada posisi petunjuk.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Gulir ke kiri",
     "scrollLeftTooltip": "Gesek ke kiri pada posisi petunjuk.",
     "scrollRight": "Gulir ke kanan",
-    "scrollRightTooltip": "Geser ke kanan pada posisi petunjuk."
+    "scrollRightTooltip": "Geser ke kanan pada posisi petunjuk.",
+    "cursorMoveTooltip": "Menggerakkan penunjuk sesuai langkah yang diatur; petunjuk ikut bergerak."
   },
   "hint": {
     "charsets": "Petunjuk Set Karakter",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Masukkan gaya default",
     "placeholderTypeStyle": "Masukkan gaya CSS untuk {{typeName}}",
     "placeholderElementTypes": "Masukkan jenis, dipisahkan dengan koma.",
-    "placeholderNewType": "Masukkan nama jenis petunjuk baru"
+    "placeholderNewType": "Masukkan nama jenis petunjuk baru",
+    "axRoles": "Peran kontrol macOS",
+    "axRolesTooltip": "Pilih peran aksesibilitas untuk gaya ini atau masukkan peran AX khusus. Daftar kosong tidak cocok dengan kontrol apa pun; gaya tetap dapat digunakan untuk kisi.",
+    "placeholderAxRoles": "Pilih atau masukkan peran AX",
+    "macTypesDescription": "Tetapkan gaya petunjuk ke peran kontrol asli macOS. Nama grup mengidentifikasi gaya; peran AX yang dipilih menentukan kontrol yang cocok."
   },
   "mouse": {
     "movementStep": "Langkah Gerakan",
@@ -206,7 +217,10 @@
       "detectionDescription": "Waktu dalam milidetik antara pemindaian elemen dan sebelum hasil yang di-cache kedaluwarsa.",
       "characterRows": "Set karakter menurut posisi",
       "gridDescription": "Tampilkan petunjuk di posisi tetap di seluruh layar.",
-      "typesDescription": "Sesuaikan tampilan dan penugasan elemen untuk setiap jenis *hint*."
+      "typesDescription": "Sesuaikan tampilan dan penugasan elemen untuk setiap jenis *hint*.",
+      "cursor": "Gerakkan penunjuk",
+      "dragDescription": "Menahan tombol kiri mouse sambil menggerakkan penunjuk.",
+      "scrollDescription": "Menggulir konten di bawah penunjuk tanpa memindahkan penunjuk."
     },
     "help": {
       "startAtLogin": "Jalankan Screen Buoy saat masuk.",

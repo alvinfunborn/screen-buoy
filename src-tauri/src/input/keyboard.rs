@@ -15,6 +15,7 @@ pub struct KeyboardState {
     pub hint_length: usize,
     pub final_hint_key_hold: bool,
     pub final_hint_key_hold_start: u64,
+    pub hover_pending: bool,
     pub in_ctrl_session: bool,
     pub is_dragging: bool,
     pub hold_keys: HashMap<String, bool>,
@@ -30,11 +31,16 @@ impl KeyboardState {
             hint_length: 0,
             final_hint_key_hold: false,
             final_hint_key_hold_start: 0,
+            hover_pending: false,
             in_ctrl_session: false,
             is_dragging: false,
             hold_keys: HashMap::<String, bool>::new(),
             double_click_key_hold: false,
         }
+    }
+
+    pub fn can_quick_click(&self, now: u64) -> bool {
+        !self.hover_pending && now.saturating_sub(self.final_hint_key_hold_start) < 300
     }
 }
 
@@ -58,6 +64,7 @@ pub fn switch_keyboard_ctrl(visible: bool) {
                 state.final_hint_key = Some("".to_string());
                 state.final_hint_key_hold = false;
                 state.final_hint_key_hold_start = 0;
+                state.hover_pending = false;
                 state.is_dragging = false;
             }
         }
@@ -99,6 +106,11 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
     // 如果hints不可见，不处理任何按键
     if !state.in_ctrl_session {
         return false;
+    }
+    // Hover owns the rest of this session. In particular, a fast HintKey
+    // release must not schedule a click while its async movement is pending.
+    if state.hover_pending {
+        return true;
     }
     info!(
         "[handle_keyboard_event] key: {}:{}, is_holding_at_hint:{}",
@@ -346,5 +358,22 @@ mod macos_release_tests {
         assert!(!dispatch_macos_quick_release("HintKey", &bindings, || false));
         // Releasing another key must not schedule any click.
         assert!(!dispatch_macos_quick_release("Other", &bindings, || panic!("unexpected click")));
+    }
+}
+
+#[cfg(test)]
+mod hover_tests {
+    use super::*;
+
+    #[test]
+    fn hover_prevents_click_even_when_hint_key_is_released_before_300ms() {
+        let mut state = KeyboardState::new();
+        state.final_hint_key_hold_start = 1000;
+        assert!(state.can_quick_click(1299));
+        assert!(!state.can_quick_click(1300));
+        state.hover_pending = true;
+        for released_at in [1000, 1001, 1299, 1300, 2000] {
+            assert!(!state.can_quick_click(released_at));
+        }
     }
 }

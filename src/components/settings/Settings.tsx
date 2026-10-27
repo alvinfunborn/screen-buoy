@@ -31,6 +31,7 @@ const Settings: React.FC = () => {
   const screens = Grid.useBreakpoint();
   const [loading, setLoading] = useState(true);
   const [initialConfig, setInitialConfig] = useState<Config | null>(null);
+  const [platform, setPlatform] = useState<{ platform: string; ax_roles: string[] }>({ platform: '', ax_roles: [] });
   const [availableKeys, setAvailableKeys] = useState<Record<string, number>>();
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const revision = useRef(0);
@@ -39,7 +40,11 @@ const Settings: React.FC = () => {
   const loadConfig = async () => {
     setLoading(true);
     try {
-      const config = await invoke<Config>('get_config_for_frontend');
+      const [config, metadata] = await Promise.all([
+        invoke<Config>('get_config_for_frontend'),
+        invoke<{ platform: string; ax_roles: string[] }>('get_settings_platform'),
+      ]);
+      setPlatform(metadata);
       setInitialConfig(config);
       setLanguagePreference(config.system.language ?? 'auto');
       await applyLanguage(config.system.language ?? 'auto');
@@ -92,9 +97,9 @@ const Settings: React.FC = () => {
   const pages = [
     { key: 'keybinding', icon: <ThunderboltOutlined />, content: <KeybindingSettings availableKeysData={availableKeys} /> },
     { key: 'mouse', icon: <AimOutlined />, content: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeys} /> },
-    { key: 'hint', icon: <FontSizeOutlined />, content: <HintSettings onValuesChange={handleValuesChange} /> },
+    { key: 'hint', icon: <FontSizeOutlined />, content: <HintSettings onValuesChange={handleValuesChange} isMac={platform.platform === 'macos'} axRoles={platform.ax_roles} /> },
     { key: 'uiAutomation', icon: <AppstoreOutlined />, content: <UiAutomationSettings /> },
-    { key: 'keyboard', icon: <ControlOutlined />, content: <KeyboardSettings onValuesChange={handleValuesChange} /> },
+    { key: 'keyboard', icon: <ControlOutlined />, content: <KeyboardSettings onValuesChange={handleValuesChange} isMac={platform.platform === 'macos'} /> },
     { key: 'system', icon: <SettingOutlined />, content: <SystemSettings /> },
   ];
 

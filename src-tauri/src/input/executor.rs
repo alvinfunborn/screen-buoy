@@ -52,6 +52,7 @@ impl<'a> Executor<'a> {
 
     pub fn execute_at_hint(&mut self, cmd: Option<&str>) -> bool {
         match cmd {
+            Some(config::keybinding::HOVER_CMD) => self.execute_hover(),
             Some(config::keybinding::HOLD_AT_HINT_CMD) => {
                 // 拦截hint_key, 保持按住final_hint_key, 不传播按键
                 true
@@ -136,11 +137,11 @@ impl<'a> Executor<'a> {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_millis() as u64;
-        let hold_duration = now - self.state.final_hint_key_hold_start;
 
         let app_handle_clone = self.app_handle.clone();
         let activation = crate::hint::current_activation();
-        if hold_duration < 300 {
+        if self.state.can_quick_click(now) {
+            let hold_duration = now.saturating_sub(self.state.final_hint_key_hold_start);
             debug!("[execute_quick_click] execute quick click since hold_duration: {} < 300", hold_duration);
             #[cfg(target_os = "macos")]
             let click_ticket = mouse::click_ticket();
@@ -164,6 +165,34 @@ impl<'a> Executor<'a> {
             return true;
         }
         false
+    }
+
+    fn execute_hover(&mut self) -> bool {
+        let Some((monitor, x, y)) =
+            get_hint_position_by_text(self.state.pressed_hint_keys.as_deref().unwrap_or(""))
+        else {
+            return false;
+        };
+        self.state.hover_pending = true;
+        #[cfg(target_os = "macos")]
+        mouse::cancel_pending_clicks();
+        let app = self.app_handle.clone();
+        let activation = crate::hint::current_activation();
+        let is_dragging = self.state.is_dragging;
+        tauri::async_runtime::spawn(async move {
+            if !crate::hint::is_active(activation) {
+                return;
+            }
+            if is_dragging {
+                mouse::mouse_drag_end().await;
+            }
+            // macOS mouse_move posts an event even when already at the hint.
+            mouse::mouse_move(monitor, x, y).await;
+            #[cfg(target_os = "windows")]
+            mouse::mouse_move_relative(0, 0).await;
+            crate::hint::hide_hints_for_session(app, activation).await;
+        });
+        true
     }
 
     fn execute_hold_at_hint(&mut self) -> bool {

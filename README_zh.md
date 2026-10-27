@@ -70,7 +70,7 @@ Screen Buoy 通过平台原生的辅助功能 API 跨进程、跨窗口地枚举
 使用 **macOS Accessibility API** 和 **Core Graphics**：
 
 - 通过 Accessibility API（`AXUIElement`）枚举各应用的窗口和 UI 控件
-- 将 AX role（如 `AXButton`、`AXTextField`）映射到与 Windows 统一的控件类型体系
+- 直接使用 AX role（如 `AXButton`、`AXTextField`）匹配提示样式，兼容旧版数字类型配置
 - 使用 Core Graphics 事件监听（`CGEventTapCreate`）进行全局键盘监控
 - 需授予 **辅助功能** 权限；如果键盘监听不可用，同时允许 **输入监视**（系统设置 > 隐私与安全性）
 
@@ -152,7 +152,7 @@ npm run tauri build
 - Hold模式:
   - Esc: 退出Hint
   - LShift: 左键点击
-  - HintLeftKey: 左键点击并退出
+  - HintLeftKey: 悬停到Hint并退出，不点击
   - Enter: 双击
   - RShift: 右键点击
   - HintRightKey: 右键点击并退出
@@ -167,9 +167,11 @@ npm run tauri build
 
 - **HintKey**：主Hint触发键(Hint的最后一位字符)，通常用于激活Hint、移动到Hint位置、执行主操作（如左键点击）。
 - **HintRightKey**：在长按HintKey的基础上，按下此键可触发右键点击等扩展操作。
-- **HintLeftKey**：在长按HintKey的基础上，按下此键可触发左键点击或其它自定义操作。
+- **HintLeftKey**：按住HintKey，再按其左侧键，将鼠标悬停到Hint并退出，不点击。例如提示码是 `FK`，按住 `K` 再按 `J` 即可，无需等待长按时间。
 
 这些按键可在`keybinding`配置中自定义，适配不同用户习惯。
+
+“悬停并退出”可在“Hint内快捷键”中配置。旧配置若仍仅将 `HintLeftKey` 绑定到“点击并退出”，加载时会采用新的悬停默认值；自定义绑定和显式设置的悬停绑定会保留。
 
 ##### 2. keyboard配置的按键注册
 
@@ -178,6 +180,8 @@ npm run tauri build
 - **map_left_right**：为部分按键定义"左/右"映射关系，支持更灵活的组合操作。
 
 > **说明：** Windows 和 macOS 使用独立配置文件（`config.toml` 和 `config_macos.toml`）。macOS 使用原生键名：`LCmd`/`RCmd`（Command）、`LOption`/`ROption`（Option）、`LControl`/`RControl`（Control）。
+
+macOS 键码使用原生十进制数值：Return/Enter = 36、Tab = 48、Space = 49；左/右/下/上方向键 = 123/124/125/126。HintKey 及其左右侧键是动态指代，没有固定键码。
 
 示例（Windows `config.toml`）：
 ```toml
@@ -203,6 +207,8 @@ right = "L"
 **Hold At Hint**是Screen Buoy的核心交互方式之一。当你输入Hint后，长按HintKey（Hint的最后一个字符），会进入Hold模式，此时可以在Hint位置执行更多操作（如拖拽、滚动、右键点击等）。
 你也可以在Hint激活时直接长按Space等自定义按键，直接在当前鼠标光标位置进入Hold模式。
 这些进入Hold模式的方式都可以通过`hold_at_hint`配置灵活定制。
+
+Hold 模式下，“移动光标”微调鼠标位置（提示随之移动），“拖拽”按住鼠标左键移动，“滚动”滚动光标位置的内容。此状态下方向键默认用于拖拽，移动光标默认不绑定按键；选中 Hint 前，方向键用于移动提示和光标。
 
 ###### 配置结构
 
@@ -243,9 +249,12 @@ hint_type = "default"
 
 - **style**：自定义CSS样式，支持背景色、字体、边框等。
 - **z_index**：控制不同类型Hint的层级，避免遮挡。
-- **element_control_types**：指定该类型Hint关联的控件类型（如按钮、文本框等）。
+- **element_control_types**（Windows）：UI Automation 控件类型编号。
+- **element_ax_roles**（macOS）：原生辅助功能角色，可在设置中直接选择。例如 `tab` 对应 `AXTabGroup` / `AXTabButton` / `AXTab`，`text` 对应文本输入控件和 `AXStaticText`。角色列表为空的样式仍可用于网格提示。
 
-示例：
+旧版 Mac 默认分组在加载时升级为原生角色分组；自定义数字类型配置保留原有角色对应关系、颜色和层级。保存后持久化角色列表；清空角色列表会停止该组的控件匹配。
+
+示例（Windows）：
 ```toml
 [hint.types.button]
 style = """

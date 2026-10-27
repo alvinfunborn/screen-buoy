@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "穿透修饰键",
-    "propagationModifierTooltip": "指定不监听的修饰键（如Alt、Ctrl、Shift、Win），这些修饰键按下时按键事件会穿透到其他窗口。",
+    "propagationModifierTooltip": "指定不监听的修饰键（如{{modifiers}}），这些修饰键按下时按键事件会穿透到其他窗口。",
     "selectModifiers": "选择修饰键",
     "availableKeys": "可用按键",
     "availableKeysTooltip": "定义快捷键可用的按键名称及其对应的平台键码。",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "定义按键的左右关系，用于灵活组合和方向操作。",
     "left": "左",
     "right": "右",
-    "addLeftRightMapping": "添加左右映射"
+    "addLeftRightMapping": "添加左右映射",
+    "macKeycode": "macOS 键码",
+    "macKeycodeTooltip": "使用 macOS 原生键码（十进制）：Return/Enter = 36、Tab = 48、Space = 49。",
+    "dynamicKeycode": "动态",
+    "dynamicKeysTooltip": "HintKey 及其左右侧键随当前提示确定，没有固定键码。"
   },
   "keybinding": {
     "mainHotkey": "主快捷键",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "将所有hint左移。",
     "moveRight": "右移",
     "moveRightTooltip": "将所有hint右移。",
+    "hover": "悬停并退出",
+    "hoverTooltip": "将鼠标移动到选中的Hint并退出提示模式，不触发点击，无需等待长按时间。",
     "atHintKeybindings": "Hint内快捷键",
     "leftClick": "左键点击",
     "leftClickTooltip": "在hint位置左键点击。",
@@ -93,7 +99,8 @@
     "scrollLeft": "向左滚动",
     "scrollLeftTooltip": "在hint位置向左滚动。",
     "scrollRight": "向右滚动",
-    "scrollRightTooltip": "在hint位置向右滚动。"
+    "scrollRightTooltip": "在hint位置向右滚动。",
+    "cursorMoveTooltip": "按移动步长微调鼠标光标的位置，提示随之移动。"
   },
   "hint": {
     "charsets": "Hint字符集",
@@ -132,7 +139,11 @@
     "placeholderStyle": "输入默认样式",
     "placeholderTypeStyle": "为{{typeName}}输入样式CSS",
     "placeholderElementTypes": "用逗号分隔输入类型",
-    "placeholderNewType": "输入新hint类型名称"
+    "placeholderNewType": "输入新hint类型名称",
+    "axRoles": "macOS 控件角色",
+    "axRolesTooltip": "选择此样式对应的辅助功能角色，也可输入自定义 AX 角色。留空时不匹配控件，但此样式仍可用于网格提示。",
+    "placeholderAxRoles": "选择或输入 AX 角色",
+    "macTypesDescription": "按 macOS 原生控件角色分配提示样式。分组名用于标识样式，实际匹配由组内选择的 AX 角色决定。"
   },
   "mouse": {
     "movementStep": "移动步进",
@@ -206,7 +217,10 @@
       "detectionDescription": "时间单位为毫秒。设置控制元素的更新频率与缓存有效期。",
       "characterRows": "按位设置字符集",
       "gridDescription": "在屏幕的固定网格位置显示提示。",
-      "typesDescription": "为不同类型的提示设置样式和对应的界面元素。"
+      "typesDescription": "为不同类型的提示设置样式和对应的界面元素。",
+      "cursor": "移动光标",
+      "dragDescription": "按住鼠标左键并移动光标，用于拖动对象或选择内容。",
+      "scrollDescription": "滚动光标所在位置的内容，光标保持原位。"
     },
     "help": {
       "startAtLogin": "登录系统时自动启动 Screen Buoy。",

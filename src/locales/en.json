@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Propagation Modifier",
-    "propagationModifierTooltip": "Modifier keys (e.g. Alt, Ctrl, Shift, Win) that will be ignored by the app, allowing their events to pass through to other windows.",
+    "propagationModifierTooltip": "Modifier keys (e.g. {{modifiers}}) that will be ignored by the app, allowing their events to pass through to other windows.",
     "selectModifiers": "Select modifiers",
     "availableKeys": "Available Keys",
     "availableKeysTooltip": "Define the keys available for shortcuts and their platform key codes.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Define left/right relationships for keys. Used for flexible combos and directional actions.",
     "left": "Left",
     "right": "Right",
-    "addLeftRightMapping": "Add Left Right Mapping"
+    "addLeftRightMapping": "Add Left Right Mapping",
+    "macKeycode": "macOS keycode",
+    "macKeycodeTooltip": "Native macOS keycodes in decimal: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dynamic",
+    "dynamicKeysTooltip": "HintKey and its neighboring keys depend on the current hint and have no fixed keycode."
   },
   "keybinding": {
     "mainHotkey": "Main Hotkey",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Move all hints left.",
     "moveRight": "Move Right",
     "moveRightTooltip": "Move all hints right.",
+    "hover": "Hover and Exit",
+    "hoverTooltip": "Move the pointer to the selected hint and exit hint mode without clicking. No minimum hold duration is required.",
     "atHintKeybindings": "At Hint Keybindings",
     "leftClick": "Left Click",
     "leftClickTooltip": "Left click at the hint position.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Scroll Left",
     "scrollLeftTooltip": "Scroll left at the hint position.",
     "scrollRight": "Scroll Right",
-    "scrollRightTooltip": "Scroll right at the hint position."
+    "scrollRightTooltip": "Scroll right at the hint position.",
+    "cursorMoveTooltip": "Move the mouse pointer by the configured step; hints follow the movement."
   },
   "hint": {
     "charsets": "Hint Charsets",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Enter the default style",
     "placeholderTypeStyle": "Enter the style css for {{typeName}}",
     "placeholderElementTypes": "Enter types, comma-separated",
-    "placeholderNewType": "Enter new hint type name"
+    "placeholderNewType": "Enter new hint type name",
+    "axRoles": "macOS control roles",
+    "axRolesTooltip": "Choose accessibility roles for this style, or enter a custom AX role. An empty list matches no controls; the style can still be used by the grid.",
+    "placeholderAxRoles": "Select or enter AX roles",
+    "macTypesDescription": "Assign hint styles to native macOS control roles. Group names identify styles; the selected AX roles determine which controls match."
   },
   "mouse": {
     "movementStep": "Movement Step",
@@ -206,7 +217,10 @@
       "detectionDescription": "Time in milliseconds between element scans and before cached results expire.",
       "characterRows": "Character sets by position",
       "gridDescription": "Place hints at fixed positions across the screen.",
-      "typesDescription": "Customize appearance and element assignments for each hint type."
+      "typesDescription": "Customize appearance and element assignments for each hint type.",
+      "cursor": "Move pointer",
+      "dragDescription": "Hold the left mouse button while moving the pointer.",
+      "scrollDescription": "Scroll the content under the pointer without moving the pointer."
     },
     "help": {
       "startAtLogin": "Launch Screen Buoy when you sign in.",

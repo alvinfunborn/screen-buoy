@@ -2,6 +2,7 @@ export interface HintType {
   z_index: number;
   style: string;
   element_control_types: number[];
+  element_ax_roles?: string[];
 }
 
 export interface HintConfig {
@@ -65,6 +66,7 @@ export interface GlobalKeybindingConfig {
 
 export interface AtHintKeybindingConfig {
   exit: string[];
+  hover: string[];
   left_click: string[];
   left_click_exit: string[];
   double_click: string[];
@@ -107,4 +109,4 @@ export interface Config {
   keyboard: KeyboardConfig;
   system: SystemConfig;
   ui_automation: UiAutomationConfig;
-} 
+}

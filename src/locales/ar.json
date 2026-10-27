@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "تعديل الانتشار",
-    "propagationModifierTooltip": "مفاتيح التعديل (مثل Alt، Ctrl، Shift، Win) التي سيتم تجاهلها بواسطة التطبيق، مما يسمح بمرور أحداثها إلى النوافذ الأخرى.",
+    "propagationModifierTooltip": "مفاتيح التعديل (مثل {{modifiers}}) التي سيتم تجاهلها بواسطة التطبيق، مما يسمح بمرور أحداثها إلى النوافذ الأخرى.",
     "selectModifiers": "تحديد المُعدّلات",
     "availableKeys": "المفاتيح المتاحة",
     "availableKeysTooltip": "حدد المفاتيح المتاحة لعمل الاختصارات ورموز المفاتيح الخاصة بها.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "حدد العلاقات اليسرى/اليمنى للمفاتيح. يُستخدم لعمل تركيبات مرنة وإجراءات موجهة.",
     "left": "يسار",
     "right": "يمين",
-    "addLeftRightMapping": "إضافة خريطة يسار ويمين"
+    "addLeftRightMapping": "إضافة خريطة يسار ويمين",
+    "macKeycode": "رمز مفتاح macOS",
+    "macKeycodeTooltip": "رموز مفاتيح macOS الأصلية بالأعداد العشرية: Return/Enter = 36، Tab = 48، Space = 49.",
+    "dynamicKeycode": "ديناميكي",
+    "dynamicKeysTooltip": "يتحدد HintKey والمفتاحان المجاوران حسب التلميح الحالي، وليس لها رمز ثابت."
   },
   "keybinding": {
     "mainHotkey": "الاختصار الرئيسي",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "انقل جميع التلميحات إلى اليمين.",
     "moveRight": "التحريك لليمين",
     "moveRightTooltip": "انقلِ جميع التلميحات إلى اليمين.",
+    "hover": "التحويم والخروج",
+    "hoverTooltip": "ينقل المؤشر إلى التلميح المحدد ويخرج من وضع التلميحات دون نقر. لا يلزم حد أدنى لمدة الضغط.",
     "atHintKeybindings": "اختصارات عند موضع التلميح",
     "leftClick": "نقرة يسار",
     "leftClickTooltip": "انقر بزر الماوس في موقع التلميح.",
@@ -93,7 +99,8 @@
     "scrollLeft": "التمرير لليسار",
     "scrollLeftTooltip": "مرّ إلى اليسار عند موضع التلميح.",
     "scrollRight": "التمرير لليمين",
-    "scrollRightTooltip": "مرر إلى اليمين عند موضع التلميح."
+    "scrollRightTooltip": "مرر إلى اليمين عند موضع التلميح.",
+    "cursorMoveTooltip": "يحرك مؤشر الفأرة بمقدار الخطوة المحددة؛ وتتبعه التلميحات."
   },
   "hint": {
     "charsets": "تعليمات الترميز",
@@ -132,7 +139,11 @@
     "placeholderStyle": "أدخل النمط الافتراضي",
     "placeholderTypeStyle": "أدخل نمط CSS لـ {{typeName}}",
     "placeholderElementTypes": "أدخل الأنواع، مفصولة بفواصل.",
-    "placeholderNewType": "أدخل اسم نوع التلميح الجديد"
+    "placeholderNewType": "أدخل اسم نوع التلميح الجديد",
+    "axRoles": "أدوار عناصر macOS",
+    "axRolesTooltip": "اختر أدوار تسهيلات الاستخدام لهذا النمط أو أدخل دور AX مخصصًا. القائمة الفارغة لا تطابق أي عناصر؛ ويمكن استخدام النمط للشبكة.",
+    "placeholderAxRoles": "اختر أدوار AX أو أدخلها",
+    "macTypesDescription": "عيّن أنماط التلميحات لأدوار عناصر macOS الأصلية. أسماء المجموعات تحدد الأنماط، وأدوار AX المختارة تحدد العناصر المطابقة."
   },
   "mouse": {
     "movementStep": "خطوة الحركة",
@@ -206,7 +217,10 @@
       "detectionDescription": "الوقت بالمللي ثانية بين مسح العناصر قبل انتهاء صلاحية النتائج المخزنة.",
       "characterRows": "مجموعات الأحرف حسب الموضع",
       "gridDescription": "ضع تلميحات في مواقع ثابتة في جميع أنحاء الشاشة.",
-      "typesDescription": "تخصيص المظهر وتعيين العناصر لكل نوع إيضاح."
+      "typesDescription": "تخصيص المظهر وتعيين العناصر لكل نوع إيضاح.",
+      "cursor": "تحريك المؤشر",
+      "dragDescription": "يحرك المؤشر مع إبقاء زر الفأرة الأيسر مضغوطًا.",
+      "scrollDescription": "يمرر المحتوى تحت المؤشر دون تحريك المؤشر."
     },
     "help": {
       "startAtLogin": "تشغيل Screen Buoy عند تسجيل الدخول.",

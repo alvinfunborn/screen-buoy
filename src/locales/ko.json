@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "전파 수정기",
-    "propagationModifierTooltip": "다음 키 (예: Alt, Ctrl, Shift, Win)는 앱에서 무시하여 다른 창으로의 이벤트 전달을 허용합니다.",
+    "propagationModifierTooltip": "다음 키 (예: {{modifiers}})는 앱에서 무시하여 다른 창으로의 이벤트 전달을 허용합니다.",
     "selectModifiers": "수정 옵션 선택",
     "availableKeys": "사용 가능한 키",
     "availableKeysTooltip": "단축키에 사용 가능한 키를 정의하고, 해당 플랫폼의 키 코드를 지정합니다.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "키(key)의 좌/우 관계 정의. 유연한 조합 및 방향 조작에 사용됩니다.",
     "left": "왼쪽",
     "right": "오른쪽",
-    "addLeftRightMapping": "왼쪽-오른쪽 매핑 추가"
+    "addLeftRightMapping": "왼쪽-오른쪽 매핑 추가",
+    "macKeycode": "macOS 키 코드",
+    "macKeycodeTooltip": "macOS 기본 키 코드를 10진수로 입력합니다: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "동적",
+    "dynamicKeysTooltip": "HintKey와 좌우 인접 키는 현재 힌트에 따라 결정되며 고정 키 코드가 없습니다."
   },
   "keybinding": {
     "mainHotkey": "기본 단축키",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "모든 힌트들을 이동합니다.",
     "moveRight": "오른쪽으로 이동",
     "moveRightTooltip": "모든 힌트를 오른쪽으로 이동합니다.",
+    "hover": "마우스를 올리고 종료",
+    "hoverTooltip": "선택한 힌트로 포인터를 이동하고 클릭 없이 힌트 모드를 종료합니다. 길게 누를 필요가 없습니다.",
     "atHintKeybindings": "힌트 위치 단축키",
     "leftClick": "왼쪽 클릭",
     "leftClickTooltip": "왼쪽 클릭을 힌트 위치에서 하세요.",
@@ -93,7 +99,8 @@
     "scrollLeft": "왼쪽으로 스크롤",
     "scrollLeftTooltip": "힌트 위치에서 왼쪽으로 스크롤하세요.",
     "scrollRight": "오른쪽으로 스크롤",
-    "scrollRightTooltip": "오른쪽으로 스크롤하세요 (힌트 위치에서)."
+    "scrollRightTooltip": "오른쪽으로 스크롤하세요 (힌트 위치에서).",
+    "cursorMoveTooltip": "설정한 이동 간격으로 마우스 포인터를 움직입니다. 힌트도 함께 이동합니다."
   },
   "hint": {
     "charsets": "힌트 문자 세트",
@@ -132,7 +139,11 @@
     "placeholderStyle": "기본 스타일 선택",
     "placeholderTypeStyle": "{{typeName}} 스타일의 CSS를 입력하세요.",
     "placeholderElementTypes": "다음과 같은 형식으로 입력하세요, 쉼표로 구분",
-    "placeholderNewType": "새로운 힌트 유형 이름 입력"
+    "placeholderNewType": "새로운 힌트 유형 이름 입력",
+    "axRoles": "macOS 컨트롤 역할",
+    "axRolesTooltip": "이 스타일에 해당하는 손쉬운 사용 역할을 선택하거나 사용자 지정 AX 역할을 입력하세요. 비워 두면 컨트롤과 연결되지 않지만 격자에는 사용할 수 있습니다.",
+    "placeholderAxRoles": "AX 역할 선택 또는 입력",
+    "macTypesDescription": "macOS 기본 컨트롤 역할에 힌트 스타일을 할당합니다. 그룹 이름은 스타일을 식별하며 선택한 AX 역할이 대상 컨트롤을 결정합니다."
   },
   "mouse": {
     "movementStep": "이동 단계",
@@ -206,7 +217,10 @@
       "detectionDescription": "요소 스캔 간의 시간(밀리초) 및 캐시된 결과 만료 전까지의 시간(밀리초).",
       "characterRows": "위치별 문자 집합",
       "gridDescription": "화면 상단에 고정된 위치에 힌트를 표시합니다.",
-      "typesDescription": "각 힌트 유형별로 외형 및 요소 할당을 사용자 정의하십시오."
+      "typesDescription": "각 힌트 유형별로 외형 및 요소 할당을 사용자 정의하십시오.",
+      "cursor": "포인터 이동",
+      "dragDescription": "마우스 왼쪽 버튼을 누른 채 포인터를 이동합니다.",
+      "scrollDescription": "포인터를 움직이지 않고 해당 위치의 내용을 스크롤합니다."
     },
     "help": {
       "startAtLogin": "로그인 시 Screen Buoy를 시작합니다.",

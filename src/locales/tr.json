@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Yayılma Değiştirici",
-    "propagationModifierTooltip": "Modifikasyon tuşları (örneğin, Alt, Ctrl, Shift, Win) uygulamanın dikkate alınmayacağı tuşlardır, böylece diğer pencerilere aktarılmalarını sağlar.",
+    "propagationModifierTooltip": "Modifikasyon tuşları (örneğin, {{modifiers}}) uygulamanın dikkate alınmayacağı tuşlardır, böylece diğer pencerilere aktarılmalarını sağlar.",
     "selectModifiers": "Değiştiricileri seçin",
     "availableKeys": "Kullanılabilir tuşlar",
     "availableKeysTooltip": "Kısa yollar için kullanılabilir anahtarları ve bunların platform anahtar kodlarını tanımlayın.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Anahtarlar için sol/sağ ilişkilerini tanımlayın. Esnek kombinasyonlar ve yönlü eylemler için kullanılır.",
     "left": "Sol",
     "right": "Sağ",
-    "addLeftRightMapping": "Sol-Sağ Eşleme Ekle"
+    "addLeftRightMapping": "Sol-Sağ Eşleme Ekle",
+    "macKeycode": "macOS tuş kodu",
+    "macKeycodeTooltip": "Ondalık biçimde yerel macOS tuş kodları: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dinamik",
+    "dynamicKeysTooltip": "HintKey ve komşu tuşlar geçerli ipucuna bağlıdır ve sabit bir tuş kodları yoktur."
   },
   "keybinding": {
     "mainHotkey": "Ana kısayol",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Tüm ipuçlarını sola taşı.",
     "moveRight": "Sağa taşı",
     "moveRightTooltip": "Tüm ipuçlarını sağa kaydır.",
+    "hover": "İmleci üzerine getir ve çık",
+    "hoverTooltip": "İmleci seçili ipucuna taşır ve tıklamadan ipucu modundan çıkar. Asgari basılı tutma süresi gerekmez.",
     "atHintKeybindings": "İpucu konumundaki kısayollar",
     "leftClick": "Sol tıklama",
     "leftClickTooltip": "Sol tık, ipucu konumuna.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Sola kaydır",
     "scrollLeftTooltip": "İpucu konumunda sola kaydır.",
     "scrollRight": "Sağa kaydır",
-    "scrollRightTooltip": "İpucu konumunda sağa kaydır."
+    "scrollRightTooltip": "İpucu konumunda sağa kaydır.",
+    "cursorMoveTooltip": "Fare işaretçisini ayarlanan adım kadar taşır; ipuçları hareketi izler."
   },
   "hint": {
     "charsets": "İpucu karakter kümeleri",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Varsayılan stili girin.",
     "placeholderTypeStyle": "{{typeName}} için CSS stilini girin.",
     "placeholderElementTypes": "Türleri, virgülle ayırılmış olarak girin.",
-    "placeholderNewType": "Yeni ipucu türü adı girin"
+    "placeholderNewType": "Yeni ipucu türü adı girin",
+    "axRoles": "macOS denetim rolleri",
+    "axRolesTooltip": "Bu stil için erişilebilirlik rolleri seçin veya özel bir AX rolü girin. Boş liste hiçbir denetimle eşleşmez; stil ızgarada kullanılabilir.",
+    "placeholderAxRoles": "AX rolleri seçin veya girin",
+    "macTypesDescription": "İpucu stillerini yerel macOS denetim rollerine atayın. Grup adları stilleri tanımlar; seçilen AX rolleri eşleşen denetimleri belirler."
   },
   "mouse": {
     "movementStep": "Hareket Adımı",
@@ -206,7 +217,10 @@
       "detectionDescription": "Öğe taramaları arasındaki gecikme ve önbelleğe alınan sonuçların geçerlilik süresi.",
       "characterRows": "Konuma göre karakter kümeleri",
       "gridDescription": "İpuçlarını ekranda sabit konumlarda göster.",
-      "typesDescription": "Her bir ipucu türü için görünümü ve öğe atamalarını özelleştirin."
+      "typesDescription": "Her bir ipucu türü için görünümü ve öğe atamalarını özelleştirin.",
+      "cursor": "İşaretçiyi taşı",
+      "dragDescription": "İşaretçiyi taşırken sol fare düğmesini basılı tutar.",
+      "scrollDescription": "İşaretçiyi taşımadan altındaki içeriği kaydırır."
     },
     "help": {
       "startAtLogin": "Oturum açıldığında Screen Buoy uygulamasını başlat.",

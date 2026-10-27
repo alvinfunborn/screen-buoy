@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Modificatore di propagazione",
-    "propagationModifierTooltip": "Chiavi modificatore (ad esempio, Alt, Ctrl, Shift, Win) che l'app ignorerà, consentendo ai loro eventi di passare ad altre finestre.",
+    "propagationModifierTooltip": "Chiavi modificatore (ad esempio, {{modifiers}}) che l'app ignorerà, consentendo ai loro eventi di passare ad altre finestre.",
     "selectModifiers": "Seleziona modificatori",
     "availableKeys": "Chiavi disponibili",
     "availableKeysTooltip": "Definisci le chiavi disponibili per i tasti di scorciatoia e i relativi codici di tasto della piattaforma.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Definisci le relazioni sinistra/destra per le chiavi. Utilizzato per combinazioni flessibili e azioni direzionali.",
     "left": "Sinistra",
     "right": "Destra",
-    "addLeftRightMapping": "Aggiungi mappatura sinistra-destra"
+    "addLeftRightMapping": "Aggiungi mappatura sinistra-destra",
+    "macKeycode": "Codice tasto macOS",
+    "macKeycodeTooltip": "Codici nativi macOS in decimale: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dinamico",
+    "dynamicKeysTooltip": "HintKey e i tasti adiacenti dipendono dal suggerimento corrente e non hanno un codice fisso."
   },
   "keybinding": {
     "mainHotkey": "Scorciatoia principale",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Sposta tutti i suggerimenti a destra.",
     "moveRight": "Sposta a destra",
     "moveRightTooltip": "Sposta tutti i suggerimenti a destra.",
+    "hover": "Passa il puntatore ed esci",
+    "hoverTooltip": "Sposta il puntatore sul suggerimento selezionato ed esce dalla modalità suggerimenti senza fare clic. Non è richiesta una durata minima di pressione.",
     "atHintKeybindings": "Scorciatoie alla posizione del suggerimento",
     "leftClick": "Clic sinistro",
     "leftClickTooltip": "Clicca con il tasto sinistro nella posizione del suggerimento.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Scorri a sinistra",
     "scrollLeftTooltip": "Scorri a sinistra alla posizione del suggerimento.",
     "scrollRight": "Scorri a destra",
-    "scrollRightTooltip": "Scorri a destra nella posizione del suggerimento."
+    "scrollRightTooltip": "Scorri a destra nella posizione del suggerimento.",
+    "cursorMoveTooltip": "Sposta il puntatore del passo configurato; i suggerimenti seguono il movimento."
   },
   "hint": {
     "charsets": "Hint: Caratteri",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Inserisci lo stile predefinito",
     "placeholderTypeStyle": "Inserisci lo stile CSS per {{typeName}}",
     "placeholderElementTypes": "Inserisci i tipi, separati da virgola",
-    "placeholderNewType": "Inserisci il nome del nuovo tipo di suggerimento."
+    "placeholderNewType": "Inserisci il nome del nuovo tipo di suggerimento.",
+    "axRoles": "Ruoli dei controlli macOS",
+    "axRolesTooltip": "Seleziona i ruoli di accessibilità per questo stile o inserisci un ruolo AX personalizzato. Un elenco vuoto non corrisponde ad alcun controllo; lo stile resta utilizzabile per la griglia.",
+    "placeholderAxRoles": "Seleziona o inserisci ruoli AX",
+    "macTypesDescription": "Assegna gli stili ai ruoli dei controlli nativi macOS. I nomi dei gruppi identificano gli stili; i ruoli AX selezionati determinano i controlli corrispondenti."
   },
   "mouse": {
     "movementStep": "Passo",
@@ -206,7 +217,10 @@
       "detectionDescription": "Tempo in millisecond tra le scansione degli elementi e prima che i risultati memorizzati scadano.",
       "characterRows": "Set di caratteri per posizione",
       "gridDescription": "Posiziona suggerimenti in posizioni fisse sullo schermo.",
-      "typesDescription": "Personalizza l'aspetto e l'assegnazione degli elementi per ogni tipo di suggerimento."
+      "typesDescription": "Personalizza l'aspetto e l'assegnazione degli elementi per ogni tipo di suggerimento.",
+      "cursor": "Sposta il puntatore",
+      "dragDescription": "Tiene premuto il tasto sinistro del mouse durante lo spostamento.",
+      "scrollDescription": "Scorre il contenuto sotto il puntatore senza spostarlo."
     },
     "help": {
       "startAtLogin": "Avvia Screen Buoy all’accesso.",

@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Modifier lan truyền",
-    "propagationModifierTooltip": "Các phím điều chỉnh (ví dụ: Alt, Ctrl, Shift, Win) sẽ bị ứng dụng bỏ qua, cho phép các sự kiện của chúng được truyền đến các cửa sổ khác.",
+    "propagationModifierTooltip": "Các phím điều chỉnh (ví dụ: {{modifiers}}) sẽ bị ứng dụng bỏ qua, cho phép các sự kiện của chúng được truyền đến các cửa sổ khác.",
     "selectModifiers": "Chọn bộ chỉnh sửa",
     "availableKeys": "Các phím có sẵn",
     "availableKeysTooltip": "Xác định các phím có sẵn cho các phím tắt và mã khóa nền tảng tương ứng.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Xác định mối quan hệ giữa trái/phải cho các khóa. Được sử dụng cho các tổ hợp linh hoạt và các hành động hướng.",
     "left": "Trái",
     "right": "Phải",
-    "addLeftRightMapping": "Thêm Phân Mappīng Trái và Phải"
+    "addLeftRightMapping": "Thêm Phân Mappīng Trái và Phải",
+    "macKeycode": "Mã phím macOS",
+    "macKeycodeTooltip": "Mã phím gốc macOS ở dạng thập phân: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Động",
+    "dynamicKeysTooltip": "HintKey và các phím bên cạnh phụ thuộc vào gợi ý hiện tại, không có mã phím cố định."
   },
   "keybinding": {
     "mainHotkey": "Phím tắt chính",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Di chuyển tất cả các gợi ý về phía bên trái.",
     "moveRight": "Di chuyển sang phải",
     "moveRightTooltip": "Di chuyển tất cả các gợi ý sang bên phải.",
+    "hover": "Di chuột và thoát",
+    "hoverTooltip": "Di chuyển con trỏ đến gợi ý đã chọn và thoát chế độ gợi ý mà không nhấp. Không yêu cầu thời gian giữ phím tối thiểu.",
     "atHintKeybindings": "Phím tắt tại vị trí gợi ý",
     "leftClick": "Nhấp chuột trái",
     "leftClickTooltip": "Nhấn chuột ở vị trí gợi ý.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Cuộn sang trái",
     "scrollLeftTooltip": "Cuộn sang trái ở vị trí gợi ý.",
     "scrollRight": "Cuộn sang phải",
-    "scrollRightTooltip": "Cuộn sang phải tại vị trí gợi ý."
+    "scrollRightTooltip": "Cuộn sang phải tại vị trí gợi ý.",
+    "cursorMoveTooltip": "Di chuyển con trỏ theo bước đã đặt; các gợi ý di chuyển theo."
   },
   "hint": {
     "charsets": "Hint Charsets\n\nCác bộ ký tự trợ giúp",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Nhập kiểu mặc định",
     "placeholderTypeStyle": "Nhập định dạng CSS cho {{typeName}}",
     "placeholderElementTypes": "Nhập các loại, cách nhau bằng dấu phẩy",
-    "placeholderNewType": "Nhập tên loại gợi ý mới"
+    "placeholderNewType": "Nhập tên loại gợi ý mới",
+    "axRoles": "Vai trò điều khiển macOS",
+    "axRolesTooltip": "Chọn vai trò trợ năng cho kiểu này hoặc nhập vai trò AX tùy chỉnh. Danh sách trống không khớp điều khiển nào; kiểu vẫn dùng được cho lưới.",
+    "placeholderAxRoles": "Chọn hoặc nhập vai trò AX",
+    "macTypesDescription": "Gán kiểu gợi ý cho vai trò điều khiển gốc của macOS. Tên nhóm xác định kiểu; các vai trò AX được chọn xác định điều khiển phù hợp."
   },
   "mouse": {
     "movementStep": "Bước di chuyển",
@@ -206,7 +217,10 @@
       "detectionDescription": "Thời gian (tính bằng mili giây) giữa các lần quét phần tử và trước khi kết quả đã lưu bị hết hạn.",
       "characterRows": "Bộ ký tự theo vị trí",
       "gridDescription": "Hiển thị gợi ý ở các vị trí cố định trên màn hình.",
-      "typesDescription": "Tùy chỉnh giao diện và phân bổ các thành phần cho từng loại gợi ý."
+      "typesDescription": "Tùy chỉnh giao diện và phân bổ các thành phần cho từng loại gợi ý.",
+      "cursor": "Di chuyển con trỏ",
+      "dragDescription": "Giữ nút chuột trái khi di chuyển con trỏ.",
+      "scrollDescription": "Cuộn nội dung dưới con trỏ mà không di chuyển con trỏ."
     },
     "help": {
       "startAtLogin": "Khởi chạy Screen Buoy khi đăng nhập.",

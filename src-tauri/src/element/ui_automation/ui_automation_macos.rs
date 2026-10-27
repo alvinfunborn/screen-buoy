@@ -12,7 +12,7 @@ use std::ptr;
 use std::sync::Mutex;
 use super::ScanControl;
 
-use crate::config::hint::HINT_CONTROL_TYPES_ID_Z_MAP;
+use crate::config::hint_macos::HINT_AX_ROLE_MAP;
 use crate::window::WindowElement;
 
 pub struct UIAutomationRequest;
@@ -268,39 +268,6 @@ fn is_clickable_dock_item(subrole: &str) -> bool {
     matches!(subrole, "AXApplicationDockItem" | "AXFileDockItem" | "AXFolderDockItem" | "AXTrashDockItem" | "AXURLDockItem")
 }
 
-fn control_type_for_ax_role(role: &str) -> Option<i32> {
-    let m = &*HINT_CONTROL_TYPES_ID_Z_MAP;
-    let try_seq = |ids: &[i32]| ids.iter().copied().find(|id| m.contains_key(id));
-    match role {
-        "AXButton" | "AXDockItem" => try_seq(&[50021, 50000, 50026]),
-        "AXRadioButton" => try_seq(&[50013]),
-        "AXCheckBox" => try_seq(&[50002]),
-        "AXPopUpButton" | "AXComboBox" => try_seq(&[50003]),
-        "AXTextField" | "AXTextArea" | "AXSearchField" | "AXSecureTextField" => try_seq(&[50004]),
-        "AXLink" => try_seq(&[50005]),
-        "AXImage" => try_seq(&[50006]),
-        "AXList" => try_seq(&[50008]),
-        "AXMenu" => try_seq(&[50009]),
-        "AXMenuBar" => try_seq(&[50010]),
-        "AXMenuItem" | "AXMenuButton" => try_seq(&[50011]),
-        "AXProgressIndicator" => try_seq(&[50012]),
-        "AXScrollBar" => try_seq(&[50014]),
-        "AXSlider" => try_seq(&[50015]),
-        "AXIncrementor" => try_seq(&[50016]),
-        "AXTabGroup" => try_seq(&[50017]),
-        "AXTabButton" | "AXTab" => try_seq(&[50018]),
-        "AXOutline" => try_seq(&[50019, 50037]),
-        "AXToolbar" => try_seq(&[50020, 50021]),
-        "AXWindow" | "AXSheet" | "AXDrawer" => try_seq(&[50032]),
-        "AXGroup" | "AXLayoutArea" | "AXScrollArea" => try_seq(&[50033, 50035, 50040]),
-        "AXSplitGroup" | "AXSplitter" => try_seq(&[50034]),
-        "AXTable" | "AXCell" => try_seq(&[50036]),
-        "AXStaticText" => try_seq(&[50033, 50020]),
-        "AXWebArea" => try_seq(&[50033, 50035, 50004]),
-        _ => None,
-    }
-}
-
 fn walk_element(
     element: AXUIElementRef,
     depth: usize,
@@ -328,30 +295,27 @@ fn walk_element(
 
     if let Some((px, py, pw, ph)) = ax_point_size(element) {
         if pw >= 1.0 && ph >= 1.0 {
-            if let Some(ctrl) = control_type_for_ax_role(&role) {
-                let hint_map = &*HINT_CONTROL_TYPES_ID_Z_MAP;
-                if let Some((et, zix)) = hint_map.get(&ctrl) {
-                    let (x, y_tl, w, h) =
-                        map_ax_point_to_target_pixels(px, py, pw, ph, target, rpx, rpy, sx, sy);
-                    let cx = x + w / 2;
-                    let cy = y_tl + h / 2;
-                    let ui = UIElement {
-                        text: String::new(),
-                        x: cx,
-                        y: cy,
-                        z: *zix,
-                        width: w,
-                        height: h,
-                        window_handle,
-                        control_type: ctrl,
-                        element_type: *et,
-                    };
-                    let key = (cx, cy);
-                    match out.get(&key) {
-                        Some(old) if old.z >= *zix => {}
-                        _ => {
-                            out.insert(key, ui);
-                        }
+            if let Some((et, zix, ctrl)) = HINT_AX_ROLE_MAP.get(role.as_str()) {
+                let (x, y_tl, w, h) =
+                    map_ax_point_to_target_pixels(px, py, pw, ph, target, rpx, rpy, sx, sy);
+                let cx = x + w / 2;
+                let cy = y_tl + h / 2;
+                let ui = UIElement {
+                    text: String::new(),
+                    x: cx,
+                    y: cy,
+                    z: *zix,
+                    width: w,
+                    height: h,
+                    window_handle,
+                    control_type: *ctrl,
+                    element_type: *et,
+                };
+                let key = (cx, cy);
+                match out.get(&key) {
+                    Some(old) if old.z >= *zix => {}
+                    _ => {
+                        out.insert(key, ui);
                     }
                 }
             }

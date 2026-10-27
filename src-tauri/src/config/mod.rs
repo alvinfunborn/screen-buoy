@@ -1,4 +1,6 @@
 pub mod hint;
+#[cfg(target_os = "macos")]
+pub mod hint_macos;
 pub mod keybinding;
 pub mod keyboard;
 pub mod mouse;
@@ -91,12 +93,47 @@ pub fn load_config() -> Config {
     if let Some(path) = get_config_path() {
         let config_str = fs::read_to_string(&path)
             .expect(format!("[load_config] Failed to read config file: {}", path).as_str());
-        let config: Config = toml::from_str(&config_str)
+        let config = parse_config(&config_str)
             .expect(format!("[load_config] Failed to parse config file: {}", path).as_str());
         info!("[load_config] load config from{} : {:?}", path, config);
         return config;
     }
     panic!("please check the config file: config.toml exists");
+}
+
+fn parse_config(contents: &str) -> Result<Config, toml::de::Error> {
+    let document: toml::Value = toml::from_str(contents)?;
+    let mut config: Config = document.clone().try_into()?;
+    let at_hint = &document["keybinding"]["at_hint"];
+    // Upgrade only the old default. An explicit hover setting (even empty),
+    // or any customized click binding, takes precedence. Saving settings will
+    // persist the new field; loading alone does not rewrite user preferences.
+    if at_hint.get("hover").is_none()
+        && config.keybinding.at_hint.left_click_exit == [keyboard::HINT_LEFT_KEY]
+    {
+        config.keybinding.at_hint.hover = vec![keyboard::HINT_LEFT_KEY.into()];
+        config.keybinding.at_hint.left_click_exit.clear();
+    }
+    #[cfg(target_os = "macos")]
+    hint_macos::migrate_legacy_roles(&mut config.hint);
+    Ok(config)
+}
+
+#[derive(Serialize)]
+pub struct SettingsPlatform {
+    platform: &'static str,
+    ax_roles: Vec<&'static str>,
+}
+
+#[tauri::command]
+pub fn get_settings_platform() -> SettingsPlatform {
+    SettingsPlatform {
+        platform: std::env::consts::OS,
+        #[cfg(target_os = "macos")]
+        ax_roles: hint_macos::LEGACY_AX_ROLES.iter().map(|(role, _)| *role).collect(),
+        #[cfg(not(target_os = "macos"))]
+        ax_roles: Vec::new(),
+    }
 }
 
 #[cfg(all(any(target_os = "macos", target_os = "windows"), not(debug_assertions)))]
@@ -212,6 +249,42 @@ mod tests {
     }
 
     #[test]
+    fn legacy_default_side_key_migrates_to_hover_without_changing_other_preferences() {
+        for defaults in [include_str!("../../config.default"), include_str!("../../config.toml"),
+            include_str!("../../config_macos.toml")] {
+            let legacy = defaults.replace("hover = [\"HintLeftKey\"]\n", "")
+                .replace("left_click_exit = []", "left_click_exit = [\"HintLeftKey\"]")
+                .replace("Alt+H", "Alt+Q");
+            let config = parse_config(&legacy).unwrap();
+            let expected = parse_config(&defaults.replace("Alt+H", "Alt+Q")).unwrap();
+            assert_eq!(serde_json::to_value(&config).unwrap(), serde_json::to_value(expected).unwrap());
+            // Saving and reloading must not reapply a migration or lose the binding.
+            let saved = toml::to_string_pretty(&config).unwrap();
+            assert_eq!(serde_json::to_value(parse_config(&saved).unwrap()).unwrap(),
+                serde_json::to_value(config).unwrap());
+        }
+    }
+
+    #[test]
+    fn customized_or_explicitly_disabled_hover_bindings_are_preserved() {
+        let defaults = include_str!("../../config_macos.toml");
+        for click in ["[]", "[\"Enter\"]", "[\"HintLeftKey\", \"Enter\"]"] {
+            let customized = defaults.replace("hover = [\"HintLeftKey\"]\n", "")
+                .replace("left_click_exit = []", &format!("left_click_exit = {click}"));
+            let expected: Config = toml::from_str(&customized).unwrap();
+            assert_eq!(serde_json::to_value(parse_config(&customized).unwrap()).unwrap(),
+                serde_json::to_value(expected).unwrap());
+        }
+        for hover in ["[]", "[\"Space\"]", "[\"HintLeftKey\"]"] {
+            let explicit = defaults.replace("hover = [\"HintLeftKey\"]", &format!("hover = {hover}"))
+                .replace("left_click_exit = []", "left_click_exit = [\"HintLeftKey\"]");
+            let expected: Config = toml::from_str(&explicit).unwrap();
+            assert_eq!(serde_json::to_value(parse_config(&explicit).unwrap()).unwrap(),
+                serde_json::to_value(expected).unwrap());
+        }
+    }
+
+    #[test]
     fn overlapping_hint_prefixes_leave_disk_and_memory_unchanged() {
         let dir = ConfigDir::new();
         let path = dir.0.join("config.toml");
@@ -259,6 +332,8 @@ mod tests {
             assert!(config.hint.prefix_conflicts().is_empty());
             assert_eq!(config.hint.charset_extra, vec!['A', 'Q', 'Z', ';', '-']);
             assert_eq!(config.hint.charsets.iter().map(Vec::len).collect::<Vec<_>>(), vec![28, 28]);
+            assert_eq!(config.keybinding.at_hint.hover, [keyboard::HINT_LEFT_KEY]);
+            assert!(config.keybinding.at_hint.left_click_exit.is_empty());
             for character in config.hint.charsets.last().unwrap() {
                 assert!(config.keyboard.get_left_key(&character.to_string()).is_some());
                 assert!(config.keyboard.get_right_key(&character.to_string()).is_some());

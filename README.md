@@ -153,7 +153,7 @@ npm run tauri build
 - In Hold mode:
   - `Esc`: Exit hint mode
   - `LShift`: Left click
-  - `HintLeftKey`: Left click and exit
+  - `HintLeftKey`: Hover at the hint and exit without clicking
   - `Enter`: Double click
   - `RShift`: Right click
   - `HintRightKey`: Right click and exit
@@ -168,9 +168,11 @@ npm run tauri build
 
 - **HintKey**: The main hint trigger key (usually the last character of the hint), used to activate, move to, or left-click at the hint.
 - **HintRightKey**: When held with HintKey, triggers right-click or other extended actions.
-- **HintLeftKey**: When held with HintKey, triggers left-click or other custom actions.
+- **HintLeftKey**: While holding HintKey, press its left neighbor to hover at the hint and exit without clicking. For example, for `FK`, hold `K` and press `J`. No minimum hold duration is required.
 
 All these keys can be customized in the `keybinding` section.
+
+The hover action is configurable under At Hint Keybindings. Older configurations using only `HintLeftKey` for click-and-exit adopt this new default on load; customized bindings and explicit hover settings are preserved.
 
 #### 2. Keyboard Configuration
 
@@ -179,6 +181,8 @@ All these keys can be customized in the `keybinding` section.
 - **map_left_right**: Define left/right mapping for certain keys for flexible combos.
 
 > **Note:** Windows and macOS use separate config files (`config.toml` and `config_macos.toml`). macOS uses native key names: `LCmd`/`RCmd` (Command), `LOption`/`ROption` (Option), `LControl`/`RControl` (Control).
+
+On macOS, keycodes are native decimal values: Return/Enter = 36, Tab = 48, Space = 49; Left/Right/Down/Up = 123/124/125/126. HintKey and its side keys are dynamic references with no fixed keycode.
 
 Example (Windows `config.toml`):
 ```toml
@@ -205,6 +209,8 @@ right = "L"
 After entering a hint, long-pressing the HintKey (the last character of the hint) enters Hold mode, allowing advanced actions (drag, scroll, right-click, etc.) at the hint.
 You can also long-press Space (or other custom keys) to enter Hold mode at the current cursor position.
 All entry methods for Hold mode can be customized via the `hold_at_hint` setting.
+
+In Hold mode, **Move pointer** adjusts the mouse position (hints follow), **Drag** moves with the left mouse button held, and **Scroll** scrolls content under the pointer. Arrow keys default to dragging in this mode; pointer movement starts unbound. Before selecting a hint, arrows move the hints and pointer.
 
 ###### Structure
 
@@ -245,9 +251,12 @@ hint_type = "default"
 
 - **style**: Custom CSS for each hint type (background, font, border, etc.)
 - **z_index**: Layer order for different hint types
-- **element_control_types**: Control types associated with this hint type
+- **element_control_types** (Windows): UI Automation control type IDs.
+- **element_ax_roles** (macOS): Native accessibility roles, selected directly in settings. For example, `tab` matches `AXTabGroup`/`AXTabButton`/`AXTab`, and `text` matches text fields and `AXStaticText`. Empty lists can still provide a style for grid hints.
 
-Example:
+Legacy Mac defaults adopt the native groups on load. Customized numeric mappings retain their original role assignments, colors, and layer order. Saving persists the native lists; clearing a list disables matching for that group.
+
+Example (Windows):
 ```toml
 [hint.types.button]
 style = """

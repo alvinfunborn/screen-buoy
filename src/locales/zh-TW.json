@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "穿透修飾鍵",
-    "propagationModifierTooltip": "指定不監聽的修飾鍵（如Alt、Ctrl、Shift、Win），這些修飾鍵按下時按鍵事件會穿透到其他視窗。",
+    "propagationModifierTooltip": "指定不監聽的修飾鍵（如{{modifiers}}），這些修飾鍵按下時按鍵事件會穿透到其他視窗。",
     "selectModifiers": "選擇修飾鍵",
     "availableKeys": "可用按鍵",
     "availableKeysTooltip": "定義快捷鍵可用的按鍵名稱及其對應的平臺鍵碼。",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "定義按鍵的左右關係，用於靈活組合和方向操作。",
     "left": "左",
     "right": "右",
-    "addLeftRightMapping": "新增左右對映"
+    "addLeftRightMapping": "新增左右對映",
+    "macKeycode": "macOS 鍵碼",
+    "macKeycodeTooltip": "使用 macOS 原生鍵碼（十進位）：Return/Enter = 36、Tab = 48、Space = 49。",
+    "dynamicKeycode": "動態",
+    "dynamicKeysTooltip": "HintKey 及其左右側鍵依目前提示決定，沒有固定鍵碼。"
   },
   "keybinding": {
     "mainHotkey": "主快捷鍵",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "將所有hint左移。",
     "moveRight": "右移",
     "moveRightTooltip": "將所有hint右移。",
+    "hover": "懸停並退出",
+    "hoverTooltip": "將滑鼠移動到選中的Hint並退出提示模式，不觸發點擊，無需等待長按時間。",
     "atHintKeybindings": "Hint內快捷鍵",
     "leftClick": "左鍵點擊",
     "leftClickTooltip": "在hint位置左鍵點擊。",
@@ -93,7 +99,8 @@
     "scrollLeft": "向左滾動",
     "scrollLeftTooltip": "在hint位置向左滾動。",
     "scrollRight": "向右滾動",
-    "scrollRightTooltip": "在hint位置向右滾動。"
+    "scrollRightTooltip": "在hint位置向右滾動。",
+    "cursorMoveTooltip": "依移動步長微調滑鼠游標的位置，提示隨之移動。"
   },
   "hint": {
     "charsets": "Hint字符集",
@@ -132,7 +139,11 @@
     "placeholderStyle": "輸入預設樣式",
     "placeholderTypeStyle": "為{{typeName}}輸入樣式CSS",
     "placeholderElementTypes": "用逗號分隔輸入型別",
-    "placeholderNewType": "輸入新hint型別名稱"
+    "placeholderNewType": "輸入新hint型別名稱",
+    "axRoles": "macOS 控制項角色",
+    "axRolesTooltip": "選擇此樣式對應的輔助使用角色，也可輸入自訂 AX 角色。留空時不匹配控制項，但此樣式仍可用於網格提示。",
+    "placeholderAxRoles": "選擇或輸入 AX 角色",
+    "macTypesDescription": "依 macOS 原生控制項角色分配提示樣式。群組名稱用於識別樣式，實際匹配由群組內選取的 AX 角色決定。"
   },
   "mouse": {
     "movementStep": "移動步進",
@@ -206,7 +217,10 @@
       "detectionDescription": "時間單位為毫秒。設定控制元素的更新頻率與快取有效期。",
       "characterRows": "按位設定字符集",
       "gridDescription": "在螢幕的固定網格位置顯示提示。",
-      "typesDescription": "為不同型別的提示設定樣式和對應的介面元素。"
+      "typesDescription": "為不同型別的提示設定樣式和對應的介面元素。",
+      "cursor": "移動游標",
+      "dragDescription": "按住滑鼠左鍵並移動游標，用於拖曳物件或選取內容。",
+      "scrollDescription": "捲動游標所在位置的內容，游標保持原位。"
     },
     "help": {
       "startAtLogin": "登入系統時自動啟動 Screen Buoy。",

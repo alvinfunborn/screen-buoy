@@ -221,6 +221,7 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
             get_hint_default_style,
             get_hint_types_styles,
             get_config_for_frontend,
+            config::get_settings_platform,
             save_config_for_frontend,
             language::get_system_languages,
             updates::get_release_status,

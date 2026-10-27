@@ -24,6 +24,8 @@ pub struct GlobalKeybindingConfig {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AtHintKeybindingConfig {
     pub exit: Vec<String>,
+    #[serde(default)]
+    pub hover: Vec<String>,
     pub left_click: Vec<String>,
     pub left_click_exit: Vec<String>,
     pub double_click: Vec<String>,
@@ -48,6 +50,7 @@ pub struct DirectionKeybindingsConfig {
 pub const MOVE_TO_HINT_CMD: &str = "move_to_hint";
 pub const MOVE_TO_HINT_EXIT_CMD: &str = "move_to_hint_exit";
 pub const HOLD_AT_HINT_CMD: &str = "hold_at_hint";
+pub const HOVER_CMD: &str = "hover";
 pub const LEFT_CLICK_CMD: &str = "left_click";
 pub const LEFT_CLICK_EXIT_CMD: &str = "left_click_exit";
 pub const DOUBLE_CLICK_CMD: &str = "double_click";
@@ -118,6 +121,7 @@ impl KeybindingConfig {
         let mut keybindings = IndexMap::new();
         keybindings.insert(HOLD_AT_HINT_CMD, self.global.hold_at_hint.clone());
         keybindings.insert(EXIT_CMD, self.at_hint.exit.clone());
+        keybindings.insert(HOVER_CMD, self.at_hint.hover.clone());
         keybindings.insert(LEFT_CLICK_CMD, self.at_hint.left_click.clone());
         keybindings.insert(LEFT_CLICK_EXIT_CMD, self.at_hint.left_click_exit.clone());
         keybindings.insert(DOUBLE_CLICK_CMD, self.at_hint.double_click.clone());

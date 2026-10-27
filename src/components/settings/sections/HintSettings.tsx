@@ -11,12 +11,14 @@ import { getHintPrefixConflicts, getHintSideKeyWarnings } from '../hint-validati
 
 interface HintSettingsProps {
   onValuesChange?: (changedValues: any, allValues: Config) => void;
+  isMac: boolean;
+  axRoles: string[];
 }
 
 // Helper to generate a unique enough key for new items
 const generateTempKey = () => `new_type_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) => {
+export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMac, axRoles }) => {
   const { t } = useTranslation();
   const form = Form.useFormInstance<Config>(); // Get form instance from context
 
@@ -184,6 +186,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
     }
 
     const newHintType: HintType = { style: '', z_index: 0, element_control_types: [] }; // Default values
+    if (isMac) newHintType.element_ax_roles = [];
 
     // 1. Update Form State
     const currentHintTypes = form.getFieldValue(['hint', 'types']) || {};
@@ -435,7 +438,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       </Form.Item>
 
       </SettingSection>
-      <SettingSection title={t('hint.types')} description={t('settings.groups.typesDescription')}>
+      <SettingSection title={t('hint.types')} description={t(isMac ? 'hint.macTypesDescription' : 'settings.groups.typesDescription')}>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
       <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (
@@ -486,7 +489,15 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                   style={{ width: '100px' }}
                 />
               </Form.Item>
-              <Form.Item
+              {isMac ? <Form.Item
+                label={t('hint.axRoles')}
+                tooltip={t('hint.axRolesTooltip')}
+                name={['hint', 'types', typeName, 'element_ax_roles']}
+                style={{ width: '100%', marginBottom: 0 }}
+              >
+                <Select mode="tags" options={axRoles.map(role => ({ value: role, label: role }))}
+                  tokenSeparators={[',']} placeholder={t('hint.placeholderAxRoles')} />
+              </Form.Item> : <Form.Item
                 label={t('hint.elementControlTypes')}
                 tooltip={t('hint.elementControlTypesTooltip')}
                 style={{ width: '100%', marginBottom: '0px' }}
@@ -498,7 +509,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
                   onBlur={() => handleRawElementControlTypeBlur(typeName)}
                   style={{ width: '100%' }}
                 />
-              </Form.Item>
+              </Form.Item>}
             </Space>
           </Collapse.Panel>
         ))}
@@ -519,4 +530,4 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange }) =>
       </SettingSection>
     </div>
   );
-}; 
+};

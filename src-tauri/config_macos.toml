@@ -93,36 +93,7 @@ style = """
 }
 """
 z_index = 4
-element_control_types = [
-    50021,
-    50026,
-    50000,
-    50001,
-    50002,
-    50003,
-    50025,
-    50028,
-    50029,
-    50030,
-    50004,
-    50005,
-    50006,
-    50008,
-    50007,
-    50010,
-    50009,
-    50011,
-    50012,
-    50013,
-    50039,
-    50031,
-    50036,
-    50020,
-    50027,
-    50022,
-    50023,
-    50024,
-]
+element_ax_roles = ["AXButton", "AXDockItem", "AXRadioButton", "AXCheckBox", "AXPopUpButton", "AXComboBox", "AXLink", "AXImage", "AXMenuItem", "AXMenuButton"]
 
 [hint.types.default]
 style = """
@@ -133,7 +104,7 @@ style = """
 }
 """
 z_index = 0
-element_control_types = []
+element_ax_roles = []
 
 [hint.types.pane]
 style = """
@@ -144,15 +115,7 @@ style = """
 }
 """
 z_index = 1
-element_control_types = [
-    50040,
-    50034,
-    50035,
-    50033,
-    50017,
-    50018,
-    50037,
-]
+element_ax_roles = ["AXList", "AXMenu", "AXMenuBar", "AXProgressIndicator", "AXOutline", "AXToolbar", "AXGroup", "AXLayoutArea", "AXScrollArea", "AXSplitGroup", "AXSplitter", "AXTable", "AXCell", "AXWebArea"]
 
 [hint.types.scrollbar]
 style = """
@@ -163,12 +126,7 @@ style = """
 }
 """
 z_index = 3
-element_control_types = [
-    50014,
-    50038,
-    50015,
-    50016,
-]
+element_ax_roles = ["AXScrollBar", "AXSlider", "AXIncrementor"]
 
 [hint.types.tab]
 style = """
@@ -179,7 +137,7 @@ style = """
 }
 """
 z_index = 2
-element_control_types = [50019]
+element_ax_roles = ["AXTabGroup", "AXTabButton", "AXTab"]
 
 [hint.types.text]
 style = """
@@ -190,7 +148,7 @@ style = """
 }
 """
 z_index = 1
-element_control_types = []
+element_ax_roles = ["AXTextField", "AXTextArea", "AXSearchField", "AXSecureTextField", "AXStaticText"]
 
 [hint.types.window]
 style = """
@@ -201,7 +159,7 @@ style = """
 }
 """
 z_index = 5
-element_control_types = [50032]
+element_ax_roles = ["AXWindow", "AXSheet", "AXDrawer"]
 
 [hint.grid]
 rows = 4
@@ -245,8 +203,9 @@ right = ["Right"]
 
 [keybinding.at_hint]
 exit = ["Esc"]
+hover = ["HintLeftKey"]
 left_click = ["LShift"]
-left_click_exit = ["HintLeftKey"]
+left_click_exit = []
 double_click = ["Enter"]
 double_click_exit = []
 right_click = ["RShift"]

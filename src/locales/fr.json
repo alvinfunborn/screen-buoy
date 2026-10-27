@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Propagation Modificateur",
-    "propagationModifierTooltip": "Touches de modification (par exemple, Alt, Ctrl, Shift, Win) qui seront ignorées par l'application, permettant ainsi à leurs événements de passer aux autres fenêtres.",
+    "propagationModifierTooltip": "Touches de modification (par exemple, {{modifiers}}) qui seront ignorées par l'application, permettant ainsi à leurs événements de passer aux autres fenêtres.",
     "selectModifiers": "Sélectionner les modificateurs",
     "availableKeys": "Clés disponibles",
     "availableKeysTooltip": "Définir les touches disponibles pour les raccourcis et leurs codes de touches de plateforme.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Définir les relations gauche/droite pour les clés. Utilisé pour les combinaisons flexibles et les actions directionnelles.",
     "left": "Gauche",
     "right": "Droite",
-    "addLeftRightMapping": "Ajouter Correspondance Gauche-Droite"
+    "addLeftRightMapping": "Ajouter Correspondance Gauche-Droite",
+    "macKeycode": "Code de touche macOS",
+    "macKeycodeTooltip": "Codes natifs macOS en décimal : Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dynamique",
+    "dynamicKeysTooltip": "HintKey et les touches voisines dépendent du repère actuel et n’ont pas de code fixe."
   },
   "keybinding": {
     "mainHotkey": "Raccourci principal",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Déplacez tous les indices vers la gauche.",
     "moveRight": "Déplacer à droite",
     "moveRightTooltip": "Déplacez tous les indices vers la droite.",
+    "hover": "Survoler et quitter",
+    "hoverTooltip": "Déplace le pointeur sur le repère sélectionné et quitte le mode repères sans cliquer. Aucune durée minimale d’appui n’est requise.",
     "atHintKeybindings": "Raccourcis à la position du repère",
     "leftClick": "Clic gauche",
     "leftClickTooltip": "Cliquez avec la souris à l'emplacement indiqué.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Défiler à gauche",
     "scrollLeftTooltip": "Faire défiler vers la gauche à la position de l'indication.",
     "scrollRight": "Défiler à droite",
-    "scrollRightTooltip": "Faire défiler vers la droite à la position de l'indication."
+    "scrollRightTooltip": "Faire défiler vers la droite à la position de l'indication.",
+    "cursorMoveTooltip": "Déplace le pointeur selon le pas configuré ; les repères suivent."
   },
   "hint": {
     "charsets": "Paramètres d'encodage",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Entrez le style par défaut.",
     "placeholderTypeStyle": "Entrez le style CSS pour {{typeName}}.",
     "placeholderElementTypes": "Entrez les types, séparés par des virgules.",
-    "placeholderNewType": "Entrez le nom du nouveau type d'indice."
+    "placeholderNewType": "Entrez le nom du nouveau type d'indice.",
+    "axRoles": "Rôles des contrôles macOS",
+    "axRolesTooltip": "Choisissez les rôles d’accessibilité de ce style ou saisissez un rôle AX personnalisé. Une liste vide ne cible aucun contrôle ; le style reste utilisable pour la grille.",
+    "placeholderAxRoles": "Choisir ou saisir des rôles AX",
+    "macTypesDescription": "Associez les styles aux rôles natifs macOS. Les noms des groupes identifient les styles ; les rôles AX choisis déterminent les contrôles ciblés."
   },
   "mouse": {
     "movementStep": "Étape de mouvement",
@@ -206,7 +217,10 @@
       "detectionDescription": "Temps en millisecondes entre les scans des éléments et avant que les résultats en cache expirent.",
       "characterRows": "Jeux de caractères par position",
       "gridDescription": "Placez des indices à des positions fixes à l'écran.",
-      "typesDescription": "Personnalisez l'apparence et l'attribution des éléments pour chaque type d'indication."
+      "typesDescription": "Personnalisez l'apparence et l'attribution des éléments pour chaque type d'indication.",
+      "cursor": "Déplacer le pointeur",
+      "dragDescription": "Maintient le bouton gauche de la souris enfoncé pendant le déplacement.",
+      "scrollDescription": "Fait défiler le contenu sous le pointeur sans déplacer celui-ci."
     },
     "help": {
       "startAtLogin": "Lancer Screen Buoy à l’ouverture de session.",

@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Verbreitungsmodifikator",
-    "propagationModifierTooltip": "Modifizier-Tasten (z.B. Alt, Strg, Shift, Win), die von der App ignoriert werden, sodass ihre Ereignisse zu anderen Fenstern weitergeleitet werden.",
+    "propagationModifierTooltip": "Modifizier-Tasten (z.B. {{modifiers}}), die von der App ignoriert werden, sodass ihre Ereignisse zu anderen Fenstern weitergeleitet werden.",
     "selectModifiers": "Wähle Modifikatoren",
     "availableKeys": "Verfügbare Tasten",
     "availableKeysTooltip": "Definieren Sie die verfügbaren Tasten für Tastenkombinationen und deren Plattform-Schlüsselcodes.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Definieren Sie Beziehungen zwischen Links/Rechts für Schlüssel. Wird für flexible Kombinationen und Richtungsaktionen verwendet.",
     "left": "Links",
     "right": "Rechts",
-    "addLeftRightMapping": "Zuordnung links/rechts hinzufügen"
+    "addLeftRightMapping": "Zuordnung links/rechts hinzufügen",
+    "macKeycode": "macOS-Tastencode",
+    "macKeycodeTooltip": "Native macOS-Tastencodes als Dezimalzahlen: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dynamisch",
+    "dynamicKeysTooltip": "HintKey und seine Nachbartasten hängen vom aktuellen Hinweis ab und haben keinen festen Tastencode."
   },
   "keybinding": {
     "mainHotkey": "Haupttastenkürzel",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Alle Hinweise verschieben.",
     "moveRight": "Nach rechts bewegen",
     "moveRightTooltip": "Alle Hinweise nach rechts verschieben.",
+    "hover": "Zeiger platzieren und beenden",
+    "hoverTooltip": "Bewegt den Zeiger zum ausgewählten Hinweis und beendet den Hinweismodus, ohne zu klicken. Es ist keine Mindesthaltedauer erforderlich.",
     "atHintKeybindings": "Tastenkürzel an der Hinweisposition",
     "leftClick": "Linksklick",
     "leftClickTooltip": "Linksklick auf die Hinweisposition.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Nach links scrollen",
     "scrollLeftTooltip": "Wischen Sie nach links in die Hinweise.",
     "scrollRight": "Nach rechts scrollen",
-    "scrollRightTooltip": "Scrolle nach rechts an der Hinweisposition."
+    "scrollRightTooltip": "Scrolle nach rechts an der Hinweisposition.",
+    "cursorMoveTooltip": "Den Mauszeiger um die eingestellte Schrittweite bewegen; die Hinweise folgen."
   },
   "hint": {
     "charsets": "Hinweise: Zeichenkodierungen",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Standardstil auswählen",
     "placeholderTypeStyle": "Geben Sie den CSS-Stil für {{typeName}} ein.",
     "placeholderElementTypes": "Geben Sie die Typen durch Komma getrennt ein.",
-    "placeholderNewType": "Bitte geben Sie den neuen Namen für den Hinweis-Typ ein."
+    "placeholderNewType": "Bitte geben Sie den neuen Namen für den Hinweis-Typ ein.",
+    "axRoles": "macOS-Steuerelementrollen",
+    "axRolesTooltip": "Bedienungshilfen-Rollen für diesen Stil auswählen oder eine eigene AX-Rolle eingeben. Eine leere Liste erfasst keine Steuerelemente; der Stil bleibt für das Raster verfügbar.",
+    "placeholderAxRoles": "AX-Rollen auswählen oder eingeben",
+    "macTypesDescription": "Hinweisstile nativen macOS-Steuerelementrollen zuweisen. Gruppennamen kennzeichnen Stile; die gewählten AX-Rollen bestimmen die passenden Elemente."
   },
   "mouse": {
     "movementStep": "Bewegungsschritt",
@@ -206,7 +217,10 @@
       "detectionDescription": "Zeit in Millisekunden zwischen Element-Scans und vor dem Ablauf von zwischengespeicherten Ergebnissen.",
       "characterRows": "Zeichensätze nach Position",
       "gridDescription": "Platzieren Sie Hinweise an festen Positionen auf dem Bildschirm.",
-      "typesDescription": "Passen Sie das Aussehen und die Zuordnung von Elementen für jeden Hint-Typ an."
+      "typesDescription": "Passen Sie das Aussehen und die Zuordnung von Elementen für jeden Hint-Typ an.",
+      "cursor": "Zeiger bewegen",
+      "dragDescription": "Die linke Maustaste beim Bewegen des Zeigers gedrückt halten.",
+      "scrollDescription": "Den Inhalt unter dem Zeiger scrollen, ohne den Zeiger zu bewegen."
     },
     "help": {
       "startAtLogin": "Screen Buoy bei der Anmeldung starten.",

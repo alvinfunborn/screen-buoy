@@ -31,7 +31,12 @@ impl HintConfig {
 pub struct HintType {
     pub style: String,
     pub z_index: i32,
+    #[serde(default)]
     pub element_control_types: Vec<i32>,
+    /// macOS accessibility roles. None is a legacy config; Some([]) disables
+    /// native element matching for this style (e.g. the grid-only style).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub element_ax_roles: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

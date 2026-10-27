@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "他のアプリに渡す修飾キー",
-    "propagationModifierTooltip": "Modifierキー（例：Alt、Ctrl、Shift、Win）は、このアプリで無視され、他のウィンドウへのイベントの伝達を可能にします。",
+    "propagationModifierTooltip": "Modifierキー（例：{{modifiers}}）は、このアプリで無視され、他のウィンドウへのイベントの伝達を可能にします。",
     "selectModifiers": "修飾キーを選択",
     "availableKeys": "使用可能なキー",
     "availableKeysTooltip": "ショートカットで使用可能なキーと、対応するプラットフォームのキーコードを定義します。",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "キーの左右の関係を定義します。柔軟な組み合わせや方向操作に使用します。",
     "left": "左",
     "right": "右",
-    "addLeftRightMapping": "左と右のキーを割り当てる"
+    "addLeftRightMapping": "左と右のキーを割り当てる",
+    "macKeycode": "macOS キーコード",
+    "macKeycodeTooltip": "macOS 標準のキーコードを10進数で指定します：Return/Enter = 36、Tab = 48、Space = 49。",
+    "dynamicKeycode": "動的",
+    "dynamicKeysTooltip": "HintKey と左右の隣接キーは現在のヒントで決まり、固定キーコードはありません。"
   },
   "keybinding": {
     "mainHotkey": "メインショートカット",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "すべてのヒントを左に移動する。",
     "moveRight": "右に移動",
     "moveRightTooltip": "すべてのヒントを右に移動する。",
+    "hover": "ホバーして終了",
+    "hoverTooltip": "選択したヒントにポインターを移動し、クリックせずにヒントモードを終了します。長押しの待ち時間は不要です。",
     "atHintKeybindings": "ヒント位置でのショートカット",
     "leftClick": "左クリック",
     "leftClickTooltip": "左のクリックを、ヒントの位置で実行してください。",
@@ -93,7 +99,8 @@
     "scrollLeft": "左にスクロール",
     "scrollLeftTooltip": "ヒントの位置で左にスクロールします。",
     "scrollRight": "右にスクロール",
-    "scrollRightTooltip": "右に移動 (ヒントの位置から)。"
+    "scrollRightTooltip": "右に移動 (ヒントの位置から)。",
+    "cursorMoveTooltip": "設定した移動幅でマウスポインタを動かします。ヒントも追従します。"
   },
   "hint": {
     "charsets": "ヒントの文字セット",
@@ -132,7 +139,11 @@
     "placeholderStyle": "デフォルトのスタイルを入力してください。",
     "placeholderTypeStyle": "{{typeName}} のスタイル CSS を入力してください。",
     "placeholderElementTypes": "タイプを入力してください。カンマ区切り",
-    "placeholderNewType": "新しいヒントのタイプ名を入力してください。"
+    "placeholderNewType": "新しいヒントのタイプ名を入力してください。",
+    "axRoles": "macOS コントロールのロール",
+    "axRolesTooltip": "このスタイルに対応するアクセシビリティのロールを選択するか、独自の AX ロールを入力します。空の場合はコントロールに一致しませんが、グリッドには使用できます。",
+    "placeholderAxRoles": "AX ロールを選択または入力",
+    "macTypesDescription": "macOS 標準コントロールのロールにヒントのスタイルを割り当てます。グループ名はスタイルを識別し、選択した AX ロールが対象を決めます。"
   },
   "mouse": {
     "movementStep": "移動ステップ",
@@ -206,7 +217,10 @@
       "detectionDescription": "要素のスキャン間隔と、キャッシュされた結果の期限切れまでの時間（ミリ秒）。",
       "characterRows": "文字位置ごとの文字セット",
       "gridDescription": "画面上の固定位置にヒントを配置します。",
-      "typesDescription": "各ヒントタイプごとに、外観と要素の割り当てをカスタマイズします。"
+      "typesDescription": "各ヒントタイプごとに、外観と要素の割り当てをカスタマイズします。",
+      "cursor": "ポインタを移動",
+      "dragDescription": "マウスの左ボタンを押したままポインタを動かします。",
+      "scrollDescription": "ポインタを動かさず、その位置の内容をスクロールします。"
     },
     "help": {
       "startAtLogin": "ログイン時に Screen Buoy を起動します。",

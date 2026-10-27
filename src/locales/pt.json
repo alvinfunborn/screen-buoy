@@ -23,7 +23,7 @@
   },
   "keyboard": {
     "propagationModifier": "Modificador de Propagação",
-    "propagationModifierTooltip": "Chaves de modificação (por exemplo, Alt, Ctrl, Shift, Win) que serão ignoradas pelo aplicativo, permitindo que seus eventos sejam transmitidos para outras janelas.",
+    "propagationModifierTooltip": "Chaves de modificação (por exemplo, {{modifiers}}) que serão ignoradas pelo aplicativo, permitindo que seus eventos sejam transmitidos para outras janelas.",
     "selectModifiers": "Selecione os modificadores",
     "availableKeys": "Chaves disponíveis",
     "availableKeysTooltip": "Defina as chaves disponíveis para atalhos e seus códigos de chave da plataforma.",
@@ -38,7 +38,11 @@
     "leftRightMappingTooltip": "Defina relações de esquerda/direita para as chaves. Usado para combinações flexíveis e ações direcionais.",
     "left": "Esquerda",
     "right": "Direita",
-    "addLeftRightMapping": "Adicionar Mapeamento Esquerdo/Direito"
+    "addLeftRightMapping": "Adicionar Mapeamento Esquerdo/Direito",
+    "macKeycode": "Código de tecla macOS",
+    "macKeycodeTooltip": "Códigos nativos do macOS em decimal: Return/Enter = 36, Tab = 48, Space = 49.",
+    "dynamicKeycode": "Dinâmico",
+    "dynamicKeysTooltip": "HintKey e as teclas vizinhas dependem da dica atual e não têm código fixo."
   },
   "keybinding": {
     "mainHotkey": "Atalho principal",
@@ -63,6 +67,8 @@
     "moveLeftTooltip": "Mova todos os indicadores para a esquerda.",
     "moveRight": "Mover para a direita",
     "moveRightTooltip": "Mova todos os indicadores para a direita.",
+    "hover": "Posicionar o cursor e sair",
+    "hoverTooltip": "Move o cursor até a dica selecionada e sai do modo de dicas sem clicar. Não é necessário um tempo mínimo de pressão.",
     "atHintKeybindings": "Atalhos na posição da dica",
     "leftClick": "Clique esquerdo",
     "leftClickTooltip": "Clique com o mouse na posição do indicador.",
@@ -93,7 +99,8 @@
     "scrollLeft": "Rolar para a esquerda",
     "scrollLeftTooltip": "Role para a posição do indicador.",
     "scrollRight": "Rolar para a direita",
-    "scrollRightTooltip": "Role para a direita na posição do indicador."
+    "scrollRightTooltip": "Role para a direita na posição do indicador.",
+    "cursorMoveTooltip": "Move o ponteiro pelo passo configurado; as dicas acompanham o movimento."
   },
   "hint": {
     "charsets": "Sugestão: Conjuntos de Caracteres",
@@ -132,7 +139,11 @@
     "placeholderStyle": "Insira o estilo padrão",
     "placeholderTypeStyle": "Insira o CSS para {{typeName}}",
     "placeholderElementTypes": "Digite os tipos, separados por vírgula.",
-    "placeholderNewType": "Insira o nome do novo tipo de dica."
+    "placeholderNewType": "Insira o nome do novo tipo de dica.",
+    "axRoles": "Papéis de controles macOS",
+    "axRolesTooltip": "Selecione papéis de acessibilidade para este estilo ou digite um papel AX personalizado. Uma lista vazia não corresponde a controles; o estilo ainda pode ser usado na grade.",
+    "placeholderAxRoles": "Selecionar ou digitar papéis AX",
+    "macTypesDescription": "Atribua estilos aos papéis de controles nativos do macOS. Os nomes dos grupos identificam os estilos; os papéis AX escolhidos determinam os controles correspondentes."
   },
   "mouse": {
     "movementStep": "Passo",
@@ -206,7 +217,10 @@
       "detectionDescription": "Tempo em milissegundos entre as leituras dos elementos e antes da expiração dos resultados em cache.",
       "characterRows": "Conjuntos de caracteres por posição",
       "gridDescription": "Marque dicas em posições fixas na tela.",
-      "typesDescription": "Personalize a aparência e a atribuição de elementos para cada tipo de dica."
+      "typesDescription": "Personalize a aparência e a atribuição de elementos para cada tipo de dica.",
+      "cursor": "Mover o ponteiro",
+      "dragDescription": "Mantém o botão esquerdo do mouse pressionado ao mover o ponteiro.",
+      "scrollDescription": "Rola o conteúdo sob o ponteiro sem movê-lo."
     },
     "help": {
       "startAtLogin": "Iniciar o Screen Buoy ao entrar.",
