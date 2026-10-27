@@ -1,6 +1,6 @@
 [package]
 name = "screen-buoy"
-version = "1.4.0"
+version = "1.4.2"
 description = "A screen hint tool"
 authors = ["you"]
 license = "MIT"

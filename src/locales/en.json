@@ -182,6 +182,7 @@
     "cacheTtlTooltip": "How long completed scans can be reused in the background; recommended: 60000 ms. Interaction refreshes and live hint updates bypass this limit."
   },
   "settings": {
+    "restartRequired": "Settings saved. Restart to apply changes.",
     "title": "Settings",
     "restart": "Language applies immediately. Restart to apply other changes.",
     "language": "Language",

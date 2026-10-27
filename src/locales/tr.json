@@ -182,6 +182,7 @@
     "cacheTtlTooltip": "Tamamlanan taramaların arka planda yeniden kullanılabileceği süre. Önerilen: 60000 ms. Etkileşim sonrası yenilemeler ve canlı ipucu güncellemeleri bu sınıra tabi değildir."
   },
   "settings": {
+    "restartRequired": "Ayarlar kaydedildi. Değişiklikleri uygulamak için yeniden başlatın.",
     "title": "Ayarlar",
     "restart": "Dil hemen uygulanır. Diğer değişiklikleri uygulamak için yeniden başlatın.",
     "language": "Dil",

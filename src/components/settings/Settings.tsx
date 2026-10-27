@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Form, Grid, Result, Select, Spin, Tabs, message } from 'antd';
+import { Alert, Button, Form, Grid, Result, Select, Spin, Tabs, message } from 'antd';
 import {
   AimOutlined, AppstoreOutlined, CheckCircleOutlined, ControlOutlined,
   ExclamationCircleOutlined, FontSizeOutlined, GlobalOutlined,
   LoadingOutlined, SettingOutlined, ThunderboltOutlined,
 } from '@ant-design/icons';
 import { invoke } from '@tauri-apps/api/core';
-import { debounce } from 'lodash';
+import { debounce, isEqual } from 'lodash';
+import { relaunch } from '@tauri-apps/plugin-process';
 import { useTranslation } from 'react-i18next';
 import type { Config, LanguagePreference } from '../../types/config';
 import { HintSettings } from './sections/HintSettings';
@@ -34,6 +35,9 @@ const Settings: React.FC = () => {
   const [platform, setPlatform] = useState<{ platform: string; ax_roles: string[] }>({ platform: '', ax_roles: [] });
   const [availableKeys, setAvailableKeys] = useState<Record<string, number>>();
   const [saveState, setSaveState] = useState<SaveState>('idle');
+  const [restartRequired, setRestartRequired] = useState(false);
+  const [restarting, setRestarting] = useState(false);
+  const startupConfig = useRef<Config | null>(null);
   const revision = useRef(0);
   const saveQueue = useRef(Promise.resolve());
 
@@ -46,6 +50,7 @@ const Settings: React.FC = () => {
       ]);
       setPlatform(metadata);
       setInitialConfig(config);
+      startupConfig.current ??= config;
       setLanguagePreference(config.system.language ?? 'auto');
       await applyLanguage(config.system.language ?? 'auto');
       setAvailableKeys(config.keyboard?.available_key);
@@ -65,6 +70,12 @@ const Settings: React.FC = () => {
       if (revision.current !== version || getHintPrefixConflicts(values.hint).length) return;
       try {
         await invoke('save_config_for_frontend', { config: values });
+        // Language applies immediately; all other settings may be cached until restart.
+        const withoutLanguage = (config: Config) => ({
+          ...config, system: { ...config.system, language: undefined },
+        });
+        setRestartRequired(startupConfig.current !== null &&
+          !isEqual(withoutLanguage(values), withoutLanguage(startupConfig.current)));
         if (revision.current === version) setSaveState('saved');
       } catch (err) {
         if (revision.current === version) {
@@ -134,6 +145,23 @@ const Settings: React.FC = () => {
           />
         </div>
       </header>
+      {restartRequired && <Alert
+        className="settings-restart-alert"
+        type="warning"
+        showIcon
+        message={t('settings.restartRequired')}
+        description={t('settings.restart')}
+        action={<Button disabled={saveState !== 'saved'} loading={restarting} onClick={async () => {
+          setRestarting(true);
+          try {
+            await relaunch();
+          } catch (error) {
+            message.error(i18n.t('settings.runtimeError', { error: String(error) }));
+          } finally {
+            setRestarting(false);
+          }
+        }}>{t('system.restart')}</Button>}
+      />}
       <div className="settings-permissions"><MacPermissions /></div>
       {loading ? <div className="settings-loading"><Spin size="large" /><p>{t('settings.loading')}</p></div>
         : !initialConfig ? <Result status="warning" title={t('settings.loadError')}

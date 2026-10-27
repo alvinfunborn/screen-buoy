@@ -1,6 +1,6 @@
 # Screen Buoy
 
-[Website](https://alvinfunborn.github.io/screen-buoy/) · [Download](https://github.com/alvinfunborn/screen-buoy/releases/latest)
+[Website](https://alvinfunborn.github.io/screen-buoy/) · [More projects](https://alvinfunborn.github.io/) · [Download](https://github.com/alvinfunborn/screen-buoy/releases/latest) · [Support development on Ko-fi](https://ko-fi.com/alvinfunborn)
 
 [English](./README.md) | [中文](./README_zh.md)
 

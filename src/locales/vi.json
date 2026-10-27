@@ -182,6 +182,7 @@
     "cacheTtlTooltip": "Thời gian tái sử dụng kết quả quét đã hoàn tất trong nền. Khuyến nghị: 60000 ms. Việc làm mới sau tương tác và cập nhật gợi ý trực tiếp không chịu giới hạn này."
   },
   "settings": {
+    "restartRequired": "Đã lưu cài đặt. Khởi động lại để áp dụng thay đổi.",
     "title": "Cài đặt",
     "restart": "Ngôn ngữ được áp dụng ngay lập tức. Khởi động lại để áp dụng các thay đổi khác.",
     "language": "Ngôn ngữ",

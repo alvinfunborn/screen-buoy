@@ -182,6 +182,7 @@
     "cacheTtlTooltip": "Durée de réutilisation des analyses terminées en arrière-plan. Valeur conseillée : 60000 ms. Les actualisations après interaction et les repères en temps réel ne sont pas soumis à cette limite."
   },
   "settings": {
+    "restartRequired": "Paramètres enregistrés. Redémarrez pour appliquer les modifications.",
     "title": "Paramètres",
     "restart": "La langue s'applique immédiatement. Redémarrer pour appliquer d'autres modifications.",
     "language": "Langue",

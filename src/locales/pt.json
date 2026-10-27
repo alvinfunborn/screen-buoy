@@ -182,6 +182,7 @@
     "cacheTtlTooltip": "Tempo de reutilização das varreduras concluídas em segundo plano. Recomendado: 60000 ms. Atualizações após interações e dicas em tempo real não estão sujeitas a esse limite."
   },
   "settings": {
+    "restartRequired": "Configurações salvas. Reinicie para aplicar as alterações.",
     "title": "Configurações",
     "restart": "A linguagem é aplicada imediatamente. Reinicie para aplicar outras alterações.",
     "language": "Idioma",

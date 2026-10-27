@@ -26,4 +26,5 @@ kbd,.key-combo,code{direction:ltr;unicode-bidi:isolate}
 @media(max-width:760px){.steps article{padding-left:0;padding-inline-start:135px}.step-visual{left:auto;inset-inline-start:0}.footer>div{margin-inline-start:0}}
 @media(max-width:430px){.steps article{padding-inline-start:117px}.capabilities article{padding-left:0;padding-inline-start:36px}.capabilities article>span{left:auto;inset-inline-start:0}.demo-disclaimer{margin-inline-start:0}}
 .intro-strip>div{flex-wrap:wrap}
+.footer>div{flex-wrap:wrap}
 @media(max-width:1050px){.header nav>a:first-child{display:none}}
