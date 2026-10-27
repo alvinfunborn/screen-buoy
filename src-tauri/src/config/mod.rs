@@ -252,12 +252,15 @@ mod tests {
     fn legacy_default_side_key_migrates_to_hover_without_changing_other_preferences() {
         for defaults in [include_str!("../../config.default"), include_str!("../../config.toml"),
             include_str!("../../config_macos.toml")] {
+            let defaults = defaults.replace("\r\n", "\n");
             let legacy = defaults.replace("hover = [\"HintLeftKey\"]\n", "")
                 .replace("left_click_exit = []", "left_click_exit = [\"HintLeftKey\"]")
                 .replace("Alt+H", "Alt+Q");
             let config = parse_config(&legacy).unwrap();
             let expected = parse_config(&defaults.replace("Alt+H", "Alt+Q")).unwrap();
             assert_eq!(serde_json::to_value(&config).unwrap(), serde_json::to_value(expected).unwrap());
+            assert_eq!(serde_json::to_value(parse_config(&legacy.replace("\n", "\r\n")).unwrap()).unwrap(),
+                serde_json::to_value(&config).unwrap());
             // Saving and reloading must not reapply a migration or lose the binding.
             let saved = toml::to_string_pretty(&config).unwrap();
             assert_eq!(serde_json::to_value(parse_config(&saved).unwrap()).unwrap(),
@@ -267,7 +270,7 @@ mod tests {
 
     #[test]
     fn customized_or_explicitly_disabled_hover_bindings_are_preserved() {
-        let defaults = include_str!("../../config_macos.toml");
+        let defaults = include_str!("../../config_macos.toml").replace("\r\n", "\n");
         for click in ["[]", "[\"Enter\"]", "[\"HintLeftKey\", \"Enter\"]"] {
             let customized = defaults.replace("hover = [\"HintLeftKey\"]\n", "")
                 .replace("left_click_exit = []", &format!("left_click_exit = {click}"));
