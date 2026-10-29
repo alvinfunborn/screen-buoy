@@ -45,6 +45,7 @@ visible = false
 
 [bundle]
 active = true
+resources = ["beaconhop-integration.json"]
 targets = ["app"] # Release CI also builds an NSIS installer on Windows.
 icon = [
   "icons/icon.icns", # macOS rounded icon with transparent margins

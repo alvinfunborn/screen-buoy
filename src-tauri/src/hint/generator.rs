@@ -180,6 +180,33 @@ impl HintsGenerator {
         monitor_hints
     }
 
+    pub(super) fn generate_window_grid(&self, target: &WindowElement,
+        positions: &mut HashSet<(i32, i32)>, count: &mut i32) -> HashMap<String, Vec<Hint>> {
+        let config = config::get_config().unwrap();
+        self.window_grid(target, positions, count, &config)
+    }
+
+    fn window_grid(&self, target: &WindowElement, positions: &mut HashSet<(i32, i32)>,
+        count: &mut i32, config: &config::Config) -> HashMap<String, Vec<Hint>> {
+        let grid = &config.hint.grid;
+        let mut elements = Vec::new();
+        for row in &grid.show_at_rows {
+            for column in &grid.show_at_columns {
+                elements.push(UIElement {
+                    text: String::new(),
+                    x: target.x + ((*column as f64 - 0.5) * target.width as f64 / grid.columns as f64) as i32,
+                    y: target.y + ((*row as f64 - 0.5) * target.height as f64 / grid.rows as f64) as i32,
+                    z: config.hint.types[&grid.hint_type].z_index,
+                    width: 1, height: 1, window_handle: target.window_handle, control_type: 0,
+                    element_type: config.hint.types.get_index_of(&grid.hint_type).unwrap(),
+                });
+            }
+        }
+        let mut hints = HashMap::new();
+        self.do_generate_hints(&mut hints, target, &elements, positions, count);
+        hints
+    }
+
     // Replay previously filtered coordinates immediately, even if visibility is stale.
     // The empty activation layout needs only current display bounds; no window
     // intersections or native visibility checks are needed on this path.
@@ -265,6 +292,37 @@ mod tests {
     use super::*;
 
     static CODE_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn window_grid_stays_inside_target_on_negative_scaled_displays() {
+        let _guard = CODE_TEST_LOCK.lock().unwrap();
+        *HINT_TEXT_LIST_STORAGE.lock().unwrap() = (0..100).map(|i| i.to_string()).collect();
+        let target = WindowElement {
+            window_handle: 10, owner_pid: 20, x: -1000, y: -700, width: 800, height: 600,
+            title: String::new(), class_name: String::new(), z_index: 0, visible: true, is_task_bar: false,
+        };
+        let layout = Arc::new(HintLayout::with_monitors(&[], vec![
+            MonitorInfo { id: 0, x: -2400, y: -1800, width: 2400, height: 1800, scale_factor: 2.0 },
+            MonitorInfo { id: 1, x: 0, y: 0, width: 1600, height: 900, scale_factor: 1.0 },
+        ]));
+        let generator = HintsGenerator::new(layout, HashMap::new());
+        let mut positions = HashSet::new();
+        let mut count = 0;
+        let mut config: config::Config = toml::from_str(include_str!("../../config.toml")).unwrap();
+        config.hint.grid.rows = 2;
+        config.hint.grid.columns = 2;
+        config.hint.grid.show_at_rows = vec![1, 2];
+        config.hint.grid.show_at_columns = vec![1, 2];
+        let hints = generator.window_grid(&target, &mut positions, &mut count, &config);
+        assert_eq!(count, 4);
+        assert_eq!(hints.len(), 1);
+        assert_eq!(positions, HashSet::from([(-800, -550), (-400, -550), (-800, -250), (-400, -250)]));
+        let points = &hints[&format!("{OVERLAY_WINDOW_PREFIX}0")];
+        #[cfg(target_os = "macos")]
+        assert_eq!((points[0].x, points[0].y, points[0].scale), (400, 350, 2.0));
+        #[cfg(target_os = "windows")]
+        assert_eq!((points[0].x, points[0].y, points[0].scale), (800, 625, 2.0));
+    }
 
     #[test]
     fn prefilter_matches_render_bounds_for_negative_and_mixed_scale_displays() {

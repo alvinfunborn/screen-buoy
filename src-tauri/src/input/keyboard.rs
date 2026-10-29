@@ -3,12 +3,13 @@ use crate::hint::filter_hints;
 use crate::input::{executor, mouse};
 use log::{debug, info};
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
 
 // 键盘状态
 #[derive(Debug, Default)]
 pub struct KeyboardState {
+    pub handoff_keys: HandoffKeys,
     pub pressed_hint_keys: Option<String>,
     pub final_hint_key: Option<String>,
     pub hint_starts_with_extra: bool,
@@ -25,6 +26,7 @@ pub struct KeyboardState {
 impl KeyboardState {
     pub fn new() -> Self {
         Self {
+            handoff_keys: HandoffKeys::default(),
             pressed_hint_keys: Some("".to_string()),
             final_hint_key: Some("".to_string()),
             hint_starts_with_extra: false,
@@ -42,6 +44,36 @@ impl KeyboardState {
     pub fn can_quick_click(&self, now: u64) -> bool {
         !self.hover_pending && now.saturating_sub(self.final_hint_key_hold_start) < 300
     }
+}
+
+/// Originating BH keys belong to the old gesture, even if SB's hook runs first.
+/// A fresh down rearms a key whose release BH already consumed (or which was
+/// released during cold startup). Never turn that old release into a click.
+#[derive(Debug, Default)]
+pub struct HandoffKeys(HashSet<u32>);
+
+impl HandoffKeys {
+    pub fn contains(&self, code: u32) -> bool { self.0.contains(&code) }
+
+    pub fn consume(&mut self, code: u32, down: bool, repeat: bool) -> bool {
+        if !self.0.contains(&code) { return false; }
+        if !down || !repeat { self.0.remove(&code); }
+        !down || repeat
+    }
+}
+
+pub fn begin_handoff_input(keys: &[u32]) {
+    #[cfg(target_os = "macos")]
+    mouse::cancel_pending_clicks();
+    let mut state = KEYBOARD_STATE.lock().unwrap();
+    state.handoff_keys = HandoffKeys(keys.iter().copied().collect());
+    state.hold_keys.clear();
+    state.in_ctrl_session = true;
+}
+
+pub fn consume_handoff_key(code: u32, down: bool, repeat: bool) -> bool {
+    let mut state = KEYBOARD_STATE.lock().unwrap();
+    state.in_ctrl_session && state.handoff_keys.consume(code, down, repeat)
 }
 
 // 全局键盘状态
@@ -65,6 +97,7 @@ pub fn switch_keyboard_ctrl(visible: bool) {
                 state.final_hint_key_hold = false;
                 state.final_hint_key_hold_start = 0;
                 state.hover_pending = false;
+                state.handoff_keys = HandoffKeys::default();
                 state.is_dragging = false;
             }
         }
@@ -374,6 +407,38 @@ mod hover_tests {
         state.hover_pending = true;
         for released_at in [1000, 1001, 1299, 1300, 2000] {
             assert!(!state.can_quick_click(released_at));
+        }
+    }
+}
+
+#[cfg(test)]
+mod handoff_tests {
+    use super::*;
+
+    #[test]
+    fn old_gesture_repeats_and_releases_never_enter_the_new_session() {
+        let mut keys = HandoffKeys([1, 2, 55].into());
+        for _ in 0..4 {
+            assert!(keys.consume(1, true, true));
+            assert!(keys.consume(2, true, true));
+        }
+        // New input can start while the old gesture is still held.
+        assert!(!keys.consume(14, true, false));
+        assert!(keys.contains(55));
+        for code in [55, 2, 1] {
+            assert!(keys.consume(code, false, false));
+            assert!(!keys.contains(code));
+            assert!(!keys.consume(code, true, false));
+        }
+    }
+
+    #[test]
+    fn key_released_before_cold_start_or_swallowed_by_bh_is_reusable() {
+        let mut keys = HandoffKeys([1, 2, 55].into());
+        for code in [1, 2, 55] {
+            assert!(!keys.consume(code, true, false));
+            assert!(!keys.consume(code, true, true));
+            assert!(!keys.consume(code, false, false));
         }
     }
 }

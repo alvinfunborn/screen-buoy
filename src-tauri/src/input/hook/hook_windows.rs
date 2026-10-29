@@ -6,11 +6,11 @@ use windows::Win32::{
     Foundation::{LPARAM, LRESULT, WPARAM},
     UI::{
         Input::KeyboardAndMouse::{
-            GetKeyboardState, ToUnicode, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS
+            GetAsyncKeyState, GetKeyboardState, ToUnicode, VK_OEM_1, VK_OEM_2, VK_OEM_3, VK_OEM_4, VK_OEM_5, VK_OEM_6, VK_OEM_7, VK_OEM_COMMA, VK_OEM_MINUS, VK_OEM_PERIOD, VK_OEM_PLUS
         },
         WindowsAndMessaging::{
             CallNextHookEx, SetWindowsHookExW, UnhookWindowsHookEx, HHOOK, KBDLLHOOKSTRUCT, MSLLHOOKSTRUCT,
-            WH_KEYBOARD_LL, WH_MOUSE_LL, WM_KEYDOWN, WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP,
+            WH_KEYBOARD_LL, WH_MOUSE_LL, WM_KEYDOWN, WM_SYSKEYDOWN, WM_LBUTTONUP, WM_RBUTTONUP, WM_MBUTTONUP,
         },
     },
 };
@@ -34,8 +34,16 @@ pub unsafe extern "system" fn keyboard_hook_proc(
     }
 
     let key_info = *(lparam.0 as *const KBDLLHOOKSTRUCT);
-    let is_down = wparam.0 == WM_KEYDOWN as usize;
+    let is_down = matches!(wparam.0 as u32, WM_KEYDOWN | WM_SYSKEYDOWN);
     let vk_code = key_info.vkCode as u16;
+
+    // The low-level hook runs before Windows updates the asynchronous state:
+    // an already-down origin key is repeating, a newly-down key is reusable.
+    let repeat = is_down && GetAsyncKeyState(vk_code as i32) < 0;
+    if crate::input::keyboard::consume_handoff_key(vk_code as u32, is_down, repeat) {
+        // Let BH drain its own key state when this hook precedes BH's hook.
+        return if is_down { LRESULT(1) } else { CallNextHookEx(None, code, wparam, lparam) };
+    }
 
     let key: String;
     if let Some(key_config) = config::keyboard::VIRTUAL_KEY_MAP.lock().unwrap().get(&vk_code) {

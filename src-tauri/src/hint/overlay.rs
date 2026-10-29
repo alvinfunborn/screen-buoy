@@ -3,9 +3,9 @@ use crate::monitor::MONITORS_STORAGE;
 #[cfg(target_os = "windows")]
 use log::debug;
 use once_cell::sync::Lazy;
-use std::collections::HashMap;
-use std::sync::Mutex;
-#[cfg(target_os = "macos")]
+use std::collections::{HashMap, HashSet};
+use std::sync::{Condvar, Mutex};
+use std::time::Duration;
 use tauri::Manager;
 #[cfg(target_os = "windows")]
 use windows::Win32::Foundation::HWND;
@@ -20,6 +20,47 @@ pub static OVERLAY_HANDLES_STORAGE: Lazy<Mutex<HashMap<String, i64>>> =
 
 pub const OVERLAY_WINDOW_PREFIX: &str = "overlay_";
 
+#[derive(Default)]
+struct OverlayReadiness {
+    labels: Mutex<HashSet<String>>,
+    changed: Condvar,
+}
+
+impl OverlayReadiness {
+    fn mark(&self, label: String) {
+        self.labels.lock().unwrap().insert(label);
+        self.changed.notify_all();
+    }
+
+    fn wait(&self, expected: &[String], timeout: Duration) -> bool {
+        if expected.is_empty() {
+            return false;
+        }
+        let (labels, _) = self.changed.wait_timeout_while(
+            self.labels.lock().unwrap(), timeout,
+            |ready| expected.iter().any(|label| !ready.contains(label)),
+        ).unwrap();
+        expected.iter().all(|label| labels.contains(label))
+    }
+}
+
+static OVERLAY_READINESS: Lazy<OverlayReadiness> = Lazy::new(OverlayReadiness::default);
+
+/// The page acknowledges only after styles and every hint listener are ready.
+#[tauri::command]
+pub fn overlay_ready(window: tauri::WebviewWindow) {
+    if window.label().starts_with(OVERLAY_WINDOW_PREFIX) {
+        OVERLAY_READINESS.mark(window.label().to_owned());
+        log::info!("[overlay] {} listeners ready", window.label());
+    }
+}
+
+pub(crate) fn wait_until_ready(app: &tauri::AppHandle, timeout: Duration) -> bool {
+    let labels: Vec<_> = app.webview_windows().into_keys()
+        .filter(|label| label.starts_with(OVERLAY_WINDOW_PREFIX)).collect();
+    OVERLAY_READINESS.wait(&labels, timeout)
+}
+
 pub fn get_overlay_window_label(monitor_index: usize) -> String {
     format!("{}{}", OVERLAY_WINDOW_PREFIX, monitor_index)
 }
@@ -32,6 +73,7 @@ pub fn get_overlay_monitor_id(window_label: &str) -> usize {
 }
 
 pub fn create_overlay_windows(app_handle: &tauri::AppHandle) {
+    OVERLAY_READINESS.labels.lock().unwrap().clear();
     let monitors = MONITORS_STORAGE.lock().unwrap();
     // 清空之前保存的窗口句柄
     if let Ok(mut handles) = OVERLAY_HANDLES_STORAGE.lock() {
@@ -81,5 +123,38 @@ pub fn sync_overlay_visibility(app_handle: &tauri::AppHandle) {
         }) {
             log::error!("[overlay] update native visibility failed: {}", e);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+
+    #[test]
+    fn handoff_waits_for_every_page_listener() {
+        let ready = Arc::new(OverlayReadiness::default());
+        let pages: Vec<String> = vec!["overlay_0".into(), "overlay_1".into()];
+        ready.mark(pages[0].clone());
+        assert!(!ready.wait(&pages, Duration::ZERO));
+        let loader = ready.clone();
+        let thread = std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(20));
+            loader.mark("overlay_1".into());
+        });
+        assert!(ready.wait(&pages, Duration::from_secs(1)));
+        thread.join().unwrap();
+        // An already warm page does not wait for another notification.
+        assert!(ready.wait(&pages, Duration::ZERO));
+    }
+
+    #[test]
+    fn missing_or_recreated_pages_do_not_report_ready() {
+        let ready = OverlayReadiness::default();
+        assert!(!ready.wait(&[], Duration::ZERO));
+        ready.mark("overlay_0".into());
+        let pages = vec!["overlay_0".into()];
+        ready.labels.lock().unwrap().clear();
+        assert!(!ready.wait(&pages, Duration::from_millis(5)));
     }
 }

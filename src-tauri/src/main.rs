@@ -28,6 +28,8 @@ fn main() {
     config::init_config();
     let config = config::get_config().unwrap();
     let config_for_manage = config.clone();
+    let beaconhop_requested =
+        screen_buoy::beaconhop::is_requested(&std::env::args().collect::<Vec<_>>());
 
     // Initialize logger
     let _ = init_logger(config.system.logging_level.clone());
@@ -50,7 +52,9 @@ fn main() {
         info!("debug mode: {}", cfg!(debug_assertions));
 
         #[cfg(target_os = "macos")]
-        screen_buoy::set_app_activation_policy_accessory();
+        if !beaconhop_requested {
+            screen_buoy::set_app_activation_policy_accessory();
+        }
 
         let app_handle = app.handle();
 
@@ -61,7 +65,7 @@ fn main() {
         let main_window = app_handle.get_webview_window("main").unwrap();
 
         // Handle window visibility
-        if config.system.start_in_tray {
+        if config.system.start_in_tray || beaconhop_requested {
             if let Err(e) = main_window.hide() {
                 error!("[✗] hide main window failed: {}", e);
             }
@@ -80,7 +84,7 @@ fn main() {
         {
             screen_buoy::macos_access::log_executable_identity();
             screen_buoy::macos_access::log_accessibility_status();
-            if !screen_buoy::macos_access::is_accessibility_trusted() {
+            if !beaconhop_requested && !screen_buoy::macos_access::is_accessibility_trusted() {
                 main_window.show()?;
                 main_window.set_focus()?;
             }
@@ -115,7 +119,19 @@ fn main() {
         set_auto_start(&app_handle, &config).expect("Failed to setup auto start");
         info!("[✓] auto start setup");
 
+        #[cfg(target_os = "macos")]
+        if beaconhop_requested {
+            // Wry activates the app while constructing each webview, including
+            // hidden ones. Keep activation prohibited until all overlays exist.
+            screen_buoy::set_app_activation_policy_accessory();
+            if !screen_buoy::macos_access::is_accessibility_trusted() {
+                main_window.show()?;
+                main_window.set_focus()?;
+            }
+        }
+
         info!("=== application initialized ===");
+        screen_buoy::beaconhop::initialized(app_handle);
         Ok(())
     });
 
@@ -123,6 +139,23 @@ fn main() {
     let app = builder
         .build(tauri::generate_context!("Tauri.toml"))
         .expect("error while building tauri application");
+
+    #[cfg(target_os = "macos")]
+    let app = {
+        let mut app = app;
+        if beaconhop_requested {
+            // Tao activates the application before Tauri calls setup, even
+            // when Launch Services used `open -g`. Set its launch policy now.
+            app.set_activation_policy(tauri::ActivationPolicy::Prohibited);
+            // The setter above only changes Tao's policy for
+            // applicationDidFinishLaunching. AppKit can activate the process
+            // before that callback, so also apply the native policy now.
+            app.handle()
+                .set_activation_policy(tauri::ActivationPolicy::Prohibited)
+                .expect("failed to suppress handoff launch activation");
+        }
+        app
+    };
 
     app.manage(config_for_manage);
 

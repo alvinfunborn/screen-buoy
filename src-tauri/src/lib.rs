@@ -10,6 +10,7 @@ pub mod window;
 pub mod permissions;
 pub mod updates;
 pub mod language;
+pub mod beaconhop;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
 #[cfg(target_os = "macos")]
@@ -44,6 +45,29 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 struct TrayMenuLabels([MenuItem<tauri::Wry>; 3]);
+
+/// All explicit settings entry points must restore a hidden or minimized window.
+pub fn show_settings_window(app_handle: &AppHandle) {
+    let app = app_handle.clone();
+    if let Err(error) = app_handle.run_on_main_thread(move || {
+        let Some(window) = app.get_webview_window("main") else {
+            warn!("[settings] main window is unavailable");
+            return;
+        };
+        if let Err(error) = window.unminimize() {
+            warn!("[settings] failed to unminimize window: {error}");
+        }
+        if let Err(error) = window.show() {
+            warn!("[settings] failed to show window: {error}");
+        }
+        if let Err(error) = window.set_focus() {
+            warn!("[settings] failed to focus window: {error}");
+        }
+        info!("[settings] requested window restore");
+    }) {
+        warn!("[settings] failed to schedule window restore: {error}");
+    }
+}
 
 pub fn update_tray_language(app: &AppHandle, preference: &language::LanguagePreference) {
     if let Some(menu) = app.try_state::<TrayMenuLabels>() {
@@ -211,13 +235,15 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_positioner::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            if beaconhop::handle(app, &args) { return; }
             let _ = app
                 .get_webview_window("main")
                 .expect("no main window")
                 .set_focus();
         }))
         .invoke_handler(tauri::generate_handler![
+            hint::overlay::overlay_ready,
             get_hint_default_style,
             get_hint_types_styles,
             get_config_for_frontend,

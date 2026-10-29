@@ -172,9 +172,44 @@ impl WorkQueue {
 }
 
 pub async fn show_hints(window: WebviewWindow) {
+    show_hints_inner(window, None, Vec::new(), None).await;
+}
+
+pub async fn show_window_hints(window: WebviewWindow, target: crate::window::WindowElement,
+    held_keys: Vec<u32>,
+    ready: std::sync::mpsc::SyncSender<Result<(), String>>) {
+    show_hints_inner(window, Some(target), held_keys, Some(ready)).await;
+}
+
+fn same_window(a: &crate::window::WindowElement, b: &crate::window::WindowElement) -> bool {
+    a.window_handle == b.window_handle && a.owner_pid == b.owner_pid
+        && (a.x, a.y, a.width, a.height) == (b.x, b.y, b.width, b.height)
+}
+
+pub(crate) fn scope_current(target: &crate::window::WindowElement) -> bool {
+    crate::beaconhop::focused(target) && crate::window::window::get_all_windows().iter().any(|w| same_window(w, target))
+}
+
+fn scope_snapshot(mut snapshot: element::element::Snapshot, target: &crate::window::WindowElement)
+    -> Option<element::element::Snapshot> {
+    if !same_window(&snapshot.window, target) { return None; }
+    let bounds = crate::utils::Rect::new(target.x, target.y, target.width, target.height);
+    snapshot.elements = Arc::new(snapshot.elements.iter().filter(|e|
+        e.window_handle == target.window_handle && bounds.contains_point(e.x, e.y)).cloned().collect());
+    Some(snapshot)
+}
+
+async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::WindowElement>,
+    held_keys: Vec<u32>,
+    ready: Option<std::sync::mpsc::SyncSender<Result<(), String>>>) {
     if !crate::permissions::get_permission_status().ready {
+        if let Some(ready) = ready { let _ = ready.send(Err("Screen Buoy permissions are not ready".into())); return; }
         let _ = window.show();
         let _ = window.set_focus();
+        return;
+    }
+    if scope.as_ref().is_some_and(|target| !scope_current(target)) {
+        if let Some(ready) = ready { let _ = ready.send(Err("Target window changed".into())); }
         return;
     }
     let started = Instant::now();
@@ -183,7 +218,11 @@ pub async fn show_hints(window: WebviewWindow) {
     let mut updates = warm::subscribe();
     let mut seen = HashMap::new();
     // Read the last filtered result immediately. A new check never gates replay.
-    let (cached_windows, cached_snapshots) = warm::snapshots_since(&mut seen);
+    let (mut cached_windows, mut cached_snapshots) = warm::snapshots_since(&mut seen);
+    if let Some(target) = &scope {
+        cached_windows.retain(|w| same_window(w, target));
+        cached_snapshots = cached_snapshots.into_iter().filter_map(|s| scope_snapshot(s, target)).collect();
+    }
     let activation = {
         let _guard = LIFECYCLE.lock().unwrap();
         // Drain/reset old input before changing its session tag. Otherwise an
@@ -203,7 +242,7 @@ pub async fn show_hints(window: WebviewWindow) {
                 );
             }
         }
-        input::keyboard::switch_keyboard_ctrl(true);
+        input::keyboard::begin_handoff_input(&held_keys);
         element::set_hint_active(true);
         if !config::get_config().unwrap().system.debug_mode {
             overlay::ensure_all_overlays_topmost(app);
@@ -213,7 +252,11 @@ pub async fn show_hints(window: WebviewWindow) {
     let mut positions = HashSet::new();
     let mut count = 0;
     let layout = Arc::new(HintLayout::new(&[]));
-    let grids = HintsGenerator::new(layout.clone(), HashMap::new()).generate_hints_grid(&mut count);
+    let grid_generator = HintsGenerator::new(layout.clone(), HashMap::new());
+    let grids = match &scope {
+        Some(target) => grid_generator.generate_window_grid(target, &mut positions, &mut count),
+        None => grid_generator.generate_hints_grid(&mut count),
+    };
     publish(app, activation, grids);
     // Only previously filtered coordinates enter this path, never raw AX data.
     // Their visibility may be stale, but the session keeps them as shortcuts.
@@ -226,10 +269,22 @@ pub async fn show_hints(window: WebviewWindow) {
         activation, added, sources, started.elapsed().as_secs_f64() * 1000.0);
     let mut first_control = added == 0;
     drop(cached);
+    if let Some(ready) = ready {
+        // If the requesting BH has timed out, do not leave an unexpected session.
+        if ready.send(Ok(())).is_err() { hide_hints_for_session(app.clone(), activation).await; return; }
+    }
     while is_active(activation) {
+        if scope.as_ref().is_some_and(|target| !scope_current(target)) {
+            hide_hints_for_session(app.clone(), activation).await;
+            break;
+        }
         updates.borrow_and_update();
         let (windows, snapshots) = warm::snapshots_since(&mut seen);
         for snapshot in snapshots {
+            let snapshot = if let Some(target) = &scope {
+                let Some(snapshot) = scope_snapshot(snapshot, target) else { continue; };
+                snapshot
+            } else { snapshot };
             if !generator::has_capacity(count) { break; }
             let generator = HintsGenerator::new(layout.clone(),
                 HashMap::from([(snapshot.window.clone(), snapshot.elements.clone())]));
@@ -242,9 +297,10 @@ pub async fn show_hints(window: WebviewWindow) {
                 first_control = false;
             }
         }
-        if !is_active(activation) || updates.changed().await.is_err() {
-            break;
-        }
+        if !is_active(activation) { break; }
+        if scope.is_some() {
+            if let Ok(Err(_)) = tokio::time::timeout(std::time::Duration::from_millis(150), updates.changed()).await { break; }
+        } else if updates.changed().await.is_err() { break; }
     }
 }
 
@@ -297,6 +353,29 @@ pub fn filter_hints(app: &tauri::AppHandle, letters: String) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn scoped_cache_rejects_other_processes_windows_moved_frames_and_outside_points() {
+        let source = snapshot(10, 1);
+        let target = source.window.clone();
+        for altered in [
+            crate::window::WindowElement { window_handle: 2, ..target.clone() },
+            crate::window::WindowElement { owner_pid: 2, ..target.clone() },
+            crate::window::WindowElement { x: 1, ..target.clone() },
+            crate::window::WindowElement { width: 999, ..target.clone() },
+        ] {
+            assert!(scope_snapshot(source.clone(), &altered).is_none());
+        }
+        let mut source = source;
+        let mut elements = source.elements.as_ref().clone();
+        elements[0].window_handle = 2;
+        elements[1].x = -1;
+        elements[2].x = target.width;
+        source.elements = Arc::new(elements);
+        let scoped = scope_snapshot(source, &target).unwrap();
+        assert_eq!(scoped.elements.len(), 7);
+        assert_eq!(scoped.elements[0].x, 3);
+    }
 
     fn test_layout() -> HintLayout {
         HintLayout::with_monitors(&[], vec![crate::monitor::MonitorInfo {

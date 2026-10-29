@@ -198,6 +198,14 @@ unsafe extern "C" fn tap_callback(
         _ => return event_ref,
     };
 
+    let is_autorepeat = etype == CG_KEY_DOWN
+        && unsafe { CGEventGetIntegerValueField(event_ref, EventField::KEYBOARD_EVENT_AUTOREPEAT) } != 0;
+    if crate::input::keyboard::consume_handoff_key(keycode as u32, is_down, is_autorepeat) {
+        // BH also needs the release to clear its consumed-key bookkeeping when
+        // this tap precedes BH's tap. SB alone must ignore the old release.
+        return if is_down { std::ptr::null() } else { event_ref };
+    }
+
     let Some(key) = key_opt else {
         debug!(
             "[mac tap] skip (no key string) etype={} keycode={}",
@@ -211,9 +219,6 @@ unsafe extern "C" fn tap_callback(
         etype, keycode, key, is_down
     );
 
-    let is_autorepeat = etype == CG_KEY_DOWN
-        && unsafe { CGEventGetIntegerValueField(event_ref, EventField::KEYBOARD_EVENT_AUTOREPEAT) }
-            != 0;
     if is_autorepeat {
         if let Ok(s) = KEYBOARD_STATE.lock() {
             if !s.in_ctrl_session {
@@ -233,7 +238,8 @@ unsafe extern "C" fn tap_callback(
         if let Ok(mut state) = KEYBOARD_STATE.lock() {
             let modifier_codes = config::keyboard::get_modifier_keycodes();
             for (code, name) in &modifier_codes {
-                let pressed = unsafe { CGEventSourceKeyState(0, *code) };
+                let pressed = !state.handoff_keys.contains(*code as u32)
+                    && unsafe { CGEventSourceKeyState(0, *code) };
                 let old = state.hold_keys.get(name.as_str()).copied().unwrap_or(false);
                 if old != pressed {
                     debug!(

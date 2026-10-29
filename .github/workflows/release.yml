@@ -51,7 +51,7 @@ jobs:
 
       - name: Create screen-buoy-windows.zip
         run: |
-          Compress-Archive -Path src-tauri\target\release\screen-buoy.exe, src-tauri\config.toml -DestinationPath screen-buoy-windows.zip -Force
+          Compress-Archive -Path src-tauri\target\release\screen-buoy.exe, src-tauri\config.toml, src-tauri\beaconhop-integration.json -DestinationPath screen-buoy-windows.zip -Force
           Copy-Item src-tauri/target/release/bundle/nsis/*-setup.exe screen-buoy-windows-setup.exe
           Copy-Item src-tauri/target/release/bundle/nsis/*-setup.exe.sig screen-buoy-windows-setup.exe.sig
 
@@ -162,7 +162,8 @@ jobs:
         run: |
           node --test scripts/create-update-manifest.test.mjs
           node scripts/create-update-manifest.mjs . "$RELEASE_TAG" "$RELEASE_REPOSITORY"
-          sha256sum screen-buoy-macos.zip screen-buoy-windows.zip screen-buoy-macos.app.tar.gz screen-buoy-windows-setup.exe latest.json > SHA256SUMS
+          cp src-tauri/beaconhop-integration.json beaconhop-integration.json
+          sha256sum screen-buoy-macos.zip screen-buoy-windows.zip screen-buoy-macos.app.tar.gz screen-buoy-windows-setup.exe latest.json beaconhop-integration.json > SHA256SUMS
 
       - name: Create complete draft release
         uses: softprops/action-gh-release@v2
@@ -177,6 +178,7 @@ jobs:
             screen-buoy-windows-setup.exe
             screen-buoy-windows-setup.exe.sig
             latest.json
+            beaconhop-integration.json
             SHA256SUMS
           generate_release_notes: true
         env:

@@ -200,6 +200,8 @@
                     if (hintState.filter(payload.session, payload.revision, payload.letters)) filterHints();
                 });
 
+                await invoke('overlay_ready');
+
                 // 设置清理函数
                 window.addEventListener('unload', () => {
                     try {
