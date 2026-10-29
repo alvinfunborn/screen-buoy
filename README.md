@@ -164,6 +164,10 @@ npm run tauri build
 
 ## Advanced Configuration
 
+Under Settings → Shortcuts → Show hints, single-key and combination triggers have independent switches. Changes save automatically and apply after restarting. On macOS, choose left or right Option, Command, Control, or Shift for the single-key trigger (left Option is preselected; enable it to opt in). A standalone press released within 300 ms shows hints. Holding the key, using other keys, clicking, dragging, or scrolling cancels the tap. Turn off the single-key trigger while gaming. Settings remain accessible when both triggers are off, and disabling a method preserves its selected keys.
+
+The configuration fields are `single_key_enabled`, `single_key`, `hotkey_enabled`, and the existing `hotkey_buoy`. Legacy configurations retain their combination shortcut with single-key activation off. Windows currently offers the combination shortcut switch only.
+
 #### 1. HintKey, HintRightKey, HintLeftKey
 
 - **HintKey**: The main hint trigger key (usually the last character of the hint), used to activate, move to, or left-click at the hint.

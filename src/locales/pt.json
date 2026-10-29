@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Role para a posição do indicador.",
     "scrollRight": "Rolar para a direita",
     "scrollRightTooltip": "Role para a direita na posição do indicador.",
-    "cursorMoveTooltip": "Move o ponteiro pelo passo configurado; as dicas acompanham o movimento."
+    "cursorMoveTooltip": "Move o ponteiro pelo passo configurado; as dicas acompanham o movimento.",
+    "activation": {
+      "title": "Mostrar dicas",
+      "description": "Comece a partir de qualquer aplicação. Cada método pode ser ativado separadamente.",
+      "singleKey": "Tecla individual",
+      "singleDescription": "Prima brevemente uma tecla modificadora sozinha. As dicas aparecem ao soltá-la.",
+      "chooseKey": "Tecla de ativação",
+      "singleRules": "Manter a tecla premida, combinar teclas, clicar ou deslocar cancela a ativação.",
+      "combination": "Atalho de teclado",
+      "combinationDescription": "Mostre dicas com um atalho.",
+      "shortcutKeys": "Teclas do atalho",
+      "gameNote": "Ao jogar, desative a tecla individual para evitar ativações involuntárias.",
+      "applyNote": "As alterações são guardadas automaticamente. Reinicie o ScreenBuoy para as aplicar.",
+      "bothOff": "Após reiniciar, a ativação pelo teclado estará desativada. Pode voltar a ativá-la nas Definições.",
+      "leftKey": "{{key}} esquerda",
+      "rightKey": "{{key}} direita"
+    }
   },
   "hint": {
     "charsets": "Sugestão: Conjuntos de Caracteres",

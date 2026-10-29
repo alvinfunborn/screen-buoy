@@ -9,6 +9,40 @@ pub struct KeybindingConfig {
     pub global: GlobalKeybindingConfig,
     pub at_hint: AtHintKeybindingConfig,
     pub hotkey_buoy: String,
+    #[serde(default = "enabled_by_default")]
+    pub hotkey_enabled: bool,
+    #[serde(default)]
+    pub single_key_enabled: bool,
+    #[serde(default)]
+    pub single_key: SingleModifierKey,
+}
+
+fn enabled_by_default() -> bool { true }
+
+#[derive(Debug, Default, Deserialize, Serialize, Clone, Copy, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum SingleModifierKey {
+    #[default]
+    LeftOption,
+    RightOption,
+    LeftCommand,
+    RightCommand,
+    LeftControl,
+    RightControl,
+    LeftShift,
+    RightShift,
+}
+
+impl SingleModifierKey {
+    #[cfg(target_os = "macos")]
+    pub fn keycode(self) -> u16 {
+        match self {
+            Self::LeftOption => 58, Self::RightOption => 61,
+            Self::LeftCommand => 55, Self::RightCommand => 54,
+            Self::LeftControl => 59, Self::RightControl => 62,
+            Self::LeftShift => 56, Self::RightShift => 60,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

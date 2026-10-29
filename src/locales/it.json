@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Scorri a sinistra alla posizione del suggerimento.",
     "scrollRight": "Scorri a destra",
     "scrollRightTooltip": "Scorri a destra nella posizione del suggerimento.",
-    "cursorMoveTooltip": "Sposta il puntatore del passo configurato; i suggerimenti seguono il movimento."
+    "cursorMoveTooltip": "Sposta il puntatore del passo configurato; i suggerimenti seguono il movimento.",
+    "activation": {
+      "title": "Mostra suggerimenti",
+      "description": "Avvia da qualsiasi applicazione. Ogni metodo può essere attivato separatamente.",
+      "singleKey": "Tasto singolo",
+      "singleDescription": "Premi brevemente un modificatore da solo. I suggerimenti appaiono al rilascio.",
+      "chooseKey": "Tasto di attivazione",
+      "singleRules": "Tenere premuto il tasto, combinare tasti, fare clic o scorrere annulla l’attivazione.",
+      "combination": "Scorciatoia da tastiera",
+      "combinationDescription": "Mostra i suggerimenti con una scorciatoia.",
+      "shortcutKeys": "Tasti della scorciatoia",
+      "gameNote": "Durante i giochi, disattiva il tasto singolo per evitare attivazioni involontarie.",
+      "applyNote": "Le modifiche vengono salvate automaticamente. Riavvia ScreenBuoy per applicarle.",
+      "bothOff": "Dopo il riavvio, l’attivazione da tastiera sarà disattivata. Puoi riattivarla nelle Impostazioni.",
+      "leftKey": "{{key}} sinistro",
+      "rightKey": "{{key}} destro"
+    }
   },
   "hint": {
     "charsets": "Hint: Caratteri",

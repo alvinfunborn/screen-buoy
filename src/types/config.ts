@@ -84,6 +84,10 @@ export interface KeybindingConfig {
   global: GlobalKeybindingConfig;
   at_hint: AtHintKeybindingConfig;
   hotkey_buoy: string;
+  hotkey_enabled: boolean;
+  single_key_enabled: boolean;
+  single_key: 'left_option' | 'right_option' | 'left_command' | 'right_command'
+    | 'left_control' | 'right_control' | 'left_shift' | 'right_shift';
 }
 
 export type LanguagePreference = 'auto' | 'en' | 'zh' | 'zh-TW' | 'ja' | 'ko' | 'es' | 'fr' | 'de' | 'pt' | 'ru' | 'it' | 'ar' | 'hi' | 'id' | 'vi' | 'th' | 'tr';

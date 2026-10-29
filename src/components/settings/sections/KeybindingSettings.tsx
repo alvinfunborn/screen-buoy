@@ -1,10 +1,12 @@
 import React from 'react';
-import { Form, Input, Select } from 'antd';
+import { Form, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useKeyOptions } from '../../../hooks/useKeyOptions';
 import { SettingSection } from '../SettingSection';
+import { ActivationSettings } from './ActivationSettings';
 
 interface KeybindingSettingsProps {
+  isMac: boolean;
   availableKeysData?: Record<string, number>;
 }
 
@@ -22,7 +24,7 @@ const hintActions: Binding[] = [
 ];
 const directions = ['up', 'down', 'left', 'right'] as const;
 
-export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ availableKeysData }) => {
+export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ isMac, availableKeysData }) => {
   const { t } = useTranslation();
   const keyOptions = useKeyOptions(availableKeysData);
   const field = (path: string[], label: string, tooltip = `${label}Tooltip`) => (
@@ -40,12 +42,7 @@ export const KeybindingSettings: React.FC<KeybindingSettingsProps> = ({ availabl
 
   return (
     <div className="settings-stack">
-      <SettingSection title={t('keybinding.mainHotkey')} description={t('settings.groups.activation')} className="activation-section">
-        <Form.Item name={['keybinding', 'hotkey_buoy']} className="hotkey-field">
-          <Input aria-label={t('keybinding.mainHotkey')} spellCheck={false} />
-        </Form.Item>
-        <p className="setting-note">{t('keybinding.mainHotkeyTooltip')}</p>
-      </SettingSection>
+      <ActivationSettings isMac={isMac} />
       <SettingSection title={t('keybinding.globalKeybindings')} description={t('settings.groups.global')}>
         {globalActions.map(([name, label]) => field(['global', name], label))}
         <h4 className="setting-subheading">{t('settings.groups.translate')}</h4>

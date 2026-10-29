@@ -148,6 +148,10 @@ pub fn setup_shortcut(
     main_window: tauri::WebviewWindow,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let hotkey_buoy = config.keybinding.hotkey_buoy.clone();
+    if !config.keybinding.hotkey_enabled {
+        info!("[setup_shortcut] combination shortcut disabled");
+        return Ok(());
+    }
     let main_shortcut: Shortcut = FromStr::from_str(&hotkey_buoy)?;
     let main_window_clone = main_window.clone();
 

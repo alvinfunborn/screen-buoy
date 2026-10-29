@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Wischen Sie nach links in die Hinweise.",
     "scrollRight": "Nach rechts scrollen",
     "scrollRightTooltip": "Scrolle nach rechts an der Hinweisposition.",
-    "cursorMoveTooltip": "Den Mauszeiger um die eingestellte Schrittweite bewegen; die Hinweise folgen."
+    "cursorMoveTooltip": "Den Mauszeiger um die eingestellte Schrittweite bewegen; die Hinweise folgen.",
+    "activation": {
+      "title": "Hinweise anzeigen",
+      "description": "Aus jeder Anwendung starten. Jede Methode lässt sich einzeln ein- oder ausschalten.",
+      "singleKey": "Einzelne Taste",
+      "singleDescription": "Eine Modifikatortaste kurz allein drücken. Beim Loslassen erscheinen die Hinweise.",
+      "chooseKey": "Auslösetaste",
+      "singleRules": "Langes Drücken, Tastenkombinationen, Klicken oder Scrollen brechen die Auslösung ab.",
+      "combination": "Tastenkombination",
+      "combinationDescription": "Hinweise per Tastenkombination anzeigen.",
+      "shortcutKeys": "Tastenkürzel",
+      "gameNote": "Beim Spielen die einzelne Taste ausschalten, um unbeabsichtigte Hinweise zu vermeiden.",
+      "applyNote": "Änderungen werden automatisch gespeichert. Zum Anwenden ScreenBuoy neu starten.",
+      "bothOff": "Nach dem Neustart ist die Tastaturaktivierung aus. Sie lässt sich in den Einstellungen wieder einschalten.",
+      "leftKey": "{{key}} links",
+      "rightKey": "{{key}} rechts"
+    }
   },
   "hint": {
     "charsets": "Hinweise: Zeichenkodierungen",

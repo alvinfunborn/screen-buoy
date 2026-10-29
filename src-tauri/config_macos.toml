@@ -181,6 +181,9 @@ hint_type = "default"
 
 [keybinding]
 hotkey_buoy = "Alt+H"
+hotkey_enabled = true
+single_key_enabled = false
+single_key = "left_option"
 
 [keybinding.global]
 move_to_hint = ["HintKey"]

@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "İpucu konumunda sola kaydır.",
     "scrollRight": "Sağa kaydır",
     "scrollRightTooltip": "İpucu konumunda sağa kaydır.",
-    "cursorMoveTooltip": "Fare işaretçisini ayarlanan adım kadar taşır; ipuçları hareketi izler."
+    "cursorMoveTooltip": "Fare işaretçisini ayarlanan adım kadar taşır; ipuçları hareketi izler.",
+    "activation": {
+      "title": "İpuçlarını göster",
+      "description": "Herhangi bir uygulamadan başlayın. Her yöntem ayrı ayrı açılıp kapatılabilir.",
+      "singleKey": "Tek tuş",
+      "singleDescription": "Bir değiştirici tuşa tek başına kısaca basın. Bıraktığınızda ipuçları görünür.",
+      "chooseKey": "Etkinleştirme tuşu",
+      "singleRules": "Basılı tutmak, tuşları birlikte kullanmak, tıklamak veya kaydırmak etkinleştirmeyi iptal eder.",
+      "combination": "Klavye kısayolu",
+      "combinationDescription": "Klavye kısayoluyla ipuçlarını gösterin.",
+      "shortcutKeys": "Kısayol tuşları",
+      "gameNote": "Oyun oynarken yanlışlıkla ipuçlarını açmamak için tek tuşu kapatın.",
+      "applyNote": "Değişiklikler otomatik kaydedilir. Uygulamak için ScreenBuoy uygulamasını yeniden başlatın.",
+      "bothOff": "Yeniden başlatıldıktan sonra klavyeyle etkinleştirme kapanır. Ayarlardan tekrar açabilirsiniz.",
+      "leftKey": "Sol {{key}}",
+      "rightKey": "Sağ {{key}}"
+    }
   },
   "hint": {
     "charsets": "İpucu karakter kümeleri",

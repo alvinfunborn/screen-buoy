@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Cuộn sang trái ở vị trí gợi ý.",
     "scrollRight": "Cuộn sang phải",
     "scrollRightTooltip": "Cuộn sang phải tại vị trí gợi ý.",
-    "cursorMoveTooltip": "Di chuyển con trỏ theo bước đã đặt; các gợi ý di chuyển theo."
+    "cursorMoveTooltip": "Di chuyển con trỏ theo bước đã đặt; các gợi ý di chuyển theo.",
+    "activation": {
+      "title": "Hiện gợi ý",
+      "description": "Bắt đầu từ bất kỳ ứng dụng nào. Có thể bật hoặc tắt riêng từng cách.",
+      "singleKey": "Phím đơn",
+      "singleDescription": "Nhấn nhanh một phím bổ trợ riêng lẻ. Gợi ý xuất hiện khi thả phím.",
+      "chooseKey": "Phím kích hoạt",
+      "singleRules": "Giữ phím, nhấn tổ hợp phím, nhấp chuột hoặc cuộn sẽ hủy kích hoạt.",
+      "combination": "Phím tắt",
+      "combinationDescription": "Hiện gợi ý bằng phím tắt.",
+      "shortcutKeys": "Tổ hợp phím",
+      "gameNote": "Khi chơi game, hãy tắt phím đơn để tránh vô tình kích hoạt gợi ý.",
+      "applyNote": "Thay đổi được lưu tự động. Khởi động lại ScreenBuoy để áp dụng.",
+      "bothOff": "Sau khi khởi động lại, kích hoạt bằng bàn phím sẽ tắt. Bạn có thể bật lại trong Cài đặt.",
+      "leftKey": "{{key}} trái",
+      "rightKey": "{{key}} phải"
+    }
   },
   "hint": {
     "charsets": "Hint Charsets\n\nCác bộ ký tự trợ giúp",

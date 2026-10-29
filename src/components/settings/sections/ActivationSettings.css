@@ -1,0 +1,47 @@
+.hint-activation { --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; border: 1px solid #e3d9f5; border-radius: 10px; background: var(--surface); overflow: hidden; }
+.hint-activation .activation-header { display: flex; align-items: center; gap: 14px; padding: 20px 22px; background: #f8f5ff; border-bottom: 1px solid #e9e0f6; }
+.hint-activation .activation-icon { display: grid; place-items: center; width: 38px; height: 38px; border: 1px solid #e3d7f7; border-radius: 9px; background: #eee5fb; color: var(--accent); font-size: 19px; }
+.hint-activation .activation-icon { flex: none; }
+.hint-activation .activation-heading h2 { margin: 0 0 5px; font-size: 14px; font-weight: 600; color: #493369; }
+.hint-activation .activation-heading p { margin: 0; color: #736584; font-size: 12px; line-height: 1.8; }
+.hint-activation .activation-methods { padding-inline: 22px; }
+.hint-activation .activation-tap { padding-block: 22px 18px; border-bottom: 1px solid var(--line); }
+.hint-activation .activation-method-row { display: flex; align-items: center; gap: 14px; }
+.hint-activation .activation-keycap { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #d9d5e3; border-bottom-width: 3px; border-radius: 8px; background: #faf9fc; color: #5d37b1; font: 24px/1 var(--mono); }
+.hint-activation .activation-method-label { flex: 1; min-width: 0; }
+.hint-activation .activation-method-label label { display: block; width: fit-content; font-size: 13px; font-weight: 600; line-height: 1.7; cursor: pointer; }
+.hint-activation .activation-method-label p { margin: 4px 0 0; font-size: 12px; line-height: 1.8; color: var(--muted); }
+.hint-activation .activation-switch.ant-form-item { flex: none; margin: 0; }
+.hint-activation .activation-tap-detail { margin-top: 12px; }
+.hint-activation .activation-tap-detail p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.hint-activation .activation-combination { padding-block: 20px; }
+.hint-activation .activation-keycap-combination { font-size: 22px; color: #686b7b; }
+.hint-activation .activation-key-select.ant-form-item, .hint-activation .activation-combination .hotkey-field { margin: 16px 0 0; max-width: 360px; }
+.hint-activation .activation-key-select > .ant-row, .hint-activation .activation-combination .hotkey-field > .ant-row { flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 16px; }
+.hint-activation .activation-key-select .ant-form-item-label, .hint-activation .activation-combination .hotkey-field .ant-form-item-label { flex: 0 0 auto; width: auto; max-width: none; padding: 0; text-align: start; }
+.hint-activation .activation-key-select .ant-form-item-control, .hint-activation .activation-combination .hotkey-field .ant-form-item-control { flex: 1; min-width: 0; }
+.hint-activation .activation-key-select .ant-select-disabled .ant-select-selection-item { color: var(--muted); }
+.hint-activation .activation-key-select .ant-form-item-label > label, .hint-activation .activation-combination .ant-form-item-label > label { color: var(--muted); font-size: 12px; }
+.hint-activation .activation-game-note { margin: 0; padding: 0 22px 18px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.hint-activation .activation-note p { margin: 0; }
+.hint-activation .activation-note .activation-off-note { margin-top: 6px; color: #493369; font-weight: 500; }
+.hint-activation .hotkey-field .ant-input { height: 43px; font: 500 17px var(--mono); letter-spacing: .5px; text-align: center; color: #5d37b1; border-color: #d6c6ed; background: white; box-shadow: 0 2px 0 #e6ddf2; }
+.hint-activation .activation-note { margin: 0; padding: 12px 22px; border-top: 1px solid #eff0f4; font-size: 11px; line-height: 1.8; color: var(--muted); background: #fcfcfe; }
+.hint-activation:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+@media (max-width: 900px) and (min-width: 761px) {
+  .hint-activation .activation-header { padding: 18px; }
+  .hint-activation .activation-methods { padding-inline: 18px; }
+  .hint-activation .activation-icon { width: 32px; height: 32px; }
+}
+@media (max-width: 480px) {
+  .hint-activation .activation-header { padding: 18px 16px; gap: 12px; }
+  .hint-activation .activation-methods { padding-inline: 16px; }
+  .hint-activation .activation-note, .hint-activation .activation-game-note { padding-inline: 16px; }
+  .hint-activation .activation-icon { width: 32px; height: 32px; }
+  .hint-activation .activation-key-select.ant-form-item, .hint-activation .activation-combination .hotkey-field { max-width: none; }
+}
+@media (max-width: 575px) {
+  .hint-activation .activation-key-select > .ant-row, .hint-activation .activation-combination .hotkey-field > .ant-row { flex-direction: column; align-items: stretch; gap: 6px; }
+  .hint-activation .activation-key-select .ant-form-item-label, .hint-activation .activation-combination .hotkey-field .ant-form-item-label,
+  .hint-activation .activation-key-select .ant-form-item-control, .hint-activation .activation-combination .hotkey-field .ant-form-item-control { flex: 0 1 auto; width: 100%; max-width: 100%; }
+}

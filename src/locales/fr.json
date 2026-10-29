@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Faire défiler vers la gauche à la position de l'indication.",
     "scrollRight": "Défiler à droite",
     "scrollRightTooltip": "Faire défiler vers la droite à la position de l'indication.",
-    "cursorMoveTooltip": "Déplace le pointeur selon le pas configuré ; les repères suivent."
+    "cursorMoveTooltip": "Déplace le pointeur selon le pas configuré ; les repères suivent.",
+    "activation": {
+      "title": "Afficher les repères",
+      "description": "Démarrez depuis toute application. Chaque méthode peut être activée séparément.",
+      "singleKey": "Touche seule",
+      "singleDescription": "Appuyez brièvement sur une touche de modification seule. Les repères apparaissent au relâchement.",
+      "chooseKey": "Touche de déclenchement",
+      "singleRules": "Un appui long, une combinaison de touches, un clic ou un défilement annule le déclenchement.",
+      "combination": "Raccourci clavier",
+      "combinationDescription": "Affichez les repères avec un raccourci.",
+      "shortcutKeys": "Touches du raccourci",
+      "gameNote": "Pendant un jeu, désactivez la touche seule pour éviter les déclenchements involontaires.",
+      "applyNote": "Les modifications sont enregistrées automatiquement. Redémarrez ScreenBuoy pour les appliquer.",
+      "bothOff": "Après le redémarrage, le déclenchement au clavier sera désactivé. Vous pourrez le réactiver dans les réglages.",
+      "leftKey": "{{key}} gauche",
+      "rightKey": "{{key}} droite"
+    }
   },
   "hint": {
     "charsets": "Paramètres d'encodage",

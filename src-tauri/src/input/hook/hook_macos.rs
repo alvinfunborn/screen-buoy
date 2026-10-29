@@ -1,7 +1,8 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
-use std::sync::atomic::{AtomicBool, AtomicPtr, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU16, Ordering};
 use std::sync::Mutex;
+use std::time::Instant;
 
 use core_foundation::base::TCFType;
 use core_foundation::mach_port::CFMachPort;
@@ -12,6 +13,7 @@ use once_cell::sync::Lazy;
 
 use crate::config;
 use crate::input::keyboard::{handle_keyboard_event, KEYBOARD_STATE};
+use crate::input::modifier_tap::ModifierTap;
 
 type CGEventRef = *const c_void;
 type CGEventTapProxy = *const c_void;
@@ -40,6 +42,7 @@ extern "C" {
     fn CGEventGetFlags(event: CGEventRef) -> u64;
     fn CGEventGetLocation(event: CGEventRef) -> core_graphics::geometry::CGPoint;
     fn CGEventSourceKeyState(state_id: u32, key_code: CGKeyCode) -> bool;
+    fn CGEventSourceButtonState(state_id: u32, button: u32) -> bool;
     fn CGEventKeyboardGetUnicodeString(
         event: CGEventRef,
         max_string_length: libc::c_ulong,
@@ -47,6 +50,21 @@ extern "C" {
         unicode_string: *mut u16,
     );
     fn CGEventGetIntegerValueField(event: CGEventRef, field: u32) -> i64;
+}
+
+#[repr(C)]
+#[derive(Default)]
+struct ProcessSerialNumber { high: u32, low: u32 }
+
+#[link(name = "ApplicationServices", kind = "framework")]
+extern "C" {
+    fn GetFrontProcess(process: *mut ProcessSerialNumber) -> i32;
+}
+
+fn foreground_context() -> Option<u64> {
+    let mut process = ProcessSerialNumber::default();
+    (unsafe { GetFrontProcess(&mut process) } == 0)
+        .then_some(((process.high as u64) << 32) | process.low as u64)
 }
 
 #[link(name = "CoreFoundation", kind = "framework")]
@@ -58,6 +76,9 @@ extern "C" {
 static TAP_RUNLOOP: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::null_mut());
 static RUNNING: AtomicBool = AtomicBool::new(false);
 static READY: AtomicBool = AtomicBool::new(false);
+// Captured at startup, matching the settings UI's restart-to-apply contract.
+static SINGLE_KEY_ENABLED: AtomicBool = AtomicBool::new(false);
+static SINGLE_KEY_CODE: AtomicU16 = AtomicU16::new(58);
 
 pub fn is_ready() -> bool {
     READY.load(Ordering::Acquire)
@@ -73,6 +94,7 @@ static APP_HANDLE: Lazy<Mutex<Option<tauri::AppHandle>>> = Lazy::new(|| Mutex::n
 
 thread_local! {
     static TAP_STATE: RefCell<Option<TapState>> = RefCell::new(None);
+    static MODIFIER_TAP: RefCell<ModifierTap> = RefCell::new(ModifierTap::default());
 }
 
 struct TapState {
@@ -144,6 +166,53 @@ fn modifier_down_from_flags(keycode: u16, flags: u64) -> Option<bool> {
     Some(if flags & (left | right) != 0 { flags & own != 0 } else { flags & generic != 0 })
 }
 
+fn tap_has_other_modifiers(keycode: u16, flags: u64) -> bool {
+    let (own_group, opposite) = match keycode {
+        56 => (0x20000, 0x4), 60 => (0x20000, 0x2),
+        59 => (0x40000, 0x2000), 62 => (0x40000, 0x1),
+        58 => (0x80000, 0x40), 61 => (0x80000, 0x20),
+        55 => (0x100000, 0x10), 54 => (0x100000, 0x8),
+        _ => return true,
+    };
+    // Every other modifier (including the opposite-side key and Fn) cancels.
+    // Caps Lock may remain on without preventing a tap.
+    flags & (((0x20000 | 0x40000 | 0x80000 | 0x100000 | 0x800000) & !own_group) | opposite) != 0
+}
+
+unsafe fn other_input_is_held(keycode: u16, flags: u64) -> bool {
+    tap_has_other_modifiers(keycode, flags)
+        || (0..128).any(|code| code != keycode && code != 57 && CGEventSourceKeyState(0, code))
+        || (0..32).any(|button| CGEventSourceButtonState(0, button))
+}
+
+unsafe fn observe_modifier_tap(etype: u32, event: CGEventRef, in_hint: bool) -> bool {
+    MODIFIER_TAP.with(|state| {
+        let mut tap = state.borrow_mut();
+        if in_hint || !SINGLE_KEY_ENABLED.load(Ordering::Relaxed) {
+            tap.reset();
+            return false;
+        }
+        let keycode = SINGLE_KEY_CODE.load(Ordering::Relaxed);
+        if etype == CG_FLAGS_CHANGED
+            && CGEventGetIntegerValueField(event, EventField::KEYBOARD_EVENT_KEYCODE) == i64::from(keycode)
+        {
+            let flags = CGEventGetFlags(event);
+            let eligible = !other_input_is_held(keycode, flags);
+            let context = foreground_context();
+            if modifier_down_from_flags(keycode, flags) == Some(true) {
+                tap.press(Instant::now(), eligible, context);
+            } else {
+                return tap.release(Instant::now(), eligible, context);
+            }
+        } else {
+            // Keyboard, modifiers, mouse buttons, drag and scroll all cancel.
+            // Only key codes/flags are observed here; typed text is never decoded.
+            tap.cancel();
+        }
+        false
+    })
+}
+
 unsafe extern "C" fn tap_callback(
     _proxy: CGEventTapProxy,
     etype: u32,
@@ -152,6 +221,7 @@ unsafe extern "C" fn tap_callback(
 ) -> CGEventRef {
     match etype {
         CG_TAP_DISABLED_TIMEOUT | CG_TAP_DISABLED_USER => {
+            MODIFIER_TAP.with(|state| state.borrow_mut().reset());
             READY.store(false, Ordering::Release);
             TAP_STATE.with(|c| {
                 if let Some(state) = c.borrow().as_ref() {
@@ -168,6 +238,22 @@ unsafe extern "C" fn tap_callback(
         return event_ref;
     }
 
+    let in_hint = KEYBOARD_STATE.lock().map(|state| state.in_ctrl_session).unwrap_or(false);
+    if observe_modifier_tap(etype, event_ref, in_hint) {
+        // Forward both modifier edges unchanged so the foreground app never sees
+        // a stuck modifier. Start Hint only after the release has been recognized.
+        let app = APP_HANDLE.lock().ok().and_then(|guard| guard.clone());
+        if let Some(app) = app {
+            use tauri::Manager;
+            if let Some(window) = app.get_webview_window("main") {
+                tauri::async_runtime::spawn(async move {
+                    crate::hint::show_hints(window).await;
+                });
+            }
+        }
+        return event_ref;
+    }
+
     // Observe releases without intercepting the mouse or decoding ordinary typing.
     // Both physical and injected clicks use this path, including Dock/Space changes.
     if matches!(etype, 2 | 4 | 26) {
@@ -178,7 +264,7 @@ unsafe extern "C" fn tap_callback(
 
     // Outside Hint mode, forward input without decoding or logging typed text.
     // Tap-disable notifications above still recover the capture connection.
-    if !KEYBOARD_STATE.lock().map(|state| state.in_ctrl_session).unwrap_or(false) {
+    if !in_hint || !matches!(etype, CG_KEY_DOWN | CG_KEY_UP | CG_FLAGS_CHANGED) {
         return event_ref;
     }
 
@@ -276,6 +362,10 @@ pub fn init(app_handle: tauri::AppHandle) {
     if RUNNING.swap(true, Ordering::AcqRel) {
         return;
     }
+    if let Some(config) = config::get_config() {
+        SINGLE_KEY_CODE.store(config.keybinding.single_key.keycode(), Ordering::Relaxed);
+        SINGLE_KEY_ENABLED.store(config.keybinding.single_key_enabled, Ordering::Relaxed);
+    }
     *APP_HANDLE.lock().unwrap() = Some(app_handle);
 
     if let Ok(p) = std::env::current_exe() {
@@ -285,9 +375,13 @@ pub fn init(app_handle: tauri::AppHandle) {
     std::thread::Builder::new()
         .name("keyboard-tap".into())
         .spawn(|| {
-            let mask =
+            let mut mask =
                 (1u64 << CG_KEY_DOWN) | (1u64 << CG_KEY_UP) | (1u64 << CG_FLAGS_CHANGED)
                 | (1u64 << 2) | (1u64 << 4) | (1u64 << 26);
+            if SINGLE_KEY_ENABLED.load(Ordering::Relaxed) {
+                mask |= (1u64 << 1) | (1u64 << 3) | (1u64 << 6) | (1u64 << 7)
+                    | (1u64 << 22) | (1u64 << 25) | (1u64 << 27);
+            }
 
             let port_ref;
             let mut recovery_shown = false;
@@ -375,7 +469,34 @@ pub fn cleanup() {
 
 #[cfg(test)]
 mod tests {
-    use super::modifier_down_from_flags;
+    use super::{modifier_down_from_flags, tap_has_other_modifiers};
+
+    #[test]
+    fn option_tap_allows_caps_lock_but_rejects_every_other_modifier() {
+        assert!(!tap_has_other_modifiers(58, 0x80020));
+        assert!(!tap_has_other_modifiers(58, 0x90020));
+        for other in [0x20000, 0x40000, 0x100000, 0x800000, 0x40] {
+            assert!(tap_has_other_modifiers(58, 0x80020 | other));
+        }
+        assert_eq!(modifier_down_from_flags(58, 0x80040), Some(false));
+        assert_eq!(modifier_down_from_flags(58, 0x80060), Some(true));
+    }
+
+    #[test]
+    fn every_selectable_modifier_distinguishes_its_opposite_side() {
+        use crate::config::keybinding::SingleModifierKey::*;
+        for (key, flags, opposite) in [
+            (LeftOption, 0x80020, 0x40), (RightOption, 0x80040, 0x20),
+            (LeftCommand, 0x100008, 0x10), (RightCommand, 0x100010, 0x8),
+            (LeftControl, 0x40001, 0x2000), (RightControl, 0x42000, 0x1),
+            (LeftShift, 0x20002, 0x4), (RightShift, 0x20004, 0x2),
+        ] {
+            assert_eq!(modifier_down_from_flags(key.keycode(), flags), Some(true));
+            assert_eq!(modifier_down_from_flags(key.keycode(), 0), Some(false));
+            assert!(!tap_has_other_modifiers(key.keycode(), flags));
+            assert!(tap_has_other_modifiers(key.keycode(), flags | opposite));
+        }
+    }
 
     #[test]
     fn modifier_events_use_their_own_flags_even_before_session_state_updates() {

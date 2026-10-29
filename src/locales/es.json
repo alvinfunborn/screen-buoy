@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Desplázate hacia la izquierda en la posición de la pista.",
     "scrollRight": "Desplazar a la derecha",
     "scrollRightTooltip": "Desplázate hacia la derecha en la posición de la pista.",
-    "cursorMoveTooltip": "Mueve el puntero según el paso configurado; las indicaciones lo acompañan."
+    "cursorMoveTooltip": "Mueve el puntero según el paso configurado; las indicaciones lo acompañan.",
+    "activation": {
+      "title": "Mostrar pistas",
+      "description": "Inicia desde cualquier aplicación. Cada método se puede activar por separado.",
+      "singleKey": "Tecla individual",
+      "singleDescription": "Pulsa brevemente una tecla modificadora sola. Las pistas aparecen al soltarla.",
+      "chooseKey": "Tecla de activación",
+      "singleRules": "Mantener la tecla pulsada, combinar teclas, hacer clic o desplazarse cancela la activación.",
+      "combination": "Atajo de teclado",
+      "combinationDescription": "Muestra pistas con un atajo.",
+      "shortcutKeys": "Teclas del atajo",
+      "gameNote": "Al jugar, desactiva la tecla individual para evitar activaciones involuntarias.",
+      "applyNote": "Los cambios se guardan automáticamente. Reinicia ScreenBuoy para aplicarlos.",
+      "bothOff": "Después de reiniciar, la activación por teclado estará desactivada. Puedes volver a activarla en Ajustes.",
+      "leftKey": "{{key}} izquierda",
+      "rightKey": "{{key}} derecha"
+    }
   },
   "hint": {
     "charsets": "Hint: Character Sets",

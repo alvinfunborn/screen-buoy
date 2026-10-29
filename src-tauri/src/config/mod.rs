@@ -182,6 +182,33 @@ mod tests {
 
     static NEXT_CONFIG_DIR: AtomicU64 = AtomicU64::new(0);
 
+    #[test]
+    fn activation_methods_are_independent_and_preserve_legacy_shortcuts() {
+        let defaults = include_str!("../../config_macos.toml");
+        let legacy = defaults.replace("single_key_enabled = false", "")
+            .replace("single_key = \"left_option\"", "").replace("hotkey_enabled = true", "");
+        let mut config = parse_config(&legacy).unwrap();
+        assert!(!config.keybinding.single_key_enabled);
+        assert!(config.keybinding.hotkey_enabled);
+        assert_eq!(config.keybinding.single_key, keybinding::SingleModifierKey::LeftOption);
+        config.keybinding.single_key_enabled = true;
+        config.keybinding.single_key = keybinding::SingleModifierKey::RightControl;
+        config.keybinding.hotkey_enabled = false;
+        let dir = ConfigDir::new();
+        let path = dir.0.join("config.toml");
+        let mut current = None;
+        save_config_to_path(&path, &config, &mut current).unwrap();
+        let reloaded = parse_config(&fs::read_to_string(path).unwrap()).unwrap();
+        assert!(reloaded.keybinding.single_key_enabled);
+        assert!(!reloaded.keybinding.hotkey_enabled);
+        assert_eq!(reloaded.keybinding.single_key, keybinding::SingleModifierKey::RightControl);
+        assert_eq!(reloaded.keybinding.hotkey_buoy, "Alt+H");
+        config.keybinding.single_key_enabled = false;
+        save_config_to_path(&dir.0.join("both-off.toml"), &config, &mut current).unwrap();
+        assert!(!current.as_ref().unwrap().keybinding.single_key_enabled);
+        assert!(!current.as_ref().unwrap().keybinding.hotkey_enabled);
+    }
+
     struct ConfigDir(std::path::PathBuf);
     impl ConfigDir {
         fn new() -> Self {

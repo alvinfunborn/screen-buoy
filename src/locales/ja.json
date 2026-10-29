@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "ヒントの位置で左にスクロールします。",
     "scrollRight": "右にスクロール",
     "scrollRightTooltip": "右に移動 (ヒントの位置から)。",
-    "cursorMoveTooltip": "設定した移動幅でマウスポインタを動かします。ヒントも追従します。"
+    "cursorMoveTooltip": "設定した移動幅でマウスポインタを動かします。ヒントも追従します。",
+    "activation": {
+      "title": "ヒントを表示",
+      "description": "どのアプリからでも開始できます。各方法を個別にオン・オフできます。",
+      "singleKey": "単独キー",
+      "singleDescription": "修飾キーを単独で軽く押すと、離したときにヒントが表示されます。",
+      "chooseKey": "起動キー",
+      "singleRules": "長押し、キーの組み合わせ、クリック、スクロールでは起動しません。",
+      "combination": "キーボードショートカット",
+      "combinationDescription": "ショートカットでヒントを表示します。",
+      "shortcutKeys": "ショートカットキー",
+      "gameNote": "ゲーム中の誤作動を防ぐには、単独キーをオフにしてください。",
+      "applyNote": "変更は自動保存されます。ScreenBuoy を再起動すると適用されます。",
+      "bothOff": "再起動後はキーボードで起動できなくなります。設定から再度オンにできます。",
+      "leftKey": "左 {{key}}",
+      "rightKey": "右 {{key}}"
+    }
   },
   "hint": {
     "charsets": "ヒントの文字セット",

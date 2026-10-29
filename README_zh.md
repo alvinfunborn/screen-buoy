@@ -202,6 +202,10 @@ right = "L"
 
 **keybinding**用于定义Screen Buoy各类操作的快捷键绑定。你可以根据自己的习惯，灵活配置不同场景下的按键行为。
 
+设置 → 快捷键 → 显示 Hint 中，单独按键与组合快捷键可以分别开启或关闭；修改自动保存，重启应用后生效。macOS 的单独按键可选择左/右 Option、Command、Control 或 Shift，默认选择左 Option，首次需手动开启。单独按下并在 300 毫秒内松开时显示 Hint；长按、其他按键、鼠标点击、拖动或滚动会取消触发。游戏中建议关闭单独按键。两种方式都关闭时，仍可打开应用设置重新开启。
+
+对应配置项为 `single_key_enabled`、`single_key`、`hotkey_enabled` 和原有的 `hotkey_buoy`。旧配置默认保持组合快捷键开启、单独按键关闭；关闭某种方式会保留其按键配置。Windows 当前仅提供组合快捷键开关。
+
 ###### Hold At Hint说明
 
 **Hold At Hint**是Screen Buoy的核心交互方式之一。当你输入Hint后，长按HintKey（Hint的最后一个字符），会进入Hold模式，此时可以在Hint位置执行更多操作（如拖拽、滚动、右键点击等）。

@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "힌트 위치에서 왼쪽으로 스크롤하세요.",
     "scrollRight": "오른쪽으로 스크롤",
     "scrollRightTooltip": "오른쪽으로 스크롤하세요 (힌트 위치에서).",
-    "cursorMoveTooltip": "설정한 이동 간격으로 마우스 포인터를 움직입니다. 힌트도 함께 이동합니다."
+    "cursorMoveTooltip": "설정한 이동 간격으로 마우스 포인터를 움직입니다. 힌트도 함께 이동합니다.",
+    "activation": {
+      "title": "힌트 표시",
+      "description": "어떤 앱에서든 시작하세요. 각 방식을 개별적으로 켜거나 끌 수 있습니다.",
+      "singleKey": "단일 키",
+      "singleDescription": "보조 키를 단독으로 짧게 누르면 키를 놓을 때 힌트가 표시됩니다.",
+      "chooseKey": "실행 키",
+      "singleRules": "길게 누르기, 키 조합, 클릭 또는 스크롤 시에는 실행되지 않습니다.",
+      "combination": "키보드 단축키",
+      "combinationDescription": "단축키로 힌트를 표시합니다.",
+      "shortcutKeys": "단축키",
+      "gameNote": "게임 중 의도치 않게 힌트가 표시되지 않도록 단일 키를 끄세요.",
+      "applyNote": "변경 사항은 자동 저장됩니다. ScreenBuoy를 다시 시작하면 적용됩니다.",
+      "bothOff": "다시 시작하면 키보드 실행이 꺼집니다. 설정에서 다시 켤 수 있습니다.",
+      "leftKey": "왼쪽 {{key}}",
+      "rightKey": "오른쪽 {{key}}"
+    }
   },
   "hint": {
     "charsets": "힌트 문자 세트",

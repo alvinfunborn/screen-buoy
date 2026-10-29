@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "在hint位置向左滚动。",
     "scrollRight": "向右滚动",
     "scrollRightTooltip": "在hint位置向右滚动。",
-    "cursorMoveTooltip": "按移动步长微调鼠标光标的位置，提示随之移动。"
+    "cursorMoveTooltip": "按移动步长微调鼠标光标的位置，提示随之移动。",
+    "activation": {
+      "title": "显示 Hint",
+      "description": "从任意应用开始定位。各触发方式可分别开启或关闭。",
+      "singleKey": "单独按键",
+      "singleDescription": "单独轻点修饰键，松开时显示 Hint。",
+      "chooseKey": "触发按键",
+      "singleRules": "长按、组合按键、点击或滚动都会取消本次触发。",
+      "combination": "组合快捷键",
+      "combinationDescription": "按下组合键显示 Hint。",
+      "shortcutKeys": "快捷键",
+      "gameNote": "玩游戏时，建议关闭单独按键，避免游戏操作触发 Hint。",
+      "applyNote": "修改会自动保存，重启 ScreenBuoy 后生效。",
+      "bothOff": "重启后，键盘触发将关闭。仍可进入设置重新开启。",
+      "leftKey": "左 {{key}}",
+      "rightKey": "右 {{key}}"
+    }
   },
   "hint": {
     "charsets": "Hint字符集",

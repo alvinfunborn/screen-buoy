@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Scroll left at the hint position.",
     "scrollRight": "Scroll Right",
     "scrollRightTooltip": "Scroll right at the hint position.",
-    "cursorMoveTooltip": "Move the mouse pointer by the configured step; hints follow the movement."
+    "cursorMoveTooltip": "Move the mouse pointer by the configured step; hints follow the movement.",
+    "activation": {
+      "title": "Show hints",
+      "description": "Choose how to start from any application. Each method has its own switch.",
+      "singleKey": "Single key",
+      "singleDescription": "Tap a modifier key on its own. Hints appear when you release it.",
+      "chooseKey": "Trigger key",
+      "singleRules": "Holding the key, using a key combination, clicking or scrolling cancels the tap.",
+      "combination": "Keyboard shortcut",
+      "combinationDescription": "Press your shortcut to show hints.",
+      "shortcutKeys": "Shortcut keys",
+      "gameNote": "Playing a game? Turn off the single key to avoid triggering hints during play.",
+      "applyNote": "Changes save automatically. Restart ScreenBuoy to apply them.",
+      "bothOff": "After restarting, keyboard activation will be off. You can turn it back on in Settings.",
+      "leftKey": "Left {{key}}",
+      "rightKey": "Right {{key}}"
+    }
   },
   "hint": {
     "charsets": "Hint Charsets",

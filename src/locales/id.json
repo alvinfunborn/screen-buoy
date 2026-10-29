@@ -100,7 +100,23 @@
     "scrollLeftTooltip": "Gesek ke kiri pada posisi petunjuk.",
     "scrollRight": "Gulir ke kanan",
     "scrollRightTooltip": "Geser ke kanan pada posisi petunjuk.",
-    "cursorMoveTooltip": "Menggerakkan penunjuk sesuai langkah yang diatur; petunjuk ikut bergerak."
+    "cursorMoveTooltip": "Menggerakkan penunjuk sesuai langkah yang diatur; petunjuk ikut bergerak.",
+    "activation": {
+      "title": "Tampilkan petunjuk",
+      "description": "Mulai dari aplikasi mana pun. Setiap metode dapat diaktifkan secara terpisah.",
+      "singleKey": "Tombol tunggal",
+      "singleDescription": "Tekan singkat tombol pengubah tanpa tombol lain. Petunjuk muncul saat dilepas.",
+      "chooseKey": "Tombol pemicu",
+      "singleRules": "Menahan tombol, kombinasi tombol, mengeklik, atau menggulir membatalkan pemicu.",
+      "combination": "Pintasan keyboard",
+      "combinationDescription": "Tampilkan petunjuk dengan pintasan.",
+      "shortcutKeys": "Tombol pintasan",
+      "gameNote": "Saat bermain gim, matikan tombol tunggal agar petunjuk tidak terpicu tanpa sengaja.",
+      "applyNote": "Perubahan disimpan otomatis. Mulai ulang ScreenBuoy untuk menerapkannya.",
+      "bothOff": "Setelah dimulai ulang, pemicu keyboard akan nonaktif. Anda dapat mengaktifkannya lagi di Pengaturan.",
+      "leftKey": "{{key}} kiri",
+      "rightKey": "{{key}} kanan"
+    }
   },
   "hint": {
     "charsets": "Petunjuk Set Karakter",

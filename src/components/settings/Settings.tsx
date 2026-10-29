@@ -106,7 +106,7 @@ const Settings: React.FC = () => {
   };
 
   const pages = [
-    { key: 'keybinding', icon: <ThunderboltOutlined />, content: <KeybindingSettings availableKeysData={availableKeys} /> },
+    { key: 'keybinding', icon: <ThunderboltOutlined />, content: <KeybindingSettings isMac={platform.platform === 'macos'} availableKeysData={availableKeys} /> },
     { key: 'mouse', icon: <AimOutlined />, content: <MouseSettings onValuesChange={handleValuesChange} availableKeysData={availableKeys} /> },
     { key: 'hint', icon: <FontSizeOutlined />, content: <HintSettings onValuesChange={handleValuesChange} isMac={platform.platform === 'macos'} axRoles={platform.ax_roles} /> },
     { key: 'uiAutomation', icon: <AppstoreOutlined />, content: <UiAutomationSettings /> },
