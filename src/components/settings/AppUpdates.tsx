@@ -114,10 +114,10 @@ export function AppUpdates() {
   };
 
   return (
-    <SettingSection title={t('updates.title')} description={t('updates.description')}>
+    <SettingSection id="system-updates" title={t('updates.title')} description={t('updates.description')}>
       <div className="app-updates" aria-live="polite">
         <div className="update-actions">
-          <span>{t('updates.currentVersion', { version })}</span>
+          <span className="update-version">{t('updates.currentVersion', { version })}</span>
           <Space wrap>
             {phase !== 'ready' && <Button icon={<ReloadOutlined />} loading={phase === 'checking'} disabled={working}
               onClick={() => void checkForUpdates()}>{t('updates.check')}</Button>}

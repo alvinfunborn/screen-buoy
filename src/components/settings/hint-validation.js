@@ -1,6 +1,6 @@
 /** @param {string} raw */
 export function parseCharsetInput(raw) {
-  return raw.split(',').map(character => character.trim()).filter(Boolean);
+  return Array.from(raw);
 }
 
 /** @param {string} character */

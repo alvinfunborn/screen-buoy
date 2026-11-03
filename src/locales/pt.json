@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Solução de problemas de permissão",
-    "keyboardRecovery": "O acesso à Acessibilidade está permitido, mas a captura do teclado não foi conectada. Primeiro, reinicie o Screen Buoy. Se o problema persistir, permita também o Monitoramento de Entrada.",
+    "keyboardRecovery": "O acesso à Acessibilidade está permitido, mas a captura do teclado não foi conectada. Primeiro, reinicie o ScreenBuoy. Se o problema persistir, permita também o Monitoramento de Entrada.",
     "keyboardUnavailable": "Atalhos de teclado não disponíveis.",
     "title": "Permitir acesso à Acessibilidade",
-    "ready": "Screen Buoy está pronto",
-    "description": "Permita o Screen Buoy em Ajustes do Sistema → Privacidade e Segurança → Acessibilidade para detectar controles e clicar neles.",
+    "ready": "ScreenBuoy está pronto",
+    "description": "Permita o ScreenBuoy em Ajustes do Sistema → Privacidade e Segurança → Acessibilidade para detectar controles e clicar neles.",
     "accessibility": "Acessibilidade",
     "inputMonitoring": "Monitoramento de Entrada",
     "keyboardHook": "Captura do teclado",
@@ -17,8 +17,8 @@
     "openAccessibility": "Abrir Acessibilidade",
     "openInputMonitoring": "Abrir Monitoramento de Entrada",
     "refresh": "Verificar novamente",
-    "restart": "Reiniciar Screen Buoy",
-    "recovery": "Autorize nos Ajustes do Sistema a cópia do app cujo caminho aparece abaixo. Depois de substituir o app, talvez seja necessário remover a permissão antiga, adicioná-la novamente e reiniciar o Screen Buoy.",
+    "restart": "Reiniciar ScreenBuoy",
+    "recovery": "Autorize nos Ajustes do Sistema a cópia do app cujo caminho aparece abaixo. Depois de substituir o app, talvez seja necessário remover a permissão antiga, adicioná-la novamente e reiniciar o ScreenBuoy.",
     "checkFailed": "Não foi possível verificar as permissões."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Sugestão: Conjuntos de Caracteres",
-    "charsetsTooltip": "Cada linha corresponde a uma posição da dica: a primeira fornece o primeiro caractere, a segunda o seguinte. Coloque primeiro os caracteres familiares e fáceis de pressionar. Suas combinações são usadas primeiro; os caracteres posteriores são introduzidos gradualmente, alternando as iniciais dentro de cada grupo.",
+    "charsetsTooltip": "Cada linha corresponde a uma posição da dica: a primeira fornece o primeiro caractere, a segunda o seguinte. Coloque primeiro os caracteres familiares e fáceis de pressionar. Suas combinações são usadas primeiro; os caracteres posteriores são introduzidos gradualmente, alternando as iniciais dentro de cada grupo. Digite sem separadores; vírgulas e espaços também contam como caracteres.",
     "charsetExtra": "Hint: Conjunto de Caracteres",
     "charsetExtraTooltip": "Um prefixo só é adicionado depois de esgotar todas as combinações principais. Coloque primeiro os prefixos familiares e fáceis de pressionar. Prefixos e caracteres seguintes são introduzidos gradualmente na ordem configurada, alternando os prefixos dentro de cada grupo.",
     "charsetPrefixConflict": "Os prefixos extras não podem coincidir com o conjunto de caracteres da primeira posição. Caracteres em conflito: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Adicionar Conjunto de Caracteres",
     "addHintType": "Adicionar Tipo de Dica",
     "remove": "Remover",
-    "placeholderCharset": "Digite o charset, separado por vírgulas.",
-    "placeholderCharsetExtra": "Insira o charset adicional, separado por vírgulas.",
+    "placeholderCharset": "Digite os caracteres em sequência, ex.: FJDK,.;",
+    "placeholderCharsetExtra": "Digite os caracteres adicionais em sequência",
     "placeholderRows": "Selecionar linhas",
     "placeholderColumns": "Selecionar colunas",
     "placeholderStyle": "Insira o estilo padrão",
@@ -216,7 +216,7 @@
       "keybinding": "Torne cada ação natural. Defina os atalhos que você usa para navegar e clicar.",
       "mouse": "Ajuste fino do movimento, rolagem e arrastar para cada combinação de modificadores.",
       "hint": "Selecione os personagens, a grade e a aparência das suas dicas na tela.",
-      "uiAutomation": "Controlar a frequência com que o Screen Buoy encontra e atualiza os elementos da interface.",
+      "uiAutomation": "Controlar a frequência com que o ScreenBuoy encontra e atualiza os elementos da interface.",
       "keyboard": "Gerenciar teclas modificadoras, códigos de teclas e relações entre as teclas.",
       "system": "Gerenciar inicialização, atualizações do aplicativo, visibilidade na barra de tarefas e diagnóstico."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "Rola o conteúdo sob o ponteiro sem movê-lo."
     },
     "help": {
-      "startAtLogin": "Iniciar o Screen Buoy ao entrar.",
+      "startAtLogin": "Iniciar o ScreenBuoy ao entrar.",
       "startInTray": "Mantenha a janela de configurações oculta no início.",
-      "showTrayIcon": "Manter o Screen Buoy acessível pela barra de menus ou bandeja do sistema."
+      "showTrayIcon": "Manter o ScreenBuoy acessível pela barra de menus ou bandeja do sistema."
     },
     "save": {
       "idle": "As alterações são salvas automaticamente",
@@ -253,12 +253,24 @@
     "loading": "Carregando suas configurações…",
     "loadError": "Não foi possível carregar suas configurações.",
     "retry": "Tentar novamente",
-    "saveError": "Não foi possível salvar as configurações. Por favor, tente novamente.",
+    "saveError": "Não foi possível salvar as configurações. Tente novamente.",
     "removeItem": "Remova {{name}}",
     "languageAuto": "Seguir o sistema",
-    "windowTitle": "Screen Buoy — Configurações",
+    "windowTitle": "ScreenBuoy — Configurações",
     "panicError": "O aplicativo encontrou um erro. Verifique os logs para mais detalhes.",
-    "runtimeError": "Erro: {{error}}"
+    "runtimeError": "Erro: {{error}}",
+    "navigation": {
+      "interaction": "Interação",
+      "preferences": "Preferências"
+    },
+    "search": {
+      "placeholder": "Buscar configurações…",
+      "empty": "Nenhuma configuração encontrada"
+    },
+    "bindingScope": {
+      "global": "Ao digitar uma dica",
+      "atHint": "Ao manter a tecla da dica"
+    }
   },
   "updates": {
     "title": "Atualizações do aplicativo",

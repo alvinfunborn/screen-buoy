@@ -2,10 +2,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { getHintPrefixConflicts, getHintSideKeyWarnings, getPrefixConflictsFromError, parseCharsetInput } from './hint-validation.js';
 
-test('charset editing keeps comma-separated input as arrays, including an unfinished delimiter', () => {
-  assert.deepEqual(parseCharsetInput(' F, D, '), ['F', 'D']);
-  assert.deepEqual(parseCharsetInput(" A, Q, Z, 1, =, \\, /, ' "), ['A', 'Q', 'Z', '1', '=', '\\', '/', "'"]);
+test('charset editing treats punctuation and spaces as members rather than delimiters', () => {
+  assert.deepEqual(parseCharsetInput('FJDK,.;'), ['F', 'J', 'D', 'K', ',', '.', ';']);
+  assert.deepEqual(parseCharsetInput(" AQZ1=\\/' "), [' ', 'A', 'Q', 'Z', '1', '=', '\\', '/', "'", ' ']);
+  assert.deepEqual(parseCharsetInput(','), [',']);
   assert.deepEqual(parseCharsetInput(''), []);
+});
+
+test('existing character arrays round-trip without adding separators or splitting Unicode scalars', () => {
+  for (const characters of [['F', 'D'], [',', ' ', '\\', ';'], ['中', '😀'], []]) {
+    assert.deepEqual(parseCharsetInput(characters.join('')), characters);
+  }
 });
 
 test('only first-position overlap blocks save, with stable unique conflicts ignoring ASCII case', () => {

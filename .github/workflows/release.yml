@@ -37,6 +37,9 @@ jobs:
       - name: Check release version
         run: npm run check:version
 
+      - name: Run settings, overlay and updater tests
+        run: node --test src/components/settings/hint-validation.test.js src/overlay/hint-state.test.js scripts/create-update-manifest.test.mjs
+
       - name: Build frontend & Tauri
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -98,6 +101,9 @@ jobs:
       - name: Check release version
         run: npm run check:version
 
+      - name: Run settings, overlay and updater tests
+        run: node --test src/components/settings/hint-validation.test.js src/overlay/hint-state.test.js scripts/create-update-manifest.test.mjs
+
       - name: Build frontend & Tauri
         env:
           # With no Developer ID credentials, produce an explicitly ad-hoc
@@ -114,16 +120,18 @@ jobs:
 
       - name: Verify architectures and bundle version
         run: |
-          APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app
+          APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app
           lipo "$APP/Contents/MacOS/screen-buoy" -verify_arch arm64 x86_64
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleName' "$APP/Contents/Info.plist")" = ScreenBuoy
+          test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleDisplayName' "$APP/Contents/Info.plist")" = ScreenBuoy
           test "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist")" = "${GITHUB_REF_NAME#v}"
           codesign --verify --deep --strict "$APP"
 
       - name: Create screen-buoy-macos.zip
         run: |
-          ditto -c -k --keepParent src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app screen-buoy-macos.zip
-          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app.tar.gz screen-buoy-macos.app.tar.gz
-          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app.tar.gz.sig screen-buoy-macos.app.tar.gz.sig
+          ditto -c -k --keepParent src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app screen-buoy-macos.zip
+          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app.tar.gz screen-buoy-macos.app.tar.gz
+          cp src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app.tar.gz.sig screen-buoy-macos.app.tar.gz.sig
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4

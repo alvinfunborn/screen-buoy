@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Pemecahan masalah izin",
-    "keyboardRecovery": "Aksesibilitas sudah diizinkan, tetapi penangkapan input keyboard belum terhubung. Mulai ulang Screen Buoy terlebih dahulu. Jika masalah berlanjut, izinkan juga Pemantauan Input.",
+    "keyboardRecovery": "Aksesibilitas sudah diizinkan, tetapi penangkapan input keyboard belum terhubung. Mulai ulang ScreenBuoy terlebih dahulu. Jika masalah berlanjut, izinkan juga Pemantauan Input.",
     "keyboardUnavailable": "Shortcut tidak tersedia.",
     "title": "Izinkan akses Aksesibilitas",
-    "ready": "Screen Buoy siap digunakan",
-    "description": "Izinkan Screen Buoy di Pengaturan Sistem → Privasi & Keamanan → Aksesibilitas agar aplikasi dapat mendeteksi kontrol dan mengekliknya.",
+    "ready": "ScreenBuoy siap digunakan",
+    "description": "Izinkan ScreenBuoy di Pengaturan Sistem → Privasi & Keamanan → Aksesibilitas agar aplikasi dapat mendeteksi kontrol dan mengekliknya.",
     "accessibility": "Aksesibilitas",
     "inputMonitoring": "Pemantauan Input",
     "keyboardHook": "Pengambilan tangkapan keyboard",
@@ -17,8 +17,8 @@
     "openAccessibility": "Buka Aksesibilitas",
     "openInputMonitoring": "Buka Pemantauan Input",
     "refresh": "Periksa lagi",
-    "restart": "Mulai ulang Screen Buoy",
-    "recovery": "Izinkan salinan aplikasi pada jalur di bawah ini di Pengaturan Sistem. Setelah mengganti aplikasi, Anda mungkin perlu menghapus izin lama, menambahkannya kembali, lalu memulai ulang Screen Buoy.",
+    "restart": "Mulai ulang ScreenBuoy",
+    "recovery": "Izinkan salinan aplikasi pada jalur di bawah ini di Pengaturan Sistem. Setelah mengganti aplikasi, Anda mungkin perlu menghapus izin lama, menambahkannya kembali, lalu memulai ulang ScreenBuoy.",
     "checkFailed": "Tidak dapat memeriksa izin."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Petunjuk Set Karakter",
-    "charsetsTooltip": "Setiap baris menentukan satu posisi karakter petunjuk: baris pertama untuk karakter pertama, baris kedua untuk karakter berikutnya. Letakkan karakter yang familier dan mudah ditekan di awal setiap baris. Kombinasinya digunakan lebih dahulu, lalu karakter berikutnya ditambahkan secara bertahap, dengan karakter awal bergantian dalam setiap kelompok.",
+    "charsetsTooltip": "Setiap baris menentukan satu posisi karakter petunjuk: baris pertama untuk karakter pertama, baris kedua untuk karakter berikutnya. Letakkan karakter yang familier dan mudah ditekan di awal setiap baris. Kombinasinya digunakan lebih dahulu, lalu karakter berikutnya ditambahkan secara bertahap, dengan karakter awal bergantian dalam setiap kelompok. Masukkan tanpa pemisah; koma dan spasi juga dihitung sebagai karakter.",
     "charsetExtra": "Petunjuk Karakter Tambahan",
     "charsetExtraTooltip": "Awalan tambahan hanya digunakan setelah semua kombinasi utama habis. Letakkan awalan yang familier dan mudah ditekan di awal. Awalan dan karakter berikutnya ditambahkan secara bertahap sesuai urutan pengaturan, dengan awalan bergantian dalam setiap kelompok.",
     "charsetPrefixConflict": "Awalan tambahan tidak boleh tumpang tindih dengan kumpulan karakter posisi pertama. Karakter yang bentrok: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Tambahkan Set Karakter",
     "addHintType": "Tambahkan Tipe Petunjuk",
     "remove": "Hapus",
-    "placeholderCharset": "Masukkan charset, dipisahkan dengan koma.",
-    "placeholderCharsetExtra": "Masukkan charset tambahan, dipisahkan dengan koma.",
+    "placeholderCharset": "Masukkan karakter berurutan, mis. FJDK,.;",
+    "placeholderCharsetExtra": "Masukkan karakter tambahan berurutan",
     "placeholderRows": "Pilih baris",
     "placeholderColumns": "Pilih kolom",
     "placeholderStyle": "Masukkan gaya default",
@@ -216,7 +216,7 @@
       "keybinding": "Buat setiap tindakan terasa alami. Atur tombol-tombol yang Anda gunakan untuk navigasi dan klik.",
       "mouse": "Haluskan gerakan, gulir, dan seret untuk setiap kombinasi modifier.",
       "hint": "Pilih karakter, kisi, dan tampilan untuk petunjuk Anda yang ditampilkan.",
-      "uiAutomation": "Atur seberapa sering Screen Buoy mencari dan memperbarui elemen antarmuka.",
+      "uiAutomation": "Atur seberapa sering ScreenBuoy mencari dan memperbarui elemen antarmuka.",
       "keyboard": "Kelola tombol modifier, kode tombol, dan hubungan antar tombol.",
       "system": "Kelola startup, pembaruan aplikasi, visibilitas di bilah tumpang, dan diagnostik."
     },
@@ -240,25 +240,37 @@
       "scrollDescription": "Menggulir konten di bawah penunjuk tanpa memindahkan penunjuk."
     },
     "help": {
-      "startAtLogin": "Jalankan Screen Buoy saat masuk.",
+      "startAtLogin": "Jalankan ScreenBuoy saat masuk.",
       "startInTray": "Sembunyikan jendela pengaturan pada saat startup.",
-      "showTrayIcon": "Pastikan Screen Buoy dapat dibuka dari bilah menu atau baki sistem."
+      "showTrayIcon": "Pastikan ScreenBuoy dapat dibuka dari bilah menu atau baki sistem."
     },
     "save": {
       "idle": "Perubahan disimpan otomatis",
       "saving": "Menyimpan…",
-      "saved": "Perubahan disimpan",
+      "saved": "Perubahan tersimpan",
       "error": "Tidak dapat menyimpan"
     },
     "loading": "Memuat pengaturan Anda…",
     "loadError": "Tidak dapat memuat pengaturan Anda.",
     "retry": "Coba lagi",
-    "saveError": "Tidak dapat menyimpan pengaturan. Silakan coba ulangi perubahan Anda.",
+    "saveError": "Tidak dapat menyimpan pengaturan. Silakan coba lagi.",
     "removeItem": "Hapus {{name}}",
     "languageAuto": "Ikuti sistem",
-    "windowTitle": "Screen Buoy — Pengaturan",
+    "windowTitle": "ScreenBuoy — Pengaturan",
     "panicError": "Aplikasi mengalami kesalahan. Periksa log untuk detailnya.",
-    "runtimeError": "Error: {{error}}"
+    "runtimeError": "Error: {{error}}",
+    "navigation": {
+      "interaction": "Interaksi",
+      "preferences": "Preferensi"
+    },
+    "search": {
+      "placeholder": "Cari pengaturan…",
+      "empty": "Tidak ada pengaturan yang cocok"
+    },
+    "bindingScope": {
+      "global": "Saat mengetik petunjuk",
+      "atHint": "Saat menahan tombol petunjuk"
+    }
   },
   "updates": {
     "title": "Pembaruan aplikasi",

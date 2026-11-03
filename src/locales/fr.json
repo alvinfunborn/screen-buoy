@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Résolution des problèmes de permission",
-    "keyboardRecovery": "L’accès à l’accessibilité est autorisé, mais la capture du clavier n’est pas connectée. Redémarrez d’abord Screen Buoy. Si le problème persiste, autorisez aussi la surveillance de l’entrée.",
+    "keyboardRecovery": "L’accès à l’accessibilité est autorisé, mais la capture du clavier n’est pas connectée. Redémarrez d’abord ScreenBuoy. Si le problème persiste, autorisez aussi la surveillance de l’entrée.",
     "keyboardUnavailable": "Les raccourcis clavier ne sont pas disponibles.",
     "title": "Autoriser l’accès à l’accessibilité",
-    "ready": "Screen Buoy est prêt",
-    "description": "Autorisez Screen Buoy dans Réglages Système → Confidentialité et sécurité → Accessibilité pour détecter les commandes et cliquer dessus.",
+    "ready": "ScreenBuoy est prêt",
+    "description": "Autorisez ScreenBuoy dans Réglages Système → Confidentialité et sécurité → Accessibilité pour détecter les commandes et cliquer dessus.",
     "accessibility": "Accessibilité",
     "inputMonitoring": "Surveillance des entrées",
     "keyboardHook": "Capture du clavier",
@@ -17,8 +17,8 @@
     "openAccessibility": "Ouvrir Accessibilité",
     "openInputMonitoring": "Ouvrir Surveillance de l’entrée",
     "refresh": "Vérifier de nouveau",
-    "restart": "Redémarrer Screen Buoy",
-    "recovery": "Autorisez dans Réglages Système la copie de l’app dont le chemin figure ci-dessous. Après son remplacement, vous devrez peut-être supprimer son ancienne autorisation, l’ajouter de nouveau et redémarrer Screen Buoy.",
+    "restart": "Redémarrer ScreenBuoy",
+    "recovery": "Autorisez dans Réglages Système la copie de l’app dont le chemin figure ci-dessous. Après son remplacement, vous devrez peut-être supprimer son ancienne autorisation, l’ajouter de nouveau et redémarrer ScreenBuoy.",
     "checkFailed": "Impossible de vérifier les permissions."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Paramètres d'encodage",
-    "charsetsTooltip": "Chaque ligne correspond à une position du repère : la première fournit le premier caractère, la deuxième le suivant. Placez en tête les caractères familiers et faciles à saisir. Leurs combinaisons sont utilisées en premier, puis les caractères suivants sont introduits progressivement, en alternant les initiales dans chaque groupe.",
+    "charsetsTooltip": "Chaque ligne correspond à une position du repère : la première fournit le premier caractère, la deuxième le suivant. Placez en tête les caractères familiers et faciles à saisir. Leurs combinaisons sont utilisées en premier, puis les caractères suivants sont introduits progressivement, en alternant les initiales dans chaque groupe. Saisissez les caractères sans séparateur ; les virgules et les espaces comptent aussi comme caractères.",
     "charsetExtra": "Caractères supplémentaires des repères",
     "charsetExtraTooltip": "Un préfixe est ajouté seulement après épuisement de toutes les combinaisons principales. Placez en tête les préfixes familiers et faciles à saisir. Les préfixes et les caractères suivants sont introduits progressivement dans l’ordre configuré, en alternant les préfixes dans chaque groupe.",
     "charsetPrefixConflict": "Les préfixes supplémentaires ne peuvent pas figurer dans le jeu de caractères de la première position. Caractères en conflit : {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Ajouter l'ensemble de caractères",
     "addHintType": "Ajouter Type d'indice",
     "remove": "Supprimer",
-    "placeholderCharset": "Entrez l'ensemble des caractères, séparés par des virgules.",
-    "placeholderCharsetExtra": "Entrez l'ensemble de caractères supplémentaire, séparé par des virgules.",
+    "placeholderCharset": "Saisissez les caractères à la suite, p. ex. FJDK,.;",
+    "placeholderCharsetExtra": "Saisissez les caractères supplémentaires à la suite",
     "placeholderRows": "Sélectionner les lignes",
     "placeholderColumns": "Sélectionner les colonnes",
     "placeholderStyle": "Entrez le style par défaut.",
@@ -216,7 +216,7 @@
       "keybinding": "Rendez chaque action intuitive et naturelle. Définissez les touches que vous utilisez pour naviguer et cliquer.",
       "mouse": "Ajuster le mouvement, le défilement et le glissement pour chaque combinaison de touches.",
       "hint": "Choisissez les personnages, le grillage et l'apparence de vos indications à l'écran.",
-      "uiAutomation": "Régler la fréquence de détection et d’actualisation des éléments d’interface par Screen Buoy.",
+      "uiAutomation": "Régler la fréquence de détection et d’actualisation des éléments d’interface par ScreenBuoy.",
       "keyboard": "Gérer les touches de modification, les codes de touches et les relations entre les touches.",
       "system": "Gestion du démarrage, des mises à jour de l'application, de la visibilité dans la barre d'état et des diagnostics."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "Fait défiler le contenu sous le pointeur sans déplacer celui-ci."
     },
     "help": {
-      "startAtLogin": "Lancer Screen Buoy à l’ouverture de session.",
+      "startAtLogin": "Lancer ScreenBuoy à l’ouverture de session.",
       "startInTray": "Gardez la fenêtre des paramètres masquée au démarrage.",
-      "showTrayIcon": "Garder Screen Buoy accessible depuis la barre des menus ou la zone de notification."
+      "showTrayIcon": "Garder ScreenBuoy accessible depuis la barre des menus ou la zone de notification."
     },
     "save": {
       "idle": "Les modifications sont enregistrées automatiquement",
@@ -253,12 +253,24 @@
     "loading": "Chargement des paramètres…",
     "loadError": "Impossible de charger vos paramètres.",
     "retry": "Réessayez",
-    "saveError": "Impossible de sauvegarder les paramètres. Veuillez réessayer.",
+    "saveError": "Impossible d’enregistrer les réglages. Veuillez réessayer.",
     "removeItem": "Supprimer {{name}}",
     "languageAuto": "Suivre le système",
-    "windowTitle": "Screen Buoy — Paramètres",
+    "windowTitle": "ScreenBuoy — Paramètres",
     "panicError": "L'application a rencontré une erreur. Veuillez consulter les journaux pour plus de détails.",
-    "runtimeError": "Erreur : {{error}}"
+    "runtimeError": "Erreur : {{error}}",
+    "navigation": {
+      "interaction": "Interaction",
+      "preferences": "Préférences"
+    },
+    "search": {
+      "placeholder": "Rechercher un réglage…",
+      "empty": "Aucun réglage correspondant"
+    },
+    "bindingScope": {
+      "global": "Pendant la saisie d’un indice",
+      "atHint": "En maintenant la touche d’indice"
+    }
   },
   "updates": {
     "title": "Mises à jour de l'application",

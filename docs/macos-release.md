@@ -10,12 +10,12 @@ APPLE_SIGNING_IDENTITY=- npm run tauri build -- --target universal-apple-darwin 
 cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
 ```
 
-Output: `src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app`.
+Output: `src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app`.
 
 Verify the actual artifact:
 
 ```sh
-APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/screen-buoy.app
+APP=src-tauri/target/universal-apple-darwin/release/bundle/macos/ScreenBuoy.app
 lipo "$APP/Contents/MacOS/screen-buoy" -verify_arch arm64 x86_64
 codesign --verify --deep --strict "$APP"
 /usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$APP/Contents/Info.plist"
@@ -45,11 +45,33 @@ A signed release remains blocked until those validations succeed. Reference: [Ta
 
 ## Versions and installation
 
-Update `package.json`, both root versions in `package-lock.json`, `src-tauri/Cargo.toml`, the Screen Buoy entry in `Cargo.lock`, and `src-tauri/Tauri.toml` together. `npm run check:version` checks consistency; tag CI also checks `v<version>` against the bundle version.
+Update `package.json`, both root versions in `package-lock.json`, `src-tauri/Cargo.toml`, the `screen-buoy` entry in `Cargo.lock`, and `src-tauri/Tauri.toml` together. `npm run check:version` checks consistency; tag CI also checks `v<version>` against the bundle version.
 
 For 1.2.1+, place the `.app` in `/Applications`. Release preferences live at `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml`. On first run, a legacy sidecar configuration beside the `.app` is copied there if present; otherwise embedded macOS defaults are used. An existing user config is never overwritten by app replacement. Development mode continues to use the repository config.
 
 Replacing an ad-hoc signed binary may require re-adding the installed app in Privacy & Security permissions. The settings UI shows the current executable path so the user can identify the correct copy.
+
+For repeated local installations, use the same valid signing certificate instead of `APPLE_SIGNING_IDENTITY=-`. Inspect the installed requirement with `codesign -d -r- /Applications/ScreenBuoy.app` and available certificates with `security find-identity -v -p codesigning`. Set `APPLE_SIGNING_IDENTITY` to the same certificate name or fingerprint on every build. Apple Development is suitable for local testing, but does not provide Developer ID distribution or notarization. Switching away from the old ad-hoc identity may require one permission migration; do not reset TCC grants on every update.
+
+Install a **release** bundle. A `--debug` bundle uses the development working-directory configuration and can exit with `please check the config file: config.toml exists` when launched from `/Applications`. Release builds load the user configuration described above. After replacing the app, validate the installed process's Accessibility and keyboard-hook status, not just the toggles shown in System Settings.
+
+The application name is `ScreenBuoy`; its bundle identifier remains
+`com.screen-buoy.dev` and its executable remains `screen-buoy`. Install it as
+`/Applications/ScreenBuoy.app`. When replacing an older `screen-buoy.app`, migrate
+the bundle filename as well: Finder, Spotlight, and launchers can keep showing
+`screen-buoy` when only the internal bundle name changes. Stop the old instance,
+move the verified replacement to `ScreenBuoy.app`, refresh its LaunchServices
+registration, relaunch, and verify the login item targets the new path. Preserve
+the existing user configuration and a recoverable backup of the old app.
+The updater replaces the app at its existing installation path and does not
+perform this one-time filename migration automatically.
+On startup, the app applies the saved login-start preference to the `ScreenBuoy`
+LaunchAgent and then removes the legacy `screen-buoy` LaunchAgent.
+Keeping the identifier and installation path does not guarantee permission
+continuity with ad-hoc signatures. Validate that separately across two installed
+versions. Community releases continue to use ad-hoc signing and manual updates,
+with no proactive update reminders or forced upgrades. Developer ID signing is
+optional if the distribution policy changes later.
 
 ## GitHub release procedure
 

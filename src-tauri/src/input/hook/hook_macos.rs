@@ -80,6 +80,87 @@ static READY: AtomicBool = AtomicBool::new(false);
 static SINGLE_KEY_ENABLED: AtomicBool = AtomicBool::new(false);
 static SINGLE_KEY_CODE: AtomicU16 = AtomicU16::new(58);
 
+static SHORTCUT_NAME: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::new()));
+static SHORTCUT_CODE: AtomicU16 = AtomicU16::new(u16::MAX);
+static SHORTCUT_MODIFIERS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+static SHORTCUT_HOLD: Lazy<Mutex<ShortcutHold>> = Lazy::new(|| Mutex::new(ShortcutHold::default()));
+
+#[derive(Default)]
+struct ShortcutHold {
+    armed: bool,
+    key_down: bool,
+    modifiers: bool,
+}
+
+impl ShortcutHold {
+    fn observe(&mut self, trigger: bool, down: bool, modifiers: bool, other_down: bool) {
+        if trigger {
+            if down && modifiers { self.armed = true; }
+            self.key_down = down;
+            if !down { self.armed = false; }
+        } else if other_down { self.armed = false; }
+        self.modifiers = modifiers;
+    }
+    fn take_ready(&mut self, active: bool) -> bool {
+        if active && self.armed && self.key_down && !self.modifiers {
+            self.armed = false;
+            true
+        } else { false }
+    }
+}
+
+pub(crate) fn activate_shortcut_hold(app: &tauri::AppHandle) {
+    let active = KEYBOARD_STATE.lock().unwrap().in_ctrl_session;
+    if SHORTCUT_HOLD.lock().unwrap().take_ready(active) {
+        let key = SHORTCUT_NAME.lock().unwrap().clone();
+        crate::input::keyboard::hold_at_cursor(app, key);
+    }
+}
+
+unsafe fn observe_shortcut_hold(etype: u32, event: CGEventRef, active: bool) -> bool {
+    if !matches!(etype, CG_KEY_DOWN | CG_KEY_UP | CG_FLAGS_CHANGED) { return false; }
+    let code = CGEventGetIntegerValueField(event, EventField::KEYBOARD_EVENT_KEYCODE) as u16;
+    let trigger = code == SHORTCUT_CODE.load(Ordering::Relaxed);
+    let flags = CGEventGetFlags(event) & (0x20000 | 0x40000 | 0x80000 | 0x100000 | 0x800000);
+    let repeat = etype == CG_KEY_DOWN && CGEventGetIntegerValueField(event, EventField::KEYBOARD_EVENT_AUTOREPEAT) != 0;
+    {
+        let mut hold = SHORTCUT_HOLD.lock().unwrap();
+        // Arm only on the configured chord, never from an ordinary held key.
+        if !active && trigger && etype == CG_KEY_DOWN && !repeat {
+            hold.observe(true, true, flags != 0, false);
+            hold.armed = flags == SHORTCUT_MODIFIERS.load(Ordering::Relaxed);
+        } else if trigger && etype == CG_KEY_UP {
+            hold.observe(true, false, flags != 0, false);
+        } else if etype == CG_FLAGS_CHANGED {
+            hold.modifiers = flags != 0;
+            // A newly pressed modifier cancels a pending chord handoff.
+            if modifier_down_from_flags(code, CGEventGetFlags(event)) == Some(true) { hold.armed = false; }
+        } else if etype == CG_KEY_DOWN && !trigger { hold.armed = false; }
+    }
+    let app = APP_HANDLE.lock().unwrap().clone();
+    if let Some(app) = app { activate_shortcut_hold(&app); }
+    // Keep shortcut repeats from being interpreted as hint characters while
+    // waiting for its modifiers to be released.
+    trigger && etype == CG_KEY_DOWN && repeat && active
+        && SHORTCUT_HOLD.lock().unwrap().armed
+}
+
+fn shortcut_keycode(code: tauri_plugin_global_shortcut::Code) -> Option<u16> {
+    use tauri_plugin_global_shortcut::Code::*;
+    Some(match code {
+        KeyA => 0, KeyS => 1, KeyD => 2, KeyF => 3, KeyH => 4, KeyG => 5,
+        KeyZ => 6, KeyX => 7, KeyC => 8, KeyV => 9, KeyB => 11, KeyQ => 12,
+        KeyW => 13, KeyE => 14, KeyR => 15, KeyY => 16, KeyT => 17,
+        Digit1 => 18, Digit2 => 19, Digit3 => 20, Digit4 => 21, Digit6 => 22, Digit5 => 23,
+        Equal => 24, Digit9 => 25, Digit7 => 26, Minus => 27, Digit8 => 28, Digit0 => 29,
+        BracketRight => 30, KeyO => 31, KeyU => 32, BracketLeft => 33, KeyI => 34, KeyP => 35,
+        Enter => 36, KeyL => 37, KeyJ => 38, Quote => 39, KeyK => 40, Semicolon => 41,
+        Backslash => 42, Comma => 43, Slash => 44, KeyN => 45, KeyM => 46, Period => 47,
+        Backquote => 50,
+        _ => return None,
+    })
+}
+
 pub fn is_ready() -> bool {
     READY.load(Ordering::Acquire)
 }
@@ -222,6 +303,7 @@ unsafe extern "C" fn tap_callback(
     match etype {
         CG_TAP_DISABLED_TIMEOUT | CG_TAP_DISABLED_USER => {
             MODIFIER_TAP.with(|state| state.borrow_mut().reset());
+            *SHORTCUT_HOLD.lock().unwrap() = ShortcutHold::default();
             READY.store(false, Ordering::Release);
             TAP_STATE.with(|c| {
                 if let Some(state) = c.borrow().as_ref() {
@@ -239,6 +321,7 @@ unsafe extern "C" fn tap_callback(
     }
 
     let in_hint = KEYBOARD_STATE.lock().map(|state| state.in_ctrl_session).unwrap_or(false);
+    if observe_shortcut_hold(etype, event_ref, in_hint) { return std::ptr::null(); }
     if observe_modifier_tap(etype, event_ref, in_hint) {
         // Forward both modifier edges unchanged so the foreground app never sees
         // a stuck modifier. Start Hint only after the release has been recognized.
@@ -292,6 +375,10 @@ unsafe extern "C" fn tap_callback(
         return if is_down { std::ptr::null() } else { event_ref };
     }
 
+    let key_opt = if keycode == SHORTCUT_CODE.load(Ordering::Relaxed)
+        && KEYBOARD_STATE.lock().unwrap().cursor_hold_key.is_some() {
+        Some(SHORTCUT_NAME.lock().unwrap().clone())
+    } else { key_opt };
     let Some(key) = key_opt else {
         debug!(
             "[mac tap] skip (no key string) etype={} keycode={}",
@@ -346,6 +433,13 @@ unsafe extern "C" fn tap_callback(
                 key, swallowed
             );
             if swallowed {
+                // Carbon must see the shortcut key's release even when hold
+                // consumes it. Otherwise its pressed state survives an Alt-up
+                // handoff and the next chord can be lost. A key-up cannot type
+                // a hint or trigger the target application's key-down action.
+                if etype == CG_KEY_UP && keycode == SHORTCUT_CODE.load(Ordering::Relaxed) {
+                    return event_ref;
+                }
                 return std::ptr::null();
             }
         } else {
@@ -365,6 +459,30 @@ pub fn init(app_handle: tauri::AppHandle) {
     if let Some(config) = config::get_config() {
         SINGLE_KEY_CODE.store(config.keybinding.single_key.keycode(), Ordering::Relaxed);
         SINGLE_KEY_ENABLED.store(config.keybinding.single_key_enabled, Ordering::Relaxed);
+        if config.keybinding.hotkey_enabled {
+            use std::str::FromStr;
+            use tauri_plugin_global_shortcut::{Shortcut, Modifiers};
+            if let Ok(shortcut) = Shortcut::from_str(&config.keybinding.hotkey_buoy) {
+                let code = shortcut_keycode(shortcut.key).or_else(|| config.keyboard.available_key.iter().find_map(|(name, code)|
+                    Shortcut::from_str(name).ok().filter(|key| key.key == shortcut.key).map(|_| *code)));
+                if let Some(code) = code {
+                    let mut flags = 0;
+                    for (modifier, flag) in [(Modifiers::SHIFT, 0x20000), (Modifiers::CONTROL, 0x40000),
+                        (Modifiers::ALT, 0x80000), (Modifiers::SUPER, 0x100000)] {
+                        if shortcut.mods.contains(modifier) { flags |= flag; }
+                    }
+                    let name = config.keyboard.available_key.iter().find(|(_, value)| **value == code)
+                        .map(|(name, _)| name.clone()).unwrap_or_else(|| {
+                            let key = shortcut.key.to_string();
+                            key.strip_prefix("Key").or_else(|| key.strip_prefix("Digit")).unwrap_or(&key).to_string()
+                        });
+                    *SHORTCUT_NAME.lock().unwrap() = name;
+                    SHORTCUT_CODE.store(code, Ordering::Relaxed);
+                    SHORTCUT_MODIFIERS.store(flags, Ordering::Relaxed);
+                }
+            }
+        }
+
     }
     *APP_HANDLE.lock().unwrap() = Some(app_handle);
 
@@ -458,6 +576,7 @@ pub fn init(app_handle: tauri::AppHandle) {
 }
 
 pub fn cleanup() {
+    *SHORTCUT_HOLD.lock().unwrap() = ShortcutHold::default();
     RUNNING.store(false, Ordering::Release);
     READY.store(false, Ordering::Release);
     let rl_ptr = TAP_RUNLOOP.swap(std::ptr::null_mut(), Ordering::AcqRel);
@@ -470,6 +589,28 @@ pub fn cleanup() {
 #[cfg(test)]
 mod tests {
     use super::{modifier_down_from_flags, tap_has_other_modifiers};
+
+    #[test]
+    fn shortcut_hold_requires_modifier_release_with_trigger_still_down() {
+        let mut hold = super::ShortcutHold::default();
+        hold.observe(true, true, true, false);
+        assert!(!hold.take_ready(true));
+        hold.observe(false, false, false, false);
+        assert!(!hold.take_ready(false)); // Async session startup has not finished.
+        assert!(hold.take_ready(true));
+        assert!(!hold.take_ready(true)); // Enter exactly once.
+
+        hold.observe(true, true, true, false);
+        hold.observe(true, false, true, false); // Q released before Alt.
+        hold.observe(false, false, false, false);
+        assert!(!hold.take_ready(true));
+
+        hold.observe(true, true, true, false);
+        hold.observe(false, true, true, true); // Another key cancels the handoff.
+        hold.observe(false, false, false, false);
+        assert!(!hold.take_ready(true));
+        assert_eq!(super::shortcut_keycode(tauri_plugin_global_shortcut::Code::KeyQ), Some(12));
+    }
 
     #[test]
     fn option_tap_allows_caps_lock_but_rejects_every_other_modifier() {

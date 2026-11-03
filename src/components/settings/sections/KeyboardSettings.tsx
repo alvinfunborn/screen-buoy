@@ -10,6 +10,7 @@ const { Panel } = Collapse;
 interface KeyboardSettingsProps {
   onValuesChange?: (changedValues: any, allValues: Config) => void;
   isMac: boolean;
+  requestedSection?: { section: string };
 }
 
 // Define types for the array format used for local state management
@@ -60,8 +61,14 @@ const leftRightMapListToRecord = (list: LeftRightMapItem[]): Record<string, Left
   }, {} as Record<string, LeftRightConfig>);
 };
 
-export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChange, isMac }) => {
+export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChange, isMac, requestedSection }) => {
   const { t } = useTranslation();
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const [openNeighbors, setOpenNeighbors] = useState<string[]>([]);
+  useEffect(() => {
+    if (requestedSection?.section === 'keys') setOpenKeys(['available_keys']);
+    if (requestedSection?.section === 'neighbors') setOpenNeighbors(['left_right_mapping']);
+  }, [requestedSection]);
   const form = Form.useFormInstance<Config>();
   const [availableKeyList, setAvailableKeyList] = useState<AvailableKeyItem[]>([]);
   const [leftRightMapList, setLeftRightMapList] = useState<LeftRightMapItem[]>([]);
@@ -194,7 +201,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
 
   return (
     <div className="settings-stack">
-      <SettingSection title={t('keyboard.propagationModifier')} description={t('keyboard.propagationModifierTooltip', {
+      <SettingSection id="keyboard-modifiers" title={t('keyboard.propagationModifier')} description={t('keyboard.propagationModifierTooltip', {
         modifiers: isMac ? 'Command (⌘), Option (⌥), Control (⌃), Shift (⇧)' : 'Alt, Ctrl, Shift, Win',
       })}>
       {/* Propagation Modifier */}
@@ -212,7 +219,8 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
       </Form.Item>
       </SettingSection>
 
-      <Collapse className="setting-disclosure">
+      <div id="keyboard-keys" tabIndex={-1} className="setting-anchor">
+      <Collapse className="setting-disclosure" activeKey={openKeys} onChange={keys => setOpenKeys(Array.isArray(keys) ? keys : [keys])}>
         <Panel header={<Tooltip title={keycodeHelp}>{t('keyboard.availableKeys')}</Tooltip>} className="config-section-title" key="available_keys">
           <p className="setting-note">{keycodeHelp}</p>
           <p className="setting-note">{t('keyboard.dynamicKeysTooltip')}</p>
@@ -260,6 +268,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                   <div className="key-map-row">
                     <Input
                       addonBefore={t('keyboard.key')}
+                      aria-label={`${t('keyboard.keyName')} ${item.keyName}`}
                       value={item.keyName}
                       onChange={(e) => handleAvailableKeyNameChange(item.id, e.target.value)}
                       disabled={isSpecial}
@@ -268,6 +277,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                     />
                     <InputNumber
                       addonBefore={keycodeLabel}
+                      aria-label={`${keycodeLabel} ${item.keyName}`}
                       value={item.virtualKey}
                       onChange={(value) => handleAvailableKeyValueChange(item.id, value)}
                       style={{ width: '100%' }}
@@ -301,8 +311,10 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
           </Button>
         </Panel>
       </Collapse>
+      </div>
 
-      <Collapse className="setting-disclosure">
+      <div id="keyboard-neighbors" tabIndex={-1} className="setting-anchor">
+      <Collapse className="setting-disclosure" activeKey={openNeighbors} onChange={keys => setOpenNeighbors(Array.isArray(keys) ? keys : [keys])}>
         <Panel header={<Tooltip title={t('keyboard.leftRightMappingTooltip')}>{t('keyboard.leftRightMapping')}</Tooltip>} className="config-section-title" key="left_right_mapping">
           <p className="setting-note">{t('keyboard.leftRightMappingTooltip')}</p>
           {/* Render list manually based on local state */}
@@ -315,6 +327,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                 <div className="key-map-row key-map-row-neighbors">
                   <Input
                     addonBefore={t('keyboard.key')}
+                    aria-label={`${t('keyboard.keyName')} ${item.keyName}`}
                     value={item.keyName}
                     onChange={(e) => handleLeftRightKeyNameChange(item.id, e.target.value)}
                     style={{ width: '100%' }}
@@ -322,6 +335,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                   />
                   <Input
                     addonBefore={t('keyboard.left')}
+                    aria-label={`${t('keyboard.left')} ${item.keyName}`}
                     value={item.left ?? ''}
                     onChange={(e) => handleLeftRightLeftChange(item.id, e.target.value)}
                     style={{ width: '100%' }}
@@ -329,6 +343,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
                   />
                   <Input
                     addonBefore={t('keyboard.right')}
+                    aria-label={`${t('keyboard.right')} ${item.keyName}`}
                     value={item.right ?? ''}
                     onChange={(e) => handleLeftRightRightChange(item.id, e.target.value)}
                     style={{ width: '100%' }}
@@ -356,6 +371,7 @@ export const KeyboardSettings: React.FC<KeyboardSettingsProps> = ({ onValuesChan
           </Button>
         </Panel>
       </Collapse>
+      </div>
     </div>
   );
 };

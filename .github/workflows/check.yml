@@ -28,6 +28,9 @@ jobs:
       - run: npm ci
       - run: npm run check:version
       - run: npm run test:i18n
+      - run: npm run test:settings
+      - run: npm run test:overlay
+      - run: npm run test:updater
       - run: npm run build
       - run: cargo test --locked --manifest-path src-tauri/Cargo.toml --lib
       - run: cargo check --locked --manifest-path src-tauri/Cargo.toml --all-targets

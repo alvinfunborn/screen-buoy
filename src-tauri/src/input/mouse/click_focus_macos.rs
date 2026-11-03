@@ -1,6 +1,7 @@
 //! Focus-before-click for macOS only. AX IPC and waits stay off the UI thread.
 use super::{get_cursor_position, post_mouse_click, CGPoint};
 use core_foundation::{
+    array::CFArray,
     base::{CFType, CFTypeRef, TCFType},
     boolean::CFBoolean,
     dictionary::{CFDictionary, CFDictionaryRef},
@@ -24,6 +25,8 @@ use std::{
 const CLICK_TIMEOUT: Duration = Duration::from_millis(350);
 const IPC_TIMEOUT: Duration = Duration::from_millis(50);
 const POLL_INTERVAL: Duration = Duration::from_millis(10);
+const AX_NOT_IMPLEMENTED: i32 = -25208;
+const AX_NO_VALUE: i32 = -25212;
 static GENERATION: AtomicU64 = AtomicU64::new(0);
 static REQUEST: AtomicU64 = AtomicU64::new(0);
 type Result<T> = std::result::Result<T, &'static str>;
@@ -268,15 +271,15 @@ impl Ax {
         }
         Ok(child)
     }
-    fn at(&self, point: CGPoint) -> Result<Ax> {
+    fn at(&self, point: CGPoint) -> std::result::Result<Ax, i32> {
         let mut value = ptr::null();
         let status = unsafe {
             AXUIElementCopyElementAtPosition(self.raw(), point.x as f32, point.y as f32, &mut value)
         };
         if status != 0 {
-            return Err("AX hit test failed");
+            return Err(status);
         }
-        Self::owned(value)
+        Self::owned(value).map_err(|_| AX_NO_VALUE)
     }
     fn frame(&self) -> Result<Frame> {
         let position = self.attribute("AXPosition")?;
@@ -321,8 +324,30 @@ impl Ax {
 struct Focus {
     app: Ax,
     window: Ax,
-    element: Ax,
-    element_frame: Frame,
+    // Custom-drawn content may have no AX hit-test implementation. In that
+    // case we still require the exact focused window and live click receiver.
+    element: Option<(Ax, Frame)>,
+}
+
+fn allows_window_target(status: i32) -> bool {
+    matches!(status, AX_NOT_IMPLEMENTED | AX_NO_VALUE)
+}
+
+fn unique_window_match<T>(
+    windows: impl IntoIterator<Item = Result<(T, Frame)>>,
+    target: Frame,
+) -> Result<T> {
+    let mut matched = None;
+    for window in windows {
+        let (window, frame) = window?;
+        if frame.matches(target) {
+            if matched.is_some() {
+                return Err("ambiguous AX window for click receiver");
+            }
+            matched = Some(window);
+        }
+    }
+    matched.ok_or("no AX window matches click receiver")
 }
 struct NativeClick {
     point: CGPoint,
@@ -346,6 +371,26 @@ fn is_nonactivating_surface(layer: i32, role: &str) -> bool {
 }
 
 impl NativeClick {
+    fn window_target(&self, app: &Ax) -> Result<Ax> {
+        self.check_pending()?;
+        let values = app.attribute("AXWindows")?
+            .downcast::<CFArray>()
+            .ok_or("AXWindows is not an array")?;
+        let windows = unsafe { CFArray::<CFType>::wrap_under_get_rule(values.as_concrete_TypeRef()) };
+        // Bound work even for applications with unusually large window lists.
+        if windows.len() > 64 {
+            return Err("too many AX windows for click validation");
+        }
+        unique_window_match(windows.iter().map(|value| {
+            self.check_pending()?;
+            let window = Ax((*value).clone());
+            unsafe { AXUIElementSetMessagingTimeout(window.raw(), IPC_TIMEOUT.as_secs_f32()); }
+            let frame = window.frame()?;
+            self.check_pending()?;
+            Ok((window, frame))
+        }), self.window.frame)
+    }
+
     fn capture(
         point: CGPoint,
         generation: u64,
@@ -368,7 +413,22 @@ impl NativeClick {
         // floating app windows both require confirmation of window focus.
         if target.window.layer >= 0 {
             let app = Ax::owned(unsafe { AXUIElementCreateApplication(target.window.pid) })?;
-            let element = app.at(point)?;
+            let element = match app.at(point) {
+                Ok(element) => element,
+                Err(status) => {
+                    log::info!(
+                        "[click_focus macos] AX hit status={} pid={} window={} point=({:.1},{:.1}) window_fallback={}",
+                        status, target.window.pid, target.window.id, point.x, point.y,
+                        allows_window_target(status)
+                    );
+                    if !allows_window_target(status) {
+                        return Err("AX hit test failed");
+                    }
+                    let window = target.window_target(&app)?;
+                    target.focus = Some(Focus { app, window, element: None });
+                    return Ok(target);
+                }
+            };
             let role = element
                 .attribute("AXRole")?
                 .downcast::<CFString>()
@@ -391,8 +451,7 @@ impl NativeClick {
             target.focus = Some(Focus {
                 app,
                 window,
-                element,
-                element_frame,
+                element: Some((element, element_frame)),
             });
         }
         Ok(target)
@@ -468,12 +527,20 @@ impl ClickTarget for NativeClick {
     fn revalidate(&self) -> Result<()> {
         self.check_pending()?;
         if let Some(focus) = &self.focus {
-            let hit = focus.app.at(self.point)?;
-            if hit.0 != focus.element.0
-                || !hit.frame()?.matches(focus.element_frame)
-                || !focus.window.frame()?.matches(self.window.frame)
-            {
-                return Err("target element or bounds changed");
+            if !focus.window.frame()?.matches(self.window.frame) {
+                return Err("target window bounds changed");
+            }
+            if let Some((element, frame)) = &focus.element {
+                let hit = focus.app.at(self.point).map_err(|status| {
+                    log::warn!("[click_focus macos] AX revalidation status={} pid={} window={}",
+                        status, self.window.pid, self.window.id);
+                    "AX hit test failed"
+                })?;
+                if hit.0 != element.0 || !hit.frame()?.matches(*frame) {
+                    return Err("target element or bounds changed");
+                }
+            } else if self.window_target(&focus.app)?.0 != focus.window.0 {
+                return Err("target AX window changed");
             }
         }
         // Fresh WindowServer receiver after activation; never reuse hint cache.
@@ -670,5 +737,27 @@ mod tests {
         assert!(is_nonactivating_surface(101, "AXMenuItem"));
         assert!(is_nonactivating_surface(20, "AXDockItem"));
         assert!(is_nonactivating_surface(-2147483623, "AXScrollArea"));
+    }
+
+    #[test]
+    fn missing_accessibility_content_can_use_window_but_ipc_failures_cannot() {
+        assert!(allows_window_target(AX_NOT_IMPLEMENTED));
+        assert!(allows_window_target(AX_NO_VALUE));
+        // CannotComplete, InvalidUIElement, APIDisabled and illegal arguments
+        // must never downgrade a failed validation to coordinate clicking.
+        for status in [-25204, -25202, -25211, -25201, -25200, 0] {
+            assert!(!allows_window_target(status));
+        }
+    }
+
+    #[test]
+    fn window_fallback_requires_one_exact_frame_match() {
+        let target = Frame { x: -800.0, y: 100.0, width: 700.0, height: 500.0 };
+        let other = Frame { x: 0.0, ..target };
+        assert_eq!(unique_window_match([Ok((1, other)), Ok((2, target))], target), Ok(2));
+        assert!(unique_window_match([Ok((1, other))], target).is_err());
+        assert!(unique_window_match([Ok((1, target)), Ok((2, target))], target).is_err());
+        // Unknown window geometry cannot be assumed not to match the receiver.
+        assert!(unique_window_match([Ok((1, target)), Err("AX bounds unavailable")], target).is_err());
     }
 }

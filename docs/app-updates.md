@@ -2,6 +2,9 @@
 
 System settings provides manual checks, release notes, signed download/install,
 and a restart action. Nothing checks the network at startup or on a timer.
+There are no proactive update reminders or forced upgrades. A version check
+requires clicking Check for updates, and installation requires a separate click
+on Download and install. Opening settings alone does not check for updates.
 The current version comes from the running binary. Discovery uses the public
 `releases/latest` redirect, avoiding the anonymous REST API quota. GitHub's latest stable release
 is compared using SemVer; equal/older versions never offer a downgrade. Releases
@@ -14,6 +17,10 @@ not an "up to date" result. Notes are displayed as text, not executable HTML.
 Tauri updater signatures are separate from macOS Developer ID signing and
 notarization. A signed update does not resolve the current ad-hoc macOS app's
 Accessibility permission reset on replacement.
+Community releases continue to use ad-hoc macOS signing; Developer ID signing
+is not required by the current release policy. Users choose whether and when to
+update. The installation help shown after a manual check explains that macOS
+may require Accessibility permission again after updating.
 
 The public key is committed in `src-tauri/Tauri.toml`. Keep the matching private
 key outside the repository and back it up securely: losing it prevents updates

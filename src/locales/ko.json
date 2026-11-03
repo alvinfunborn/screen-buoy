@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "권한 문제 해결",
-    "keyboardRecovery": "손쉬운 사용 권한은 허용되었지만 키보드 입력 감지가 연결되지 않았습니다. 먼저 Screen Buoy를 다시 시작하세요. 문제가 계속되면 입력 모니터링도 허용해 보세요.",
+    "keyboardRecovery": "손쉬운 사용 권한은 허용되었지만 키보드 입력 감지가 연결되지 않았습니다. 먼저 ScreenBuoy를 다시 시작하세요. 문제가 계속되면 입력 모니터링도 허용해 보세요.",
     "keyboardUnavailable": "키보드 단축키는 사용 불가능합니다.",
     "title": "손쉬운 사용 접근 허용",
-    "ready": "Screen Buoy를 사용할 수 있습니다",
-    "description": "시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용에서 Screen Buoy를 허용하면 화면의 컨트롤을 찾고 클릭할 수 있습니다.",
+    "ready": "ScreenBuoy를 사용할 수 있습니다",
+    "description": "시스템 설정 → 개인정보 보호 및 보안 → 손쉬운 사용에서 ScreenBuoy를 허용하면 화면의 컨트롤을 찾고 클릭할 수 있습니다.",
     "accessibility": "접근성",
     "inputMonitoring": "입력 모니터링",
     "keyboardHook": "키보드 캡처",
@@ -17,8 +17,8 @@
     "openAccessibility": "손쉬운 사용 열기",
     "openInputMonitoring": "입력 모니터링 열기",
     "refresh": "다시 확인",
-    "restart": "다시 시작 Screen Buoy",
-    "recovery": "시스템 설정에서 아래 경로의 앱을 허용하세요. 앱을 교체한 후에는 기존 권한 항목을 삭제하고 다시 추가한 다음 Screen Buoy를 다시 시작해야 할 수 있습니다.",
+    "restart": "다시 시작 ScreenBuoy",
+    "recovery": "시스템 설정에서 아래 경로의 앱을 허용하세요. 앱을 교체한 후에는 기존 권한 항목을 삭제하고 다시 추가한 다음 ScreenBuoy를 다시 시작해야 할 수 있습니다.",
     "checkFailed": "권한 확인에 실패했습니다."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "힌트 문자 세트",
-    "charsetsTooltip": "각 행은 힌트의 한 문자 위치에 해당합니다. 첫째 행은 첫 문자, 둘째 행은 다음 문자입니다. 각 행에서 익숙하고 누르기 쉬운 문자를 앞에 두세요. 앞쪽 문자 조합을 먼저 사용하고 뒤쪽 문자를 점진적으로 추가하며, 같은 단계에서는 첫 문자를 번갈아 배정합니다.",
+    "charsetsTooltip": "각 행은 힌트의 한 문자 위치에 해당합니다. 첫째 행은 첫 문자, 둘째 행은 다음 문자입니다. 각 행에서 익숙하고 누르기 쉬운 문자를 앞에 두세요. 앞쪽 문자 조합을 먼저 사용하고 뒤쪽 문자를 점진적으로 추가하며, 같은 단계에서는 첫 문자를 번갈아 배정합니다. 구분자 없이 입력하세요. 쉼표와 공백도 각각 하나의 문자입니다.",
     "charsetExtra": "힌트 문자 세트",
     "charsetExtraTooltip": "기본 문자 조합을 모두 사용한 뒤에만 접두 문자 하나를 추가합니다. 익숙하고 누르기 쉬운 접두 문자를 앞에 두세요. 접두 문자와 후속 문자는 설정 순서대로 점진적으로 확장되며, 같은 단계에서는 접두 문자를 번갈아 배정합니다.",
     "charsetPrefixConflict": "추가 접두사는 첫 번째 위치의 문자 집합과 중복될 수 없습니다. 충돌 문자: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "인코딩 추가",
     "addHintType": "힌트 유형 추가",
     "remove": "제거",
-    "placeholderCharset": "인코딩을 입력하세요 (쉼표로 구분).",
-    "placeholderCharsetExtra": "추가 문자 세트(쉼표로 구분) 입력",
+    "placeholderCharset": "문자를 연속 입력하세요. 예: FJDK,.;",
+    "placeholderCharsetExtra": "추가 문자를 연속 입력하세요",
     "placeholderRows": "행렬 선택",
     "placeholderColumns": "열 선택",
     "placeholderStyle": "기본 스타일 선택",
@@ -216,7 +216,7 @@
       "keybinding": "모든 동작을 자연스럽게 만듭니다. 탐색 및 클릭에 사용하려는 키를 설정하세요.",
       "mouse": "각 조작 조합에 대해 움직임, 스크롤 및 드래깅을 세밀하게 조정합니다.",
       "hint": "온화면의 힌트(도움말)의 캐릭터, 그리드(격자), 및 디자인을 선택하세요.",
-      "uiAutomation": "Screen Buoy가 화면 요소를 찾고 새로 고치는 빈도를 설정합니다.",
+      "uiAutomation": "ScreenBuoy가 화면 요소를 찾고 새로 고치는 빈도를 설정합니다.",
       "keyboard": "Modifier 키, 키 코드 및 인접 키 관계 관리",
       "system": "시작 관리, 앱 업데이트, 작업 표시 및 진단"
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "포인터를 움직이지 않고 해당 위치의 내용을 스크롤합니다."
     },
     "help": {
-      "startAtLogin": "로그인 시 Screen Buoy를 시작합니다.",
+      "startAtLogin": "로그인 시 ScreenBuoy를 시작합니다.",
       "startInTray": "설정 창은 시작 시 숨겨 둡니다.",
-      "showTrayIcon": "메뉴 막대 또는 시스템 트레이에서 Screen Buoy를 열 수 있도록 합니다."
+      "showTrayIcon": "메뉴 막대 또는 시스템 트레이에서 ScreenBuoy를 열 수 있도록 합니다."
     },
     "save": {
       "idle": "변경 사항은 자동 저장됩니다",
@@ -253,12 +253,24 @@
     "loading": "설정 로딩 중…",
     "loadError": "설정 로드 실패",
     "retry": "다시 시도해 보세요.",
-    "saveError": "설정 저장 실패했습니다. 다시 시도해 보세요.",
+    "saveError": "설정을 저장하지 못했습니다. 다시 시도하세요.",
     "removeItem": "제거하기: {{name}}",
     "languageAuto": "시스템 설정 따르기",
-    "windowTitle": "Screen Buoy — 설정",
+    "windowTitle": "ScreenBuoy — 설정",
     "panicError": "앱에서 오류가 발생했습니다. 자세한 내용은 로그를 확인하세요.",
-    "runtimeError": "오류: {{error}}"
+    "runtimeError": "오류: {{error}}",
+    "navigation": {
+      "interaction": "조작 설정",
+      "preferences": "환경 설정"
+    },
+    "search": {
+      "placeholder": "설정 검색…",
+      "empty": "일치하는 설정이 없습니다"
+    },
+    "bindingScope": {
+      "global": "힌트 입력 중",
+      "atHint": "힌트 키를 누르는 동안"
+    }
   },
   "updates": {
     "title": "앱 업데이트",

@@ -182,7 +182,7 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
     }
 
     return (
-      <SettingSection title={t(label)} description={tooltip}>
+      <SettingSection id={`mouse-${type === 'translate' ? 'movement' : type}`} title={t(label)} description={tooltip}>
         <Space direction="vertical" style={{ width: '100%' }}>
           <List
             bordered
@@ -252,4 +252,4 @@ export const MouseSettings: React.FC<MouseSettingsProps> = ({ onValuesChange, av
       {renderStepList('drag', 'mouse.dragStep')}
     </div>
   );
-}; 
+};

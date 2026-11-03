@@ -3,6 +3,6 @@
 <plist version="1.0">
 <dict>
 	<key>NSAccessibilityUsageDescription</key>
-	<string>Screen Buoy 需要辅助功能权限以读取界面控件位置并显示快捷键提示。</string>
+	<string>ScreenBuoy 需要辅助功能权限以读取界面控件位置并显示快捷键提示。</string>
 </dict>
 </plist>

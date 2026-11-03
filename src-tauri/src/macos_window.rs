@@ -124,7 +124,9 @@ pub unsafe fn hit_test_points(points: &[(i32, i32)], primary_height: f64) -> Poi
             send(class, method, appkit_point(point, primary_height), 0)
         };
         query_elapsed += before.elapsed();
-        hits.push((point, (number > 0).then_some(number as i64)));
+        // Zero is a successful "no receiving window" result, so a transparent
+        // host over empty desktop cannot claim it. None means native failure.
+        hits.push((point, if class.is_null() { None } else { Some(number.max(0) as i64) }));
         if started.elapsed() >= Duration::from_millis(2) {
             break;
         }

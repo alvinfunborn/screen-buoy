@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Permission troubleshooting",
-    "keyboardRecovery": "Accessibility is allowed, but keyboard capture has not connected. Restart Screen Buoy first. If the issue persists, try allowing Input Monitoring.",
+    "keyboardRecovery": "Accessibility is allowed, but keyboard capture has not connected. Restart ScreenBuoy first. If the issue persists, try allowing Input Monitoring.",
     "keyboardUnavailable": "Keyboard shortcuts are unavailable",
     "title": "Allow Accessibility access",
-    "ready": "Screen Buoy is ready",
-    "description": "Allow Screen Buoy in System Settings → Privacy & Security → Accessibility to find controls and click them.",
+    "ready": "ScreenBuoy is ready",
+    "description": "Allow ScreenBuoy in System Settings → Privacy & Security → Accessibility to find controls and click them.",
     "accessibility": "Accessibility",
     "inputMonitoring": "Input Monitoring",
     "keyboardHook": "Keyboard capture",
@@ -17,8 +17,8 @@
     "openAccessibility": "Open Accessibility",
     "openInputMonitoring": "Open Input Monitoring",
     "refresh": "Check again",
-    "restart": "Restart Screen Buoy",
-    "recovery": "Enable the copy shown below in System Settings. After replacing the app, you may need to remove its old permission entry, add it again, and restart Screen Buoy.",
+    "restart": "Restart ScreenBuoy",
+    "recovery": "Enable the copy shown below in System Settings. After replacing the app, you may need to remove its old permission entry, add it again, and restart ScreenBuoy.",
     "checkFailed": "Could not check permissions"
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hint Charsets",
-    "charsetsTooltip": "Each row supplies one hint position: the first row supplies the first character, the second row the next. Put familiar, easy-to-press characters first in each row. Earlier combinations are used first; later characters are introduced gradually, with first characters interleaved within each group.",
+    "charsetsTooltip": "Each row supplies one hint position: the first row supplies the first character, the second row the next. Put familiar, easy-to-press characters first in each row. Earlier combinations are used first; later characters are introduced gradually, with first characters interleaved within each group. Enter characters directly without separators; commas and spaces also count as characters.",
     "charsetExtra": "Hint Charset Extra",
     "charsetExtraTooltip": "Only after all main combinations are used, an extra prefix is added. Put familiar, easy-to-press prefixes first. Prefixes and following characters expand gradually in the configured order, with prefixes interleaved within each group.",
     "charsetPrefixConflict": "Extra prefixes cannot overlap the first-position character set. Conflicting characters: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Add Charset",
     "addHintType": "Add Hint Type",
     "remove": "Remove",
-    "placeholderCharset": "Enter the charset, separated by commas",
-    "placeholderCharsetExtra": "Enter the extra charset, separated by commas",
+    "placeholderCharset": "Enter characters directly, e.g. FJDK,.;",
+    "placeholderCharsetExtra": "Enter extra characters directly",
     "placeholderRows": "Select rows",
     "placeholderColumns": "Select columns",
     "placeholderStyle": "Enter the default style",
@@ -205,9 +205,9 @@
     "language.en": "English",
     "language.zh": "简体中文",
     "tab": {
-      "keybinding": "Keybinding",
+      "keybinding": "Shortcuts",
       "mouse": "Mouse",
-      "hint": "Hint",
+      "hint": "Hints",
       "uiAutomation": "UI Automation",
       "keyboard": "Keyboard",
       "system": "System"
@@ -216,7 +216,7 @@
       "keybinding": "Make every action feel natural. Set the keys you use to navigate and click.",
       "mouse": "Fine-tune movement, scrolling and dragging for each modifier combination.",
       "hint": "Choose the characters, grid and appearance of your on-screen hints.",
-      "uiAutomation": "Control how often Screen Buoy finds and refreshes interface elements.",
+      "uiAutomation": "Control how often ScreenBuoy finds and refreshes interface elements.",
       "keyboard": "Manage modifier keys, key codes and neighboring key relationships.",
       "system": "Manage startup, app updates, tray visibility and diagnostics."
     },
@@ -240,25 +240,37 @@
       "scrollDescription": "Scroll the content under the pointer without moving the pointer."
     },
     "help": {
-      "startAtLogin": "Launch Screen Buoy when you sign in.",
+      "startAtLogin": "Launch ScreenBuoy when you sign in.",
       "startInTray": "Keep the settings window hidden on startup.",
-      "showTrayIcon": "Keep Screen Buoy accessible from the menu bar or system tray."
+      "showTrayIcon": "Keep ScreenBuoy accessible from the menu bar or system tray."
     },
     "save": {
       "idle": "Changes save automatically",
       "saving": "Saving…",
-      "saved": "Changes submitted",
+      "saved": "Changes saved",
       "error": "Could not save"
     },
     "loading": "Loading your settings…",
     "loadError": "Could not load your settings",
     "retry": "Try again",
-    "saveError": "Could not save settings. Please try your change again.",
+    "saveError": "Could not save settings. Please try again.",
     "removeItem": "Remove {{name}}",
     "languageAuto": "Follow system",
-    "windowTitle": "Screen Buoy — Settings",
+    "windowTitle": "ScreenBuoy — Settings",
     "panicError": "The app encountered an error. Check the logs for details.",
-    "runtimeError": "Error: {{error}}"
+    "runtimeError": "Error: {{error}}",
+    "navigation": {
+      "interaction": "Interaction",
+      "preferences": "Preferences"
+    },
+    "search": {
+      "placeholder": "Search settings…",
+      "empty": "No matching settings"
+    },
+    "bindingScope": {
+      "global": "While entering a hint",
+      "atHint": "While holding a hint key"
+    }
   },
   "updates": {
     "title": "App updates",

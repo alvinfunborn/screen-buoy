@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "権限に関するトラブルシューティング",
-    "keyboardRecovery": "アクセシビリティは許可されていますが、キーボード入力の取得が接続されていません。まず Screen Buoy を再起動してください。改善しない場合は「入力監視」も許可してください。",
+    "keyboardRecovery": "アクセシビリティは許可されていますが、キーボード入力の取得が接続されていません。まず ScreenBuoy を再起動してください。改善しない場合は「入力監視」も許可してください。",
     "keyboardUnavailable": "キーボードのショートカットは利用できません。",
     "title": "アクセシビリティを許可",
-    "ready": "Screen Buoy を使用できます",
-    "description": "システム設定 → プライバシーとセキュリティ → アクセシビリティで Screen Buoy を許可すると、画面上のコントロールを検出してクリックできます。",
+    "ready": "ScreenBuoy を使用できます",
+    "description": "システム設定 → プライバシーとセキュリティ → アクセシビリティで ScreenBuoy を許可すると、画面上のコントロールを検出してクリックできます。",
     "accessibility": "アクセシビリティ",
     "inputMonitoring": "入力監視",
     "keyboardHook": "キーボードのキャプチャ",
@@ -17,8 +17,8 @@
     "openAccessibility": "アクセシビリティを開く",
     "openInputMonitoring": "「入力監視」を開く",
     "refresh": "再確認",
-    "restart": "再起動 Screen Buoy",
-    "recovery": "システム設定で、以下のパスにあるアプリを許可してください。アプリを置き換えた後は、古い権限の項目を削除して追加し直し、Screen Buoy を再起動する必要がある場合があります。",
+    "restart": "再起動 ScreenBuoy",
+    "recovery": "システム設定で、以下のパスにあるアプリを許可してください。アプリを置き換えた後は、古い権限の項目を削除して追加し直し、ScreenBuoy を再起動する必要がある場合があります。",
     "checkFailed": "権限の確認に失敗しました。"
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "ヒントの文字セット",
-    "charsetsTooltip": "各行はヒントの各文字位置に対応します。1行目は先頭文字、2行目は次の文字です。各行で慣れた押しやすい文字を先に並べてください。先の文字の組み合わせを優先し、後の文字を段階的に追加します。同じ段階では先頭文字を交互に割り当てます。",
+    "charsetsTooltip": "各行はヒントの各文字位置に対応します。1行目は先頭文字、2行目は次の文字です。各行で慣れた押しやすい文字を先に並べてください。先の文字の組み合わせを優先し、後の文字を段階的に追加します。同じ段階では先頭文字を交互に割り当てます。 区切りなしで文字を入力します。カンマや空白も1文字として扱います。",
     "charsetExtra": "追加文字セット",
     "charsetExtraTooltip": "通常の組み合わせをすべて使い切った後にだけ、先頭に1文字追加します。慣れた押しやすい文字を先に並べてください。追加する先頭文字と後続の文字は設定順に段階的に増え、同じ段階では先頭文字を交互に割り当てます。",
     "charsetPrefixConflict": "追加プレフィックスは先頭位置の文字セットと重複できません。重複文字：{{characters}}。",
@@ -148,8 +148,8 @@
     "addCharset": "文字セットを追加",
     "addHintType": "ヒントタイプを追加",
     "remove": "削除",
-    "placeholderCharset": "文字セットをカンマ区切りで入力",
-    "placeholderCharsetExtra": "追加文字セットをカンマ区切りで入力",
+    "placeholderCharset": "文字を続けて入力（例：FJDK,.;）",
+    "placeholderCharsetExtra": "追加の文字を続けて入力",
     "placeholderRows": "行を選択",
     "placeholderColumns": "列を選択",
     "placeholderStyle": "デフォルトのスタイルを入力してください。",
@@ -216,7 +216,7 @@
       "keybinding": "自然な操作感を実現しましょう。 画面の操作やクリックに使用するキーを設定してください。",
       "mouse": "各修飾キーの組み合わせごとに、移動、スクロール、ドラッグを詳細に調整する。",
       "hint": "画面上のヒントに使う文字、グリッド、表示スタイルを設定します。",
-      "uiAutomation": "Screen Buoy が操作要素を検出・更新する頻度を設定します。",
+      "uiAutomation": "ScreenBuoy が操作要素を検出・更新する頻度を設定します。",
       "keyboard": "Modifierキー、キーコード、および隣接キーの関係を管理します。",
       "system": "起動、アプリのアップデート、タスクバーの表示、および診断機能を管理します。"
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "ポインタを動かさず、その位置の内容をスクロールします。"
     },
     "help": {
-      "startAtLogin": "ログイン時に Screen Buoy を起動します。",
+      "startAtLogin": "ログイン時に ScreenBuoy を起動します。",
       "startInTray": "起動時に設定ウィンドウを非表示にする。",
-      "showTrayIcon": "メニューバーまたはシステムトレイから Screen Buoy を開けるようにします。"
+      "showTrayIcon": "メニューバーまたはシステムトレイから ScreenBuoy を開けるようにします。"
     },
     "save": {
       "idle": "変更は自動保存されます",
@@ -253,12 +253,24 @@
     "loading": "設定の読み込み…",
     "loadError": "設定の読み込みに失敗しました。",
     "retry": "もう一度",
-    "saveError": "設定を保存できません。もう一度試してください。",
+    "saveError": "設定を保存できませんでした。もう一度お試しください。",
     "removeItem": "{{name}} を削除する",
     "languageAuto": "システムに従う",
-    "windowTitle": "Screen Buoy — 設定",
+    "windowTitle": "ScreenBuoy — 設定",
     "panicError": "アプリでエラーが発生しました。詳細についてはログをご確認ください。",
-    "runtimeError": "エラー：{{error}}"
+    "runtimeError": "エラー：{{error}}",
+    "navigation": {
+      "interaction": "操作設定",
+      "preferences": "環境設定"
+    },
+    "search": {
+      "placeholder": "設定を検索…",
+      "empty": "一致する設定がありません"
+    },
+    "bindingScope": {
+      "global": "ヒント入力中",
+      "atHint": "ヒントキーを押している間"
+    }
   },
   "updates": {
     "title": "アプリのアップデート",

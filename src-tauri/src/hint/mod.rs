@@ -126,12 +126,14 @@ impl Pending {
 struct WorkQueue {
     pending: VecDeque<Pending>,
     completed: HashMap<i64, Pending>,
+    priority_batches: usize,
 }
 
 impl WorkQueue {
     fn clear(&mut self) {
         self.pending.clear();
         self.completed.clear();
+        self.priority_batches = 0;
     }
 
     fn update(
@@ -156,6 +158,24 @@ impl WorkQueue {
         }
     }
 
+    fn next_prioritizing(&mut self, assigned: &HashSet<(i32, i32)>, foreground: Option<i64>)
+        -> Option<(element::element::Snapshot, Vec<element::UIElement>)>
+    {
+        // Favor fresh focused controls while keeping the next-activation cache
+        // for other windows progressing, even during continuous foreground scans.
+        let prefer_front = self.priority_batches < 4;
+        let index = self.pending.iter().position(|work|
+            (Some(work.snapshot.window.window_handle) == foreground) == prefer_front);
+        if let Some(index) = index {
+            let work = self.pending.remove(index).unwrap();
+            self.pending.push_front(work);
+        }
+        if self.pending.front().is_some_and(|work| Some(work.snapshot.window.window_handle) == foreground) {
+            self.priority_batches += 1;
+        } else { self.priority_batches = 0; }
+        self.next(assigned)
+    }
+
     fn next(&mut self, assigned: &HashSet<(i32, i32)>)
         -> Option<(element::element::Snapshot, Vec<element::UIElement>)>
     {
@@ -175,10 +195,43 @@ pub async fn show_hints(window: WebviewWindow) {
     show_hints_inner(window, None, Vec::new(), None).await;
 }
 
-pub async fn show_window_hints(window: WebviewWindow, target: crate::window::WindowElement,
+pub async fn show_scoped_hints(window: WebviewWindow, target: HintScope,
     held_keys: Vec<u32>,
     ready: std::sync::mpsc::SyncSender<Result<(), String>>) {
     show_hints_inner(window, Some(target), held_keys, Some(ready)).await;
+}
+
+pub enum HintScope {
+    Window(crate::window::WindowElement),
+    Desktop(crate::desktop::DesktopScope),
+}
+
+impl HintScope {
+    fn current(&self) -> bool {
+        match self {
+            Self::Window(target) => scope_current(target),
+            Self::Desktop(target) => target.is_current(),
+        }
+    }
+    fn windows(&self) -> Vec<crate::window::WindowElement> {
+        match self {
+            Self::Window(target) => vec![target.clone()],
+            Self::Desktop(target) => target.windows(),
+        }
+    }
+    fn snapshot(&self, mut snapshot: element::element::Snapshot, live: &[crate::window::WindowElement]) -> Option<element::element::Snapshot> {
+        match self {
+            Self::Window(target) => scope_snapshot(snapshot, target),
+            Self::Desktop(target) => {
+                // The warm cache can still contain the previous desktop. Admit
+                // only live windows with the same owner and frame on this desktop.
+                if !live.iter().any(|w| same_window(w, &snapshot.window)) { return None; }
+                snapshot.elements = Arc::new(snapshot.elements.iter().filter(|e|
+                    e.window_handle == snapshot.window.window_handle && target.contains_point(e.x,e.y)).cloned().collect());
+                Some(snapshot)
+            }
+        }
+    }
 }
 
 fn same_window(a: &crate::window::WindowElement, b: &crate::window::WindowElement) -> bool {
@@ -199,7 +252,7 @@ fn scope_snapshot(mut snapshot: element::element::Snapshot, target: &crate::wind
     Some(snapshot)
 }
 
-async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::WindowElement>,
+async fn show_hints_inner(window: WebviewWindow, scope: Option<HintScope>,
     held_keys: Vec<u32>,
     ready: Option<std::sync::mpsc::SyncSender<Result<(), String>>>) {
     if !crate::permissions::get_permission_status().ready {
@@ -208,8 +261,8 @@ async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::Wi
         let _ = window.set_focus();
         return;
     }
-    if scope.as_ref().is_some_and(|target| !scope_current(target)) {
-        if let Some(ready) = ready { let _ = ready.send(Err("Target window changed".into())); }
+    if scope.as_ref().is_some_and(|target| !target.current()) {
+        if let Some(ready) = ready { let _ = ready.send(Err("Target desktop or window changed".into())); }
         return;
     }
     let started = Instant::now();
@@ -220,8 +273,8 @@ async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::Wi
     // Read the last filtered result immediately. A new check never gates replay.
     let (mut cached_windows, mut cached_snapshots) = warm::snapshots_since(&mut seen);
     if let Some(target) = &scope {
-        cached_windows.retain(|w| same_window(w, target));
-        cached_snapshots = cached_snapshots.into_iter().filter_map(|s| scope_snapshot(s, target)).collect();
+        cached_windows = target.windows();
+        cached_snapshots = cached_snapshots.into_iter().filter_map(|s| target.snapshot(s, &cached_windows)).collect();
     }
     let activation = {
         let _guard = LIFECYCLE.lock().unwrap();
@@ -254,10 +307,13 @@ async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::Wi
     let layout = Arc::new(HintLayout::new(&[]));
     let grid_generator = HintsGenerator::new(layout.clone(), HashMap::new());
     let grids = match &scope {
-        Some(target) => grid_generator.generate_window_grid(target, &mut positions, &mut count),
+        Some(HintScope::Window(target)) => grid_generator.generate_window_grid(target, &mut positions, &mut count),
+        Some(HintScope::Desktop(target)) => grid_generator.generate_desktop_grid(&target.bounds, &mut count),
         None => grid_generator.generate_hints_grid(&mut count),
     };
     publish(app, activation, grids);
+    #[cfg(target_os = "macos")]
+    if scope.is_none() { input::hook::activate_shortcut_hold(app); }
     // Only previously filtered coordinates enter this path, never raw AX data.
     // Their visibility may be stale, but the session keeps them as shortcuts.
     let sources = cached_snapshots.len();
@@ -274,15 +330,16 @@ async fn show_hints_inner(window: WebviewWindow, scope: Option<crate::window::Wi
         if ready.send(Ok(())).is_err() { hide_hints_for_session(app.clone(), activation).await; return; }
     }
     while is_active(activation) {
-        if scope.as_ref().is_some_and(|target| !scope_current(target)) {
+        if scope.as_ref().is_some_and(|target| !target.current()) {
             hide_hints_for_session(app.clone(), activation).await;
             break;
         }
         updates.borrow_and_update();
         let (windows, snapshots) = warm::snapshots_since(&mut seen);
+        let windows = scope.as_ref().map_or(windows, HintScope::windows);
         for snapshot in snapshots {
             let snapshot = if let Some(target) = &scope {
-                let Some(snapshot) = scope_snapshot(snapshot, target) else { continue; };
+                let Some(snapshot) = target.snapshot(snapshot, &windows) else { continue; };
                 snapshot
             } else { snapshot };
             if !generator::has_capacity(count) { break; }
@@ -377,6 +434,36 @@ mod tests {
         assert_eq!(scoped.elements[0].x, 3);
     }
 
+    #[test]
+    fn desktop_cache_rejects_previous_desktop_and_clips_points_to_selected_display() {
+        let source = snapshot(10, 1);
+        let target = HintScope::Desktop(crate::desktop::DesktopScope {
+            id: "d".into(), display_id: "m".into(), bounds: vec![crate::utils::Rect::new(0,0,5,800)],
+        });
+        assert!(target.snapshot(source.clone(), &[]).is_none());
+        let mut reused = source.window.clone();
+        reused.owner_pid += 1;
+        assert!(target.snapshot(source.clone(), &[reused]).is_none());
+        let live = vec![source.window.clone()];
+        let scoped = target.snapshot(source, &live).unwrap();
+        assert_eq!(scoped.elements.iter().map(|e| e.x).collect::<Vec<_>>(), vec![0,1,2,3,4]);
+    }
+
+    #[test]
+    fn shared_desktop_cache_keeps_controls_on_both_displays_but_not_the_gap() {
+        let source = snapshot(10, 1);
+        let target = HintScope::Desktop(crate::desktop::DesktopScope {
+            id: "d".into(), display_id: "m".into(), bounds: vec![
+                crate::utils::Rect::new(0,0,3,800),
+                crate::utils::Rect::new(7,0,3,800),
+            ],
+        });
+        let live = vec![source.window.clone()];
+        let scoped = target.snapshot(source.clone(), &live).unwrap();
+        assert_eq!(scoped.elements.iter().map(|e| e.x).collect::<Vec<_>>(), vec![0,1,2,7,8,9]);
+        assert!(target.snapshot(source, &[]).is_none());
+    }
+
     fn test_layout() -> HintLayout {
         HintLayout::with_monitors(&[], vec![crate::monitor::MonitorInfo {
             id: 0, x: 0, y: 0, width: 1000, height: 800, scale_factor: 1.0,
@@ -416,6 +503,20 @@ mod tests {
             scan_id: 1,
             scanned_at: Instant::now(),
         }
+    }
+
+    #[test]
+    fn foreground_visibility_is_prioritized_without_starving_other_windows() {
+        let layout = test_layout();
+        let assigned = HashSet::new();
+        let front = snapshot(900, 1);
+        let mut back = snapshot(900, 1);
+        back.window.window_handle = 2;
+        let mut queue = WorkQueue::default();
+        queue.update(front, Some(1), &layout, &assigned);
+        queue.update(back, Some(1), &layout, &assigned);
+        let order: Vec<_> = (0..5).map(|_| queue.next_prioritizing(&assigned, Some(1)).unwrap().0.window.window_handle).collect();
+        assert_eq!(order, vec![1, 1, 1, 1, 2]);
     }
 
     #[test]

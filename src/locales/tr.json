@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "İzin sorunlarını çözme",
-    "keyboardRecovery": "Erişilebilirlik izni verilmiş ancak klavye yakalama bağlanmamış. Önce Screen Buoy uygulamasını yeniden başlatın. Sorun sürerse Giriş İzleme iznini de verin.",
+    "keyboardRecovery": "Erişilebilirlik izni verilmiş ancak klavye yakalama bağlanmamış. Önce ScreenBuoy uygulamasını yeniden başlatın. Sorun sürerse Giriş İzleme iznini de verin.",
     "keyboardUnavailable": "Klavye kısayolları kullanılamıyor.",
     "title": "Erişilebilirlik erişimine izin ver",
-    "ready": "Screen Buoy hazır",
-    "description": "Ekrandaki denetimleri bulup tıklayabilmesi için Sistem Ayarları → Gizlilik ve Güvenlik → Erişilebilirlik bölümünde Screen Buoy uygulamasına izin verin.",
+    "ready": "ScreenBuoy hazır",
+    "description": "Ekrandaki denetimleri bulup tıklayabilmesi için Sistem Ayarları → Gizlilik ve Güvenlik → Erişilebilirlik bölümünde ScreenBuoy uygulamasına izin verin.",
     "accessibility": "Erişilebilirlik",
     "inputMonitoring": "Giriş İzleme",
     "keyboardHook": "Klavye yakalama",
@@ -17,8 +17,8 @@
     "openAccessibility": "Erişilebilirlik’i aç",
     "openInputMonitoring": "Giriş İzleme’yi aç",
     "refresh": "Tekrar kontrol et",
-    "restart": "Yeniden başlat Screen Buoy",
-    "recovery": "Sistem Ayarları’nda aşağıdaki yoldaki uygulama kopyasına izin verin. Uygulamayı değiştirdikten sonra eski izin kaydını kaldırıp yeniden eklemeniz ve Screen Buoy uygulamasını yeniden başlatmanız gerekebilir.",
+    "restart": "Yeniden başlat ScreenBuoy",
+    "recovery": "Sistem Ayarları’nda aşağıdaki yoldaki uygulama kopyasına izin verin. Uygulamayı değiştirdikten sonra eski izin kaydını kaldırıp yeniden eklemeniz ve ScreenBuoy uygulamasını yeniden başlatmanız gerekebilir.",
     "checkFailed": "İzin kontrolü yapılamadı."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "İpucu karakter kümeleri",
-    "charsetsTooltip": "Her satır ipucundaki bir karakter konumunu belirler: ilk satır ilk karakteri, ikinci satır sonraki karakteri sağlar. Her satırda tanıdık ve kolay basılan karakterleri öne koyun. Önce bunların birleşimleri kullanılır, sonraki karakterler aşamalı olarak eklenir; her grupta ilk karakterler dönüşümlü atanır.",
+    "charsetsTooltip": "Her satır ipucundaki bir karakter konumunu belirler: ilk satır ilk karakteri, ikinci satır sonraki karakteri sağlar. Her satırda tanıdık ve kolay basılan karakterleri öne koyun. Önce bunların birleşimleri kullanılır, sonraki karakterler aşamalı olarak eklenir; her grupta ilk karakterler dönüşümlü atanır. Ayırıcı kullanmadan girin; virgüller ve boşluklar da karakter sayılır.",
     "charsetExtra": "Ek ipucu karakterleri",
     "charsetExtraTooltip": "Tüm ana birleşimler kullanıldıktan sonra bir ön ek eklenir. Tanıdık ve kolay basılan ön ekleri öne koyun. Ön ekler ve sonraki karakterler, ayarlanan sırayla aşamalı olarak eklenir; her grupta ön ekler dönüşümlü atanır.",
     "charsetPrefixConflict": "Ek önekler ilk konumun karakter kümesiyle örtüşemez. Çakışan karakterler: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Harf Kümesi Ekle",
     "addHintType": "İpucu türü ekle",
     "remove": "Sil",
-    "placeholderCharset": "Karakter kümesini, virgülle ayırarak girin.",
-    "placeholderCharsetExtra": "Eklenen karakter kümesini, virgülle ayırarak girin.",
+    "placeholderCharset": "Karakterleri art arda girin, ör. FJDK,.;",
+    "placeholderCharsetExtra": "Ek karakterleri art arda girin",
     "placeholderRows": "Satırları seç",
     "placeholderColumns": "Sütunları seç",
     "placeholderStyle": "Varsayılan stili girin.",
@@ -216,7 +216,7 @@
       "keybinding": "Her eylemin doğal hissetmesini sağlayın. Gezinmek ve tıklamak için kullanacağınız tuşları ayarlayın.",
       "mouse": "Her modifikasyon kombinasyonu için hareketi, kaydırmayı ve sürüklemeyi ayrı ayrı ayarlayın.",
       "hint": "Ekran üzerindeki ipuçlarının karakterlerini, ızgarasını ve görünümünü seçin.",
-      "uiAutomation": "Screen Buoy uygulamasının arayüz öğelerini bulma ve yenileme sıklığını ayarlayın.",
+      "uiAutomation": "ScreenBuoy uygulamasının arayüz öğelerini bulma ve yenileme sıklığını ayarlayın.",
       "keyboard": "Modifikatör tuşlarını, tuş kodlarını ve komşu tuş ilişkilerini yönetin.",
       "system": "Başlangıç davranışı, uygulama güncellemeleri, tepsi simgesi ve tanılama ayarları."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "İşaretçiyi taşımadan altındaki içeriği kaydırır."
     },
     "help": {
-      "startAtLogin": "Oturum açıldığında Screen Buoy uygulamasını başlat.",
+      "startAtLogin": "Oturum açıldığında ScreenBuoy uygulamasını başlat.",
       "startInTray": "Ayarlar penceresini ilk açıldığında gizle.",
-      "showTrayIcon": "Screen Buoy uygulamasını menü çubuğundan veya sistem tepsisinden erişilebilir tut."
+      "showTrayIcon": "ScreenBuoy uygulamasını menü çubuğundan veya sistem tepsisinden erişilebilir tut."
     },
     "save": {
       "idle": "Değişiklikler otomatik kaydedilir",
@@ -253,12 +253,24 @@
     "loading": "Ayarlarınız yükleniyor…",
     "loadError": "Ayarlar yüklenemedi.",
     "retry": "Tekrar deneyin.",
-    "saveError": "Ayarlar kaydedilemedi. Lütfen değişikliği tekrar deneyin.",
+    "saveError": "Ayarlar kaydedilemedi. Lütfen tekrar deneyin.",
     "removeItem": "{{name}} öğesini kaldır",
     "languageAuto": "Sistem dilini kullan",
-    "windowTitle": "Screen Buoy — Ayarlar",
+    "windowTitle": "ScreenBuoy — Ayarlar",
     "panicError": "Uygulama bir hata ile karşılaştı. Daha fazla bilgi için günlükleri kontrol edin.",
-    "runtimeError": "Hata: {{error}}"
+    "runtimeError": "Hata: {{error}}",
+    "navigation": {
+      "interaction": "Etkileşim",
+      "preferences": "Tercihler"
+    },
+    "search": {
+      "placeholder": "Ayarlarda ara…",
+      "empty": "Eşleşen ayar bulunamadı"
+    },
+    "bindingScope": {
+      "global": "İpucu girerken",
+      "atHint": "İpucu tuşunu basılı tutarken"
+    }
   },
   "updates": {
     "title": "Uygulama güncellemeleri",

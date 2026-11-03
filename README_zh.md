@@ -95,11 +95,11 @@ Screen Buoy 通过平台原生的辅助功能 API 跨进程、跨窗口地枚举
 
 **macOS：**
 
-1. 从 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载 `screen-buoy-macos.zip`，解压后将 `screen-buoy.app` 放进「应用程序」。
+1. 从 [Releases 页面](https://github.com/alvinfunborn/screen-buoy/releases) 下载 `screen-buoy-macos.zip`，解压后将 `ScreenBuoy.app` 放进「应用程序」。
 2. **1.2.1 起**：发布构建包含 Apple Silicon 和 Intel 两种架构；首次运行自动创建 `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml`，并保留已有配置。旧版 1.2.0 为 arm64，仍需旁置 `config_macos.toml`。
 3. 当前社区构建采用 ad-hoc 签名，尚未完成 Developer ID 签名和公证。确认下载来源后，若 Gatekeeper 阻止打开，可仅移除此 App 的隔离标记：
    ```bash
-   xattr -dr com.apple.quarantine /Applications/screen-buoy.app
+   xattr -dr com.apple.quarantine /Applications/ScreenBuoy.app
    ```
 4. 权限不足时，设置界面会显示当前状态和系统设置入口。允许「辅助功能」；键盘监听仍未连接时，同时允许「输入监视」。请授权界面列出的那份 App，替换 App 后可能需要重新添加权限项并重启。
 5. 菜单栏图标的菜单可打开设置。按 **Option+H** 显示 Hint；鼠标箭头始终可见。

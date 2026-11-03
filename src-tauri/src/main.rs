@@ -160,6 +160,14 @@ fn main() {
     app.manage(config_for_manage);
 
     app.run(|_app_handle, event| {
+        // LaunchServices (Finder, Dock, launchers such as uTools) reopens the
+        // existing process rather than starting a second instance. Visible
+        // overlays do not mean the settings window is visible.
+        #[cfg(target_os = "macos")]
+        if let tauri::RunEvent::Reopen { .. } = event {
+            info!("[settings] macOS reopen requested settings");
+            screen_buoy::show_settings_window(_app_handle);
+        }
         if let tauri::RunEvent::Exit = event {
             info!("application is exiting, cleaning up resources...");
             input::hook::cleanup();

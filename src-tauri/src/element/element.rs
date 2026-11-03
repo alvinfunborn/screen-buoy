@@ -39,6 +39,7 @@ struct Cache {
     entries: HashMap<i64, Entry>,
     revision: u64,
     topology_request: u64,
+    front: Option<i64>,
 }
 
 pub(crate) fn same_window(a: &WindowElement, b: &WindowElement) -> bool {
@@ -51,8 +52,8 @@ pub(crate) fn same_window(a: &WindowElement, b: &WindowElement) -> bool {
 
 impl Cache {
     fn reconcile(&mut self, windows: Vec<WindowElement>, now: Instant) -> bool {
-        let old_front = foreground(&self.windows);
-        let changed = self.windows.len() != windows.len()
+        let old_front = self.front;
+        let changed = old_front != foreground(&windows) || self.windows.len() != windows.len()
             || self
                 .windows
                 .iter()
@@ -93,6 +94,7 @@ impl Cache {
             }
         }
         self.windows = windows;
+        self.front = foreground(&self.windows);
         if old_front.is_some() && old_front != foreground(&self.windows) {
             if let Some(id) = foreground(&self.windows) {
                 self.refresh_target(id, &[], false, true, now);
@@ -400,9 +402,21 @@ fn normal_window(window: &WindowElement) -> bool {
     return !window.is_task_bar;
 }
 
+#[cfg(target_os = "macos")]
+static FOCUSED_WINDOW: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(0);
+
 pub(crate) fn foreground(windows: &[WindowElement]) -> Option<i64> {
-    let front = windows.iter().find(|w| normal_window(w));
-    front.or_else(|| windows.first()).map(|w| w.window_handle)
+    #[cfg(target_os = "macos")]
+    let focused = Some(FOCUSED_WINDOW.load(Ordering::Acquire));
+    #[cfg(not(target_os = "macos"))]
+    let focused = None;
+    select_foreground(windows, focused)
+}
+
+fn select_foreground(windows: &[WindowElement], focused: Option<i64>) -> Option<i64> {
+    windows.iter().find(|w| Some(w.window_handle) == focused)
+        .or_else(|| windows.iter().find(|w| normal_window(w)))
+        .or_else(|| windows.first()).map(|w| w.window_handle)
 }
 
 #[derive(Clone, Copy)]
@@ -581,6 +595,8 @@ pub fn setup_ui_collection(_config: &config::Config) {
                     } else {
                         Vec::new()
                     };
+                    #[cfg(target_os = "macos")]
+                    FOCUSED_WINDOW.store(if permitted { crate::window::window::focused_window().unwrap_or(0) } else { 0 }, Ordering::Release);
                     let mut cache = COLLECTION.cache.lock().unwrap();
                     let changed = cache.reconcile(windows, now);
                     cache.topology_request = request;
@@ -677,6 +693,18 @@ mod tests {
             is_task_bar: false,
         }
     }
+    #[test]
+    fn focused_main_window_outranks_its_frontmost_helper_without_changing_stacking() {
+        let mut helper = window(55472);
+        helper.width = 66;
+        helper.height = 20;
+        let windows = vec![helper, window(36531)];
+        assert_eq!(select_foreground(&windows, Some(36531)), Some(36531));
+        assert_eq!(windows[0].window_handle, 55472);
+        assert_eq!(select_foreground(&windows, Some(999)), Some(55472));
+        assert_eq!(select_foreground(&[], Some(36531)), None);
+    }
+
     fn point(x: i32) -> UIElement {
         UIElement {
             text: String::new(),

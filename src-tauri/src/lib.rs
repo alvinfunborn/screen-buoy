@@ -11,6 +11,7 @@ pub mod permissions;
 pub mod updates;
 pub mod language;
 pub mod beaconhop;
+mod desktop;
 #[cfg(target_os = "macos")]
 pub mod macos_access;
 #[cfg(target_os = "macos")]
@@ -113,9 +114,7 @@ pub fn setup_tray(
                     app_handle.exit(0);
                 }
                 "settings" => {
-                    let window = app_handle.get_webview_window("main").unwrap();
-                    window.show().unwrap();
-                    window.set_focus().unwrap();
+                    show_settings_window(app_handle);
                 }
                 "restart" => {
                     app_handle.restart();
@@ -128,9 +127,7 @@ pub fn setup_tray(
             let app_handle = tray_handle.app_handle();
             match event {
                 TrayIconEvent::DoubleClick { .. } => {
-                    let window = app_handle.get_webview_window("main").unwrap();
-                    window.show().unwrap();
-                    window.set_focus().unwrap();
+                    show_settings_window(app_handle);
                 }
                 _ => {}
             }
@@ -189,10 +186,27 @@ pub fn set_auto_start(
     let auto_start = config.system.start_at_login;
     let autostart_manager = app_handle.autolaunch();
     info!("[set_auto_start] auto start: {}", auto_start);
-    if auto_start {
-        let _ = autostart_manager.enable();
+    let result = if auto_start {
+        autostart_manager.enable()
     } else {
-        let _ = autostart_manager.disable();
+        autostart_manager.disable()
+    };
+    if let Err(error) = result {
+        warn!("[set_auto_start] failed to apply auto start: {error}");
+        return Ok(());
+    }
+    // The autostart plugin uses productName as the LaunchAgent name. Remove
+    // the legacy entry only after the renamed entry reflects the user's choice.
+    #[cfg(target_os = "macos")]
+    if app_handle.config().identifier == "com.screen-buoy.dev" {
+        if let Ok(home) = app_handle.path().home_dir() {
+            let legacy = home.join("Library/LaunchAgents/screen-buoy.plist");
+            if let Err(error) = std::fs::remove_file(&legacy) {
+                if error.kind() != std::io::ErrorKind::NotFound {
+                    warn!("[set_auto_start] failed to remove legacy login item: {error}");
+                }
+            }
+        }
     }
     Ok(())
 }
@@ -241,10 +255,8 @@ pub fn create_app_builder() -> tauri::Builder<tauri::Wry> {
         .plugin(tauri_plugin_positioner::init())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
             if beaconhop::handle(app, &args) { return; }
-            let _ = app
-                .get_webview_window("main")
-                .expect("no main window")
-                .set_focus();
+            info!("[settings] second instance requested settings");
+            show_settings_window(app);
         }))
         .invoke_handler(tauri::generate_handler![
             hint::overlay::overlay_ready,

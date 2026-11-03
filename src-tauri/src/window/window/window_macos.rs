@@ -408,3 +408,36 @@ mod tests {
         assert!(!covered[&back].iter().any(|area| area.contains_point(50, 50)));
     }
 }
+
+// Sampled on the collection scheduler, never in the keyboard or AppKit path.
+// Keep focus separate from front-to-back geometry used for occlusion.
+pub fn focused_window() -> Option<i64> {
+    use core_foundation::base::{CFRelease, CFTypeRef};
+    #[repr(C)]
+    #[derive(Default)]
+    struct ProcessSerialNumber { high: u32, low: u32 }
+    #[link(name = "ApplicationServices", kind = "framework")]
+    extern "C" {
+        fn GetFrontProcess(process: *mut ProcessSerialNumber) -> i32;
+        fn GetProcessPID(process: *const ProcessSerialNumber, pid: *mut i32) -> i32;
+        fn AXUIElementCreateApplication(pid: i32) -> CFTypeRef;
+        fn AXUIElementSetMessagingTimeout(element: CFTypeRef, timeout: f32) -> i32;
+        fn AXUIElementCopyAttributeValue(element: CFTypeRef, attr: core_foundation::string::CFStringRef, out: *mut CFTypeRef) -> i32;
+        fn _AXUIElementGetWindow(element: CFTypeRef, window: *mut u32) -> i32;
+    }
+    unsafe {
+        let mut process = ProcessSerialNumber::default();
+        let mut pid = 0;
+        if GetFrontProcess(&mut process) != 0 || GetProcessPID(&process, &mut pid) != 0 { return None; }
+        let app = AXUIElementCreateApplication(pid);
+        if app.is_null() { return None; }
+        AXUIElementSetMessagingTimeout(app, 0.05);
+        let mut window = std::ptr::null();
+        let mut id = 0;
+        let valid = AXUIElementCopyAttributeValue(app, CFString::new("AXFocusedWindow").as_concrete_TypeRef(), &mut window) == 0
+            && !window.is_null() && _AXUIElementGetWindow(window, &mut id) == 0;
+        if !window.is_null() { CFRelease(window); }
+        CFRelease(app);
+        (valid && id != 0).then_some(id as i64)
+    }
+}

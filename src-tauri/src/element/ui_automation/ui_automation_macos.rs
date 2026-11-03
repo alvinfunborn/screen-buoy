@@ -60,7 +60,6 @@ static AX_WINDOWS: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXWindows")
 static AX_CHILDREN: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXChildren")));
 static AX_ROLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXRole")));
 static AX_SUBROLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXSubrole")));
-static AX_TITLE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXTitle")));
 static AX_POSITION: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXPosition")));
 static AX_SIZE: Lazy<AxAttr> = Lazy::new(|| AxAttr(leak_cfstring("AXSize")));
 static AX_ENHANCED_UI: Lazy<AxAttr> =
@@ -166,6 +165,7 @@ fn map_ax_point_to_target_pixels(
     (x, y, w, h)
 }
 
+#[cfg(test)]
 fn frame_iou(a: (i32, i32, i32, i32), b: (i32, i32, i32, i32)) -> f64 {
     let x1 = a.0.max(b.0);
     let y1 = a.1.max(b.1);
@@ -191,10 +191,10 @@ fn find_ax_window(app: AXUIElementRef, target: &WindowElement) -> Option<(CFType
         return None;
     };
     let arr = unsafe { CFArray::<CFType>::wrap_under_get_rule(wins.as_CFTypeRef() as CFArrayRef) };
-    let _n = arr.len();
-    let tgt = (target.x, target.y, target.width, target.height);
-    let mut best_i: Option<usize> = None;
-    let mut best_s = -1.0_f64;
+    // Geometry/title cannot distinguish overlapping windows of the same app.
+    // Use the same native identity passed by BeaconHop and by window discovery.
+    #[link(name = "ApplicationServices", kind = "framework")]
+    extern "C" { fn _AXUIElementGetWindow(element: AXUIElementRef, window: *mut u32) -> i32; }
     let n = arr.len() as usize;
     for i in 0..n {
         let Some(item) = arr.get(i as CFIndex) else {
@@ -204,36 +204,14 @@ fn find_ax_window(app: AXUIElementRef, target: &WindowElement) -> Option<(CFType
         if el.is_null() {
             continue;
         }
-        let title = ax_copy_string(el, AX_TITLE.as_cf()).unwrap_or_default();
+        let mut id = 0;
+        if unsafe { _AXUIElementGetWindow(el, &mut id) } != AX_SUCCESS || id as i64 != target.window_handle { continue; }
         let Some((px, py, pw, ph)) = ax_point_size(el) else {
             continue;
         };
-        let fr = ax_rect_in_screen_points(px, py, pw, ph);
-        let score = frame_iou(tgt, fr);
-        let title_bonus = if !target.title.is_empty() && title == target.title {
-            0.15
-        } else {
-            0.0
-        };
-        let s = score + title_bonus;
-        if s > 0.35 || (!target.title.is_empty() && title == target.title && score > 0.05) {
-            if s > best_s {
-                best_s = s;
-                best_i = Some(i as usize);
-            }
-        }
+        return unsafe { Some((CFType::wrap_under_get_rule(el), px, py, pw, ph)) };
     }
-    let Some(i) = best_i else {
-        debug!(
-            "[ui_automation macos] no AX window matched pid={} wh={} tgt={:?} ax_windows={}",
-            target.owner_pid, target.window_handle, tgt, _n
-        );
-        return None;
-    };
-    let item = arr.get(i as CFIndex)?;
-    let el = item.as_CFTypeRef();
-    let (rpx, rpy, rpw, rph) = ax_point_size(el)?;
-    unsafe { Some((CFType::wrap_under_get_rule(el), rpx, rpy, rpw, rph)) }
+    None
 }
 
 pub const DOCK_WINDOW_CLASS: &str = "com.apple.dock";

@@ -39,6 +39,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
 
   // State to manage the list of hint type names (keys) currently being displayed/edited
   const [hintTypeNames, setHintTypeNames] = useState<string[]>([]);
+  const [openTypes, setOpenTypes] = useState<string[]>([]);
   // State for the input field when adding a new hint type name
   const [newTypeNameInput, setNewTypeNameInput] = useState<string>('');
 
@@ -302,7 +303,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
 
   return (
     <div className="settings-stack">
-      <SettingSection title={t('hint.charsets')} description={t('hint.charsetsTooltip')}>
+      <SettingSection id="hint-characters" title={t('hint.charsets')} description={t('hint.charsetsTooltip')}>
       {/* Hint Charsets Section (Existing) */}
       <Form.Item label={t('settings.groups.characterRows')}>
         <Form.List name={['hint', 'charsets']}>
@@ -313,6 +314,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
                 const fieldKey = field.key;
                 return (
                   <div key={fieldKey} className="charset-row">
+                    <span className="charset-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
                     <Form.Item
                       {...restField}
                       name={name} // Use field.name for AntD Form binding
@@ -322,7 +324,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
                       help={index === 0 ? conflictMessage : undefined}
                       style={{ flex: 1 }}
                     >
-                      <CharsetInput placeholder={t('hint.placeholderCharset')} style={{ width: '100%' }} />
+                      <CharsetInput aria-label={`${t('hint.charsets')} ${index + 1}`} placeholder={t('hint.placeholderCharset')} style={{ width: '100%' }} />
                     </Form.Item>
                     <Button type="text" danger icon={<MinusCircleOutlined />}
                       aria-label={t('settings.removeItem', { name: `${t('hint.charsets')} ${index + 1}` })}
@@ -353,7 +355,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
       {sideKeyWarnings.length > 0 && <Alert type="warning" showIcon style={{ marginBottom: 16 }}
         message={t('hint.charsetSideKeyWarning', { characters: sideKeyWarnings.join(', ') })} />}
       </SettingSection>
-      <SettingSection title={t('hint.grid')} description={t('settings.groups.gridDescription')}>
+      <SettingSection id="hint-grid" title={t('hint.grid')} description={t('settings.groups.gridDescription')}>
       <div className="hint-grid-fields">
         <Form.Item
           label={t('hint.rows')}
@@ -373,6 +375,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
         </Form.Item>
         <Form.Item label={t('hint.showAtRows')} tooltip={t('hint.showAtRowsTooltip')} style={{ marginBottom: 8 }}>
           <Select
+            aria-label={t('hint.showAtRows')}
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_rows']) || []}
             options={Array.from({ length: gridRows }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
@@ -390,6 +393,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
         </Form.Item>
         <Form.Item label={t('hint.showAtColumns')} tooltip={t('hint.showAtColumnsTooltip')} style={{ marginBottom: 8 }}>
           <Select
+            aria-label={t('hint.showAtColumns')}
             mode="multiple"
             value={form.getFieldValue(['hint', 'grid', 'show_at_columns']) || []}
             options={Array.from({ length: gridColumns }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
@@ -420,7 +424,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
       </div>
       </SettingSection>
 
-      <SettingSection title={t('hint.defaultStyle')} description={t('hint.defaultStyleTooltip')}>
+      <SettingSection id="hint-appearance" title={t('hint.defaultStyle')} description={t('hint.defaultStyleTooltip')}>
       {/* Default Style Section */}
       <Form.Item
         className="code-field"
@@ -438,23 +442,15 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
       </Form.Item>
 
       </SettingSection>
-      <SettingSection title={t('hint.types')} description={t(isMac ? 'hint.macTypesDescription' : 'settings.groups.typesDescription')}>
+      <SettingSection id="hint-types" title={t('hint.types')} description={t(isMac ? 'hint.macTypesDescription' : 'settings.groups.typesDescription')}>
       {/* Dynamic Hint Types Section - Render based on hintTypeNames state using Collapse */}
-      <Collapse accordion style={{ width: '100%', marginBottom: '16px' }}>
+      <Collapse className="hint-types-list" activeKey={openTypes}
+        onChange={keys => setOpenTypes((Array.isArray(keys) ? keys : [keys]).slice(-1))}
+        style={{ width: '100%', marginBottom: '16px' }}>
         {hintTypeNames.map((typeName) => (
           <Collapse.Panel
             key={typeName}
             header={<span className="hint-type-name">{typeName}</span>}
-            extra={ // Move remove button to panel extra
-              <Button
-                danger
-                size="small"
-                onClick={(e) => { e.stopPropagation(); handleRemoveType(typeName); }} // Prevent collapse toggle on button click
-                icon={<MinusCircleOutlined />}
-                aria-label={t('settings.removeItem', { name: typeName })}
-              >
-                {t('hint.remove')}
-              </Button>}
           >
             {/* The existing Space containing Form Items */}
             <Space key={typeName} direction="vertical" style={{ width: '100%' }}>
@@ -503,6 +499,7 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
                 style={{ width: '100%', marginBottom: '0px' }}
               >
                 <Input
+                  aria-label={t('hint.elementControlTypes')}
                   placeholder={t('hint.placeholderElementTypes')}
                   value={rawElementControlTypesInputs[typeName] ?? ''}
                   onChange={(e) => handleRawElementControlTypeChange(typeName, e.target.value)}
@@ -510,6 +507,11 @@ export const HintSettings: React.FC<HintSettingsProps> = ({ onValuesChange, isMa
                   style={{ width: '100%' }}
                 />
               </Form.Item>}
+              <div className="hint-type-actions">
+                <Button danger type="text" icon={<MinusCircleOutlined />}
+                  aria-label={t('settings.removeItem', { name: typeName })}
+                  onClick={() => handleRemoveType(typeName)}>{t('hint.remove')}</Button>
+              </div>
             </Space>
           </Collapse.Panel>
         ))}

@@ -1,16 +1,18 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 
 /** Shared presentation only; field bindings and save behavior live in each section. */
-export function SettingSection({ title, description, children, className = '' }: {
+export function SettingSection({ id, title, description, children, className = '' }: {
+  id?: string;
   title: string;
   description?: string;
   children: ReactNode;
   className?: string;
 }) {
+  const headingId = useId();
   return (
-    <section className={`setting-section ${className}`}>
+    <section id={id} className={`setting-section ${className}`} aria-labelledby={headingId} tabIndex={-1}>
       <header className="setting-section-heading">
-        <h3>{title}</h3>
+        <h2 id={headingId}>{title}</h2>
         {description && <p>{description}</p>}
       </header>
       <div className="setting-section-body">{children}</div>

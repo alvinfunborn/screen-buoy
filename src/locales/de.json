@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Berechtigungsbehebung",
-    "keyboardRecovery": "Der Zugriff auf die Bedienungshilfen ist erlaubt, aber die Tastaturerfassung ist nicht verbunden. Starte zuerst Screen Buoy neu. Falls das Problem bleibt, erlaube auch die Eingabeüberwachung.",
+    "keyboardRecovery": "Der Zugriff auf die Bedienungshilfen ist erlaubt, aber die Tastaturerfassung ist nicht verbunden. Starte zuerst ScreenBuoy neu. Falls das Problem bleibt, erlaube auch die Eingabeüberwachung.",
     "keyboardUnavailable": "Die Tastenkombinationen sind nicht verfügbar.",
     "title": "Zugriff auf Bedienungshilfen erlauben",
-    "ready": "Screen Buoy ist bereit",
-    "description": "Erlaube Screen Buoy unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen, damit die App Bedienelemente erkennen und anklicken kann.",
+    "ready": "ScreenBuoy ist bereit",
+    "description": "Erlaube ScreenBuoy unter Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen, damit die App Bedienelemente erkennen und anklicken kann.",
     "accessibility": "Barrierefreiheit",
     "inputMonitoring": "Eingangsüberwachung",
     "keyboardHook": "Tastatur-Überschreiben",
@@ -17,8 +17,8 @@
     "openAccessibility": "Bedienungshilfen öffnen",
     "openInputMonitoring": "Eingabeüberwachung öffnen",
     "refresh": "Erneut prüfen",
-    "restart": "Neu starten Screen Buoy",
-    "recovery": "Erlaube in den Systemeinstellungen die App unter dem unten angezeigten Pfad. Nach dem Ersetzen der App musst du eventuell den alten Berechtigungseintrag entfernen, erneut hinzufügen und Screen Buoy neu starten.",
+    "restart": "Neu starten ScreenBuoy",
+    "recovery": "Erlaube in den Systemeinstellungen die App unter dem unten angezeigten Pfad. Nach dem Ersetzen der App musst du eventuell den alten Berechtigungseintrag entfernen, erneut hinzufügen und ScreenBuoy neu starten.",
     "checkFailed": "Konnte Berechtigungen prüfen."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hinweise: Zeichenkodierungen",
-    "charsetsTooltip": "Jede Zeile entspricht einer Zeichenposition im Hinweis: Die erste liefert das erste Zeichen, die zweite das nächste. Stellen Sie vertraute, leicht zu drückende Zeichen nach vorn. Deren Kombinationen werden zuerst verwendet; spätere Zeichen kommen schrittweise hinzu. Innerhalb jeder Gruppe wechseln sich die Anfangszeichen ab.",
+    "charsetsTooltip": "Jede Zeile entspricht einer Zeichenposition im Hinweis: Die erste liefert das erste Zeichen, die zweite das nächste. Stellen Sie vertraute, leicht zu drückende Zeichen nach vorn. Deren Kombinationen werden zuerst verwendet; spätere Zeichen kommen schrittweise hinzu. Innerhalb jeder Gruppe wechseln sich die Anfangszeichen ab. Zeichen ohne Trennzeichen eingeben; Kommas und Leerzeichen zählen ebenfalls als Zeichen.",
     "charsetExtra": "Zeige Zeichenkodierung zusätzlich",
     "charsetExtraTooltip": "Erst wenn alle Kombinationen der Hauptzeichensätze aufgebraucht sind, wird ein Präfix ergänzt. Stellen Sie vertraute, leicht zu drückende Präfixe nach vorn. Präfixe und Folgezeichen werden in der eingestellten Reihenfolge schrittweise ergänzt, wobei sich die Präfixe innerhalb jeder Gruppe abwechseln.",
     "charsetPrefixConflict": "Zusätzliche Präfixe dürfen sich nicht mit dem Zeichensatz der ersten Position überschneiden. Betroffene Zeichen: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Zeichne Kodierungsart hinzu",
     "addHintType": "Art hinzufügen",
     "remove": "Entfernen",
-    "placeholderCharset": "Geben Sie das Zeichenkodierungs-Format durch Kommas an.",
-    "placeholderCharsetExtra": "Geben Sie das zusätzliche Zeichenset ein, getrennt durch Kommas.",
+    "placeholderCharset": "Zeichen direkt eingeben, z. B. FJDK,.;",
+    "placeholderCharsetExtra": "Zusätzliche Zeichen direkt eingeben",
     "placeholderRows": "Zeichne Zeilen aus",
     "placeholderColumns": "Spalten auswählen",
     "placeholderStyle": "Standardstil auswählen",
@@ -216,7 +216,7 @@
       "keybinding": "Mache jede Aktion so natürlich wie möglich. Weise die Tasten zu, die du zur Navigation und zum Klicken verwendest, zu.",
       "mouse": "Feinabstimmung der Bewegung, des Scrollens und des Ziehens für jede Kombination von Modifikatoren.",
       "hint": "Wählen Sie die Zeichen, das Raster und das Aussehen Ihrer On-Screen-Hinweise.",
-      "uiAutomation": "Festlegen, wie oft Screen Buoy Bedienelemente erkennt und aktualisiert.",
+      "uiAutomation": "Festlegen, wie oft ScreenBuoy Bedienelemente erkennt und aktualisiert.",
       "keyboard": "Verwalten Sie Modifier-Tasten, Tastencodes und die Beziehungen zwischen benachbarten Tasten.",
       "system": "Verwalten Sie Startverhalten, App-Updates, Tray-Sichtbarkeit und Diagnosefunktionen."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "Den Inhalt unter dem Zeiger scrollen, ohne den Zeiger zu bewegen."
     },
     "help": {
-      "startAtLogin": "Screen Buoy bei der Anmeldung starten.",
+      "startAtLogin": "ScreenBuoy bei der Anmeldung starten.",
       "startInTray": "Verstehe das Einstellungen-Fenster beim Start.",
-      "showTrayIcon": "Screen Buoy über die Menüleiste oder den Infobereich erreichbar halten."
+      "showTrayIcon": "ScreenBuoy über die Menüleiste oder den Infobereich erreichbar halten."
     },
     "save": {
       "idle": "Änderungen werden automatisch gespeichert",
@@ -253,12 +253,24 @@
     "loading": "Lade Ihre Einstellungen…",
     "loadError": "Konnte Ihre Einstellungen nicht laden.",
     "retry": "Versuchen Sie es erneut.",
-    "saveError": "Die Einstellungen konnten nicht gespeichert werden. Bitte versuchen Sie, Ihre Änderung erneut vorzunehmen.",
+    "saveError": "Einstellungen konnten nicht gespeichert werden. Bitte erneut versuchen.",
     "removeItem": "Entfernen Sie {{name}}",
     "languageAuto": "Systemsprache verwenden",
-    "windowTitle": "Screen Buoy — Einstellungen",
+    "windowTitle": "ScreenBuoy — Einstellungen",
     "panicError": "Die App hat einen Fehler festgestellt. Überprüfen Sie die Protokolldateien für weitere Informationen.",
-    "runtimeError": "Fehler: {{error}}"
+    "runtimeError": "Fehler: {{error}}",
+    "navigation": {
+      "interaction": "Bedienung",
+      "preferences": "Einstellungen"
+    },
+    "search": {
+      "placeholder": "Einstellungen suchen…",
+      "empty": "Keine passenden Einstellungen"
+    },
+    "bindingScope": {
+      "global": "Bei der Hint-Eingabe",
+      "atHint": "Bei gedrückter Hint-Taste"
+    }
   },
   "updates": {
     "title": "App-Updates",

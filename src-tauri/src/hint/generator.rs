@@ -1,5 +1,5 @@
 use crate::{
-    config::{self, hint::HINT_TYPE_ID_MAP},
+    config,
     element::UIElement,
     monitor::{MonitorInfo, MONITORS_STORAGE},
     utils::Rect,
@@ -91,9 +91,10 @@ impl HintsGenerator {
     }
 
     #[cfg(target_os = "macos")]
-    pub async fn prepare_visibility(
+    pub(super) async fn prepare_visibility(
         mut self,
         app: &tauri::AppHandle,
+        cache: &mut super::occlusion_macos::HitCache,
     ) -> Self {
         let windows = self.layout.uncovered_windows.iter().map(|window| (window, &[][..]))
             .chain(self.layout.windows_covered_areas.iter().map(|(window, areas)| (window, areas.as_slice())));
@@ -108,13 +109,13 @@ impl HintsGenerator {
                 }
             }
         }
-        self.visibility.prepare(app).await;
+        self.visibility.prepare(app, cache).await;
         self
     }
 
     #[cfg(target_os = "macos")]
-    pub fn log_performance(&self, epoch: u64, visible: usize, total: std::time::Duration) {
-        self.visibility.log_performance(epoch, visible, total);
+    pub fn log_performance(&self, epoch: u64, window: i64, visible: usize, total: std::time::Duration) {
+        self.visibility.log_performance(epoch, window, visible, total);
     }
 
     fn point_visible(&self, window: &WindowElement, element: &UIElement, areas: &[Rect]) -> bool {
@@ -146,15 +147,27 @@ impl HintsGenerator {
         &self,
         hints_count: &mut i32,
     ) -> HashMap<String, Vec<Hint>> {
+        self.grid_on_displays(None, hints_count, &config::get_config().unwrap())
+    }
+
+    pub(super) fn generate_desktop_grid(&self, bounds: &[Rect], hints_count: &mut i32) -> HashMap<String, Vec<Hint>> {
+        self.grid_on_displays(Some(bounds), hints_count, &config::get_config().unwrap())
+    }
+
+    fn grid_on_displays(&self, bounds: Option<&[Rect]>, hints_count: &mut i32, config: &config::Config) -> HashMap<String, Vec<Hint>> {
         let mut monitor_hints = HashMap::new();
-        let config = config::get_config().unwrap();
         let grid_row = config.hint.grid.rows;
         let grid_column = config.hint.grid.columns;
-        let show_at_row = config.hint.grid.show_at_rows;
-        let show_at_column = config.hint.grid.show_at_columns;
-        let hint_type = config.hint.grid.hint_type;
-        let hint_z = config.hint.types.get(&hint_type).unwrap().z_index;
+        let show_at_row = &config.hint.grid.show_at_rows;
+        let show_at_column = &config.hint.grid.show_at_columns;
+        let hint_type = config.hint.grid.hint_type.as_str();
+        let hint_z = config.hint.types.get(hint_type).unwrap().z_index;
         for (index, monitor) in self.layout.monitors.iter().enumerate() {
+            let monitor_bounds = &self.layout.monitor_bounds[index];
+            if bounds.is_some_and(|bounds| !bounds.iter().any(|b|
+                (b.x,b.y,b.width,b.height) == (monitor_bounds.x,monitor_bounds.y,monitor_bounds.width,monitor_bounds.height))) {
+                continue;
+            }
             let mut hints = Vec::new();
             for row in show_at_row.iter() {
                 for column in show_at_column.iter() {
@@ -168,7 +181,7 @@ impl HintsGenerator {
                         y: (((*row as f64) - 0.5) * monitor.height as f64 / grid_row as f64 / monitor.scale_factor) as i32,
                         z: hint_z,
                         scale: monitor.scale_factor,
-                        hint_type: HINT_TYPE_ID_MAP.get(&hint_type).unwrap().clone(),
+                        hint_type: config.hint.types.get_index_of(hint_type).unwrap(),
                     };
                     hints.push(hint);
                     *hints_count += 1;
@@ -292,6 +305,30 @@ mod tests {
     use super::*;
 
     static CODE_TEST_LOCK: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn desktop_grid_keeps_overlay_indices_and_works_without_windows() {
+        let _guard = CODE_TEST_LOCK.lock().unwrap();
+        *HINT_TEXT_LIST_STORAGE.lock().unwrap() = (0..100).map(|i| i.to_string()).collect();
+        let layout = Arc::new(HintLayout::with_monitors(&[], vec![
+            MonitorInfo { id: 0, x: -2400, y: 0, width: 2400, height: 1800, scale_factor: 2.0 },
+            MonitorInfo { id: 1, x: 0, y: 0, width: 1600, height: 900, scale_factor: 1.0 },
+        ]));
+        let generator = HintsGenerator::new(layout.clone(), HashMap::new());
+        let mut config: config::Config = toml::from_str(include_str!("../../config.toml")).unwrap();
+        config.hint.grid.rows = 2; config.hint.grid.columns = 2;
+        config.hint.grid.show_at_rows = vec![1,2]; config.hint.grid.show_at_columns = vec![1,2];
+        let mut count = 0;
+        let hints = generator.grid_on_displays(Some(&[layout.monitor_bounds[1].clone()]), &mut count, &config);
+        assert_eq!(count, 4);
+        assert_eq!(hints.len(), 1);
+        assert!(hints.contains_key(&format!("{OVERLAY_WINDOW_PREFIX}1")));
+        assert_eq!((hints[&format!("{OVERLAY_WINDOW_PREFIX}1")][0].x,hints[&format!("{OVERLAY_WINDOW_PREFIX}1")][0].y), (400,225));
+        count = 0;
+        let all = generator.grid_on_displays(Some(&layout.monitor_bounds), &mut count, &config);
+        assert_eq!(all.len(), 2);
+        assert_eq!(count, 8);
+    }
 
     #[test]
     fn window_grid_stays_inside_target_on_negative_scaled_displays() {

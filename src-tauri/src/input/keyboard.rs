@@ -10,6 +10,7 @@ use std::sync::Mutex;
 #[derive(Debug, Default)]
 pub struct KeyboardState {
     pub handoff_keys: HandoffKeys,
+    pub cursor_hold_key: Option<String>,
     pub pressed_hint_keys: Option<String>,
     pub final_hint_key: Option<String>,
     pub hint_starts_with_extra: bool,
@@ -27,6 +28,7 @@ impl KeyboardState {
     pub fn new() -> Self {
         Self {
             handoff_keys: HandoffKeys::default(),
+            cursor_hold_key: None,
             pressed_hint_keys: Some("".to_string()),
             final_hint_key: Some("".to_string()),
             hint_starts_with_extra: false,
@@ -97,11 +99,24 @@ pub fn switch_keyboard_ctrl(visible: bool) {
                 state.final_hint_key_hold = false;
                 state.final_hint_key_hold_start = 0;
                 state.hover_pending = false;
+                state.cursor_hold_key = None;
                 state.handoff_keys = HandoffKeys::default();
                 state.is_dragging = false;
             }
         }
     }
+}
+
+// Enter the same current-pointer hold used by the configured hold key (Space
+// by default). Its release follows the configured cursor-hold key's bindings.
+#[cfg(target_os = "macos")]
+pub(crate) fn hold_at_cursor(app: &tauri::AppHandle, key: String) -> bool {
+    let mut state = KEYBOARD_STATE.lock().unwrap();
+    if !state.in_ctrl_session || state.final_hint_key_hold || state.hover_pending
+        || !state.pressed_hint_keys.as_deref().unwrap_or("").is_empty() { return false; }
+    let Some(config) = config::get_config() else { return false; };
+    state.cursor_hold_key = Some(key);
+    executor::Executor::new(app, &config, &mut state).execute(Some(config::keybinding::HOLD_AT_HINT_CMD))
 }
 
 // 检查字符是否在指定的字符集中
@@ -155,6 +170,20 @@ pub fn handle_keyboard_event(app_handle: &tauri::AppHandle, key: &str, is_down: 
     let configs = config::get_config().unwrap();
     let keybindings = &configs.keybinding;
     let modifier_keys = config::keybinding::MODIFIERS.clone();
+
+    let cursor_release = if state.cursor_hold_key.as_deref() == Some(key) {
+        if is_down { return true; } // Repeats keep holding, never type a hint.
+        state.cursor_hold_key = None;
+        if configs.keybinding.global.hold_at_hint.is_empty() {
+            executor::Executor::new(app_handle, &configs, &mut state)
+                .execute(Some(config::keybinding::HOLD_AT_HINT_CMD));
+            return true;
+        }
+        Some(configs.keybinding.global.hold_at_hint.iter()
+            .find(|bound| bound.as_str() != config::keyboard::HINT_KEY)
+            .map(String::as_str).unwrap_or(config::keyboard::HINT_KEY))
+    } else { None };
+    let key = cursor_release.unwrap_or(key);
 
     // 记录状态
     if modifier_keys.contains(&key.to_string()) {

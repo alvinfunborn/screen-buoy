@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Khắc phục sự cố về quyền truy cập",
-    "keyboardRecovery": "Đã cho phép quyền Trợ năng nhưng tính năng thu nhận bàn phím chưa kết nối. Trước tiên hãy khởi động lại Screen Buoy. Nếu vẫn gặp lỗi, hãy cho phép cả Giám sát đầu vào.",
+    "keyboardRecovery": "Đã cho phép quyền Trợ năng nhưng tính năng thu nhận bàn phím chưa kết nối. Trước tiên hãy khởi động lại ScreenBuoy. Nếu vẫn gặp lỗi, hãy cho phép cả Giám sát đầu vào.",
     "keyboardUnavailable": "Các phím tắt không khả dụng.",
     "title": "Cho phép quyền Trợ năng",
-    "ready": "Screen Buoy đã sẵn sàng",
-    "description": "Cho phép Screen Buoy trong Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Trợ năng để ứng dụng tìm và nhấp vào các điều khiển.",
+    "ready": "ScreenBuoy đã sẵn sàng",
+    "description": "Cho phép ScreenBuoy trong Cài đặt hệ thống → Quyền riêng tư & Bảo mật → Trợ năng để ứng dụng tìm và nhấp vào các điều khiển.",
     "accessibility": "Khả năng tiếp cận",
     "inputMonitoring": "Giám sát Đầu vào",
     "keyboardHook": "Chụp bàn phím",
@@ -17,8 +17,8 @@
     "openAccessibility": "Mở Trợ năng",
     "openInputMonitoring": "Mở Giám sát đầu vào",
     "refresh": "Kiểm tra lại",
-    "restart": "Khởi động lại Screen Buoy",
-    "recovery": "Trong Cài đặt hệ thống, hãy cho phép bản ứng dụng tại đường dẫn bên dưới. Sau khi thay ứng dụng, bạn có thể cần xóa mục quyền cũ, thêm lại rồi khởi động lại Screen Buoy.",
+    "restart": "Khởi động lại ScreenBuoy",
+    "recovery": "Trong Cài đặt hệ thống, hãy cho phép bản ứng dụng tại đường dẫn bên dưới. Sau khi thay ứng dụng, bạn có thể cần xóa mục quyền cũ, thêm lại rồi khởi động lại ScreenBuoy.",
     "checkFailed": "Không thể kiểm tra quyền truy cập."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hint Charsets\n\nCác bộ ký tự trợ giúp",
-    "charsetsTooltip": "Mỗi hàng tương ứng với một vị trí trong nhãn: hàng đầu cung cấp ký tự đầu tiên, hàng thứ hai cung cấp ký tự tiếp theo. Đặt các ký tự quen thuộc, dễ bấm ở đầu mỗi hàng. Các tổ hợp này được dùng trước, rồi các ký tự phía sau được thêm dần, luân phiên ký tự đầu trong từng nhóm.",
+    "charsetsTooltip": "Mỗi hàng tương ứng với một vị trí trong nhãn: hàng đầu cung cấp ký tự đầu tiên, hàng thứ hai cung cấp ký tự tiếp theo. Đặt các ký tự quen thuộc, dễ bấm ở đầu mỗi hàng. Các tổ hợp này được dùng trước, rồi các ký tự phía sau được thêm dần, luân phiên ký tự đầu trong từng nhóm. Nhập không cần dấu phân cách; dấu phẩy và dấu cách cũng được tính là ký tự.",
     "charsetExtra": "Giải thích bổ sung (charset)",
     "charsetExtraTooltip": "Chỉ thêm ký tự tiền tố sau khi dùng hết mọi tổ hợp chính. Đặt các tiền tố quen thuộc, dễ bấm ở đầu danh sách. Tiền tố và ký tự theo sau được thêm dần theo thứ tự đã đặt, luân phiên tiền tố trong từng nhóm.",
     "charsetPrefixConflict": "Tiền tố bổ sung không được trùng với bộ ký tự ở vị trí đầu tiên. Ký tự trùng: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Thêm Bộ Ký Hóa",
     "addHintType": "Thêm Loại Gợi ý",
     "remove": "Xóa",
-    "placeholderCharset": "Nhập charset, cách nhau bằng dấu phẩy",
-    "placeholderCharsetExtra": "Nhập bộ ký tự bổ sung, cách nhau bằng dấu phẩy.",
+    "placeholderCharset": "Nhập liền các ký tự, ví dụ FJDK,.;",
+    "placeholderCharsetExtra": "Nhập liền các ký tự bổ sung",
     "placeholderRows": "Chọn dòng",
     "placeholderColumns": "Chọn cột(s)",
     "placeholderStyle": "Nhập kiểu mặc định",
@@ -216,7 +216,7 @@
       "keybinding": "Tạo cho mọi hành động trở nên tự nhiên. Đặt các phím bạn sử dụng để điều hướng và nhấp.",
       "mouse": "Tinh chỉnh chuyển động, cuộn và kéo cho từng tổ hợp phím.",
       "hint": "Chọn các nhân vật, lưới và kiểu dáng cho các gợi ý hiển thị của bạn.",
-      "uiAutomation": "Điều chỉnh tần suất Screen Buoy tìm và làm mới các thành phần giao diện.",
+      "uiAutomation": "Điều chỉnh tần suất ScreenBuoy tìm và làm mới các thành phần giao diện.",
       "keyboard": "Quản lý các phím điều chỉnh, mã phím và mối quan hệ giữa các phím.",
       "system": "Quản lý khởi động, cập nhật ứng dụng, hiển thị trên thanh công cụ và chẩn đoán."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "Cuộn nội dung dưới con trỏ mà không di chuyển con trỏ."
     },
     "help": {
-      "startAtLogin": "Khởi chạy Screen Buoy khi đăng nhập.",
+      "startAtLogin": "Khởi chạy ScreenBuoy khi đăng nhập.",
       "startInTray": "Giữ cửa sổ cài đặt ẩn khi khởi động.",
-      "showTrayIcon": "Giữ Screen Buoy trong thanh menu hoặc khay hệ thống để dễ truy cập."
+      "showTrayIcon": "Giữ ScreenBuoy trong thanh menu hoặc khay hệ thống để dễ truy cập."
     },
     "save": {
       "idle": "Thay đổi được lưu tự động",
@@ -253,12 +253,24 @@
     "loading": "Đang tải các cài đặt…",
     "loadError": "Không thể tải các cài đặt của bạn.",
     "retry": "Thử lại",
-    "saveError": "Không thể lưu cài đặt. Vui lòng thử lại với những thay đổi của bạn.",
+    "saveError": "Không thể lưu cài đặt. Vui lòng thử lại.",
     "removeItem": "Xóa {{name}}",
     "languageAuto": "Theo hệ thống",
-    "windowTitle": "Screen Buoy — Cài đặt",
+    "windowTitle": "ScreenBuoy — Cài đặt",
     "panicError": "Ứng dụng gặp sự cố. Vui lòng kiểm tra nhật ký để biết thêm chi tiết.",
-    "runtimeError": "Lỗi: {{error}}"
+    "runtimeError": "Lỗi: {{error}}",
+    "navigation": {
+      "interaction": "Thao tác",
+      "preferences": "Tùy chọn"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm cài đặt…",
+      "empty": "Không có cài đặt phù hợp"
+    },
+    "bindingScope": {
+      "global": "Khi nhập gợi ý",
+      "atHint": "Khi giữ phím gợi ý"
+    }
   },
   "updates": {
     "title": "Cập nhật ứng dụng",

@@ -6,7 +6,7 @@ import { SettingSection } from '../SettingSection';
 export const UiAutomationSettings: React.FC = () => {
   const { t } = useTranslation();
   return (
-    <SettingSection title={t('settings.groups.detection')} description={t('settings.groups.detectionDescription')}>
+    <SettingSection id="uiAutomation-detection" title={t('settings.groups.detection')} description={t('settings.groups.detectionDescription')}>
       <Form.Item className="setting-row" layout="horizontal"
         label={<span>{t('uiAutomation.collectInterval')}<small>{t('uiAutomation.collectIntervalTooltip')}</small></span>}
         name={['ui_automation', 'collect_interval']}>

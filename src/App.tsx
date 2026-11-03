@@ -75,15 +75,18 @@ function App() {
       direction={languages.find(language => language.code === i18n.resolvedLanguage)?.direction === 'rtl' ? 'rtl' : 'ltr'} theme={{
       token: {
         colorPrimary: '#6941c6', colorInfo: '#6941c6', colorSuccess: '#247f64',
-        colorText: '#292633', colorTextSecondary: '#706b7c', colorBorder: '#dfdce6',
-        colorBgLayout: '#f8f7fa', borderRadius: 8, controlHeight: 36, fontSize: 13,
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif',
+        colorText: '#242531', colorTextSecondary: '#686b7b', colorBorder: '#dddfe7',
+        colorTextPlaceholder: '#6f7283', colorBgLayout: '#fafbfc', borderRadius: 7, controlHeight: 36, fontSize: 13,
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+        colorBgContainerDisabled: '#f5f6f8', controlOutline: 'rgba(105, 65, 198, .12)',
       },
       components: {
         Tabs: { itemSelectedColor: '#5931b3', itemHoverColor: '#5931b3', titleFontSize: 13 },
-        Select: { multipleItemBg: '#f0ecf8' },
-        Form: { labelColor: '#3b3648', labelFontSize: 13 },
-        Collapse: { headerBg: '#faf9fc', contentBg: '#ffffff' },
+        Select: { multipleItemBg: '#f6f6f9', optionSelectedBg: '#f1ebfb' },
+        Form: { labelColor: '#363744', labelFontSize: 13 },
+        Collapse: { headerBg: '#fcfcfe', contentBg: '#ffffff' },
+        Button: { defaultShadow: '0 1px 2px rgba(20, 20, 40, .04)', primaryShadow: '0 1px 2px rgba(69, 36, 132, .15)' },
+        Switch: { trackHeight: 22, trackMinWidth: 38, handleSize: 18 },
       },
     }}>
     <div className="container">

@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "權限排障詳情",
-    "keyboardRecovery": "輔助功能已授權，但鍵盤監聽尚未連線。請先重啟 Screen Buoy；如果仍無法連線，再嘗試允許輸入監視。",
+    "keyboardRecovery": "輔助功能已授權，但鍵盤監聽尚未連線。請先重啟 ScreenBuoy；如果仍無法連線，再嘗試允許輸入監視。",
     "keyboardUnavailable": "快捷鍵暫不可用",
     "title": "允許輔助功能權限",
-    "ready": "Screen Buoy 已就緒",
-    "description": "在系統設定 → 隱私與安全 → 輔助功能中允許 Screen Buoy，用於識別控制項和執行點擊。",
+    "ready": "ScreenBuoy 已就緒",
+    "description": "在系統設定 → 隱私與安全 → 輔助功能中允許 ScreenBuoy，用於識別控制項和執行點擊。",
     "accessibility": "輔助功能",
     "inputMonitoring": "輸入監視",
     "keyboardHook": "鍵盤監聽",
@@ -17,8 +17,8 @@
     "openAccessibility": "開啟輔助功能設定",
     "openInputMonitoring": "開啟輸入監視設定",
     "refresh": "重新檢查",
-    "restart": "重啟 Screen Buoy",
-    "recovery": "請在系統設定中允許下方路徑對應的 App。替換 App 後，可能需要移除舊權限項、重新新增，再重啟 Screen Buoy。",
+    "restart": "重啟 ScreenBuoy",
+    "recovery": "請在系統設定中允許下方路徑對應的 App。替換 App 後，可能需要移除舊權限項、重新新增，再重啟 ScreenBuoy。",
     "checkFailed": "無法檢查權限"
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hint字符集",
-    "charsetsTooltip": "每一行對應 hint 的一位：第一行是首位，第二行是後續位。每行把熟悉、好按的字元放前面；先用靠前字元的組合，再逐步加入後面的字元，同一階段內交錯首字元。",
+    "charsetsTooltip": "每一行對應 hint 的一位：第一行是首位，第二行是後續位。每行把熟悉、好按的字元放前面；先用靠前字元的組合，再逐步加入後面的字元，同一階段內交錯首字元。 直接連續輸入，無需分隔；逗號和空格也算一個字元。",
     "charsetExtra": "Hint額外字符集",
     "charsetExtraTooltip": "僅在主字符集的所有組合用完後，才增加一位前綴。把熟悉、好按的前綴放前面；前綴和後續字元按設定順序逐步擴展，同一階段內交錯前綴。",
     "charsetPrefixConflict": "三位前綴不能與首位字元集重複，衝突字元：{{characters}}。",
@@ -148,8 +148,8 @@
     "addCharset": "新增字符集",
     "addHintType": "新增Hint型別",
     "remove": "移除",
-    "placeholderCharset": "用逗號分隔輸入字符集",
-    "placeholderCharsetExtra": "用逗號分隔輸入額外字符集",
+    "placeholderCharset": "連續輸入字元，例如 FJDK,.;",
+    "placeholderCharsetExtra": "連續輸入額外字元",
     "placeholderRows": "選擇行",
     "placeholderColumns": "選擇列",
     "placeholderStyle": "輸入預設樣式",
@@ -216,7 +216,7 @@
       "keybinding": "讓操作更順手，為定位、點擊和移動設定熟悉的按鍵。",
       "mouse": "按修飾鍵組合，調整移動、滾動和拖拽的步長。",
       "hint": "調整螢幕提示的字元、網格佈局與外觀。",
-      "uiAutomation": "設定 Screen Buoy 掃描介面元素的頻率和快取時間。",
+      "uiAutomation": "設定 ScreenBuoy 掃描介面元素的頻率和快取時間。",
       "keyboard": "管理修飾鍵、鍵碼，以及按鍵之間的左右關係。",
       "system": "管理啟動方式、應用更新、托盤顯示和診斷。"
     },
@@ -240,25 +240,37 @@
       "scrollDescription": "捲動游標所在位置的內容，游標保持原位。"
     },
     "help": {
-      "startAtLogin": "登入系統時自動啟動 Screen Buoy。",
+      "startAtLogin": "登入系統時自動啟動 ScreenBuoy。",
       "startInTray": "啟動時不顯示設定視窗。",
-      "showTrayIcon": "在選單欄或系統托盤中保留 Screen Buoy 入口。"
+      "showTrayIcon": "在選單欄或系統托盤中保留 ScreenBuoy 入口。"
     },
     "save": {
       "idle": "修改後自動儲存",
       "saving": "正在儲存…",
-      "saved": "修改已提交",
+      "saved": "已儲存",
       "error": "儲存失敗"
     },
     "loading": "正在載入設定…",
     "loadError": "無法載入設定",
     "retry": "重試",
-    "saveError": "設定儲存失敗，請重新修改後再試。",
+    "saveError": "設定儲存失敗，請重試。",
     "removeItem": "移除 {{name}}",
     "languageAuto": "跟隨系統",
-    "windowTitle": "Screen Buoy — 設定",
+    "windowTitle": "ScreenBuoy — 設定",
     "panicError": "應用發生錯誤，請檢視記錄瞭解詳情。",
-    "runtimeError": "發生錯誤：{{error}}"
+    "runtimeError": "發生錯誤：{{error}}",
+    "navigation": {
+      "interaction": "操控設定",
+      "preferences": "應用程式偏好"
+    },
+    "search": {
+      "placeholder": "搜尋設定…",
+      "empty": "找不到相關設定"
+    },
+    "bindingScope": {
+      "global": "輸入提示時",
+      "atHint": "按住提示鍵時"
+    }
   },
   "updates": {
     "title": "應用更新",

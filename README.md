@@ -96,11 +96,11 @@ Uses **macOS Accessibility API** and **Core Graphics**:
 
 **macOS:**
 
-1. Download `screen-buoy-macos.zip` from [Releases](https://github.com/alvinfunborn/screen-buoy/releases), extract it, and move `screen-buoy.app` to Applications.
+1. Download `screen-buoy-macos.zip` from [Releases](https://github.com/alvinfunborn/screen-buoy/releases), extract it, and move `ScreenBuoy.app` to Applications.
 2. **Starting with 1.2.1**: release builds include Apple Silicon and Intel architectures. First launch creates `~/Library/Application Support/com.screen-buoy.dev/config_macos.toml` and preserves existing preferences. Version 1.2.0 is arm64-only and still needs `config_macos.toml` beside the app.
 3. Community builds use an ad-hoc signature and are not yet Developer ID signed or notarized. After verifying the download source, if Gatekeeper blocks launch, remove only this app's quarantine attribute:
    ```bash
-   xattr -dr com.apple.quarantine /Applications/screen-buoy.app
+   xattr -dr com.apple.quarantine /Applications/ScreenBuoy.app
    ```
 4. If permissions are missing, Settings shows their status and links to System Settings. Allow Accessibility; if keyboard capture is still unavailable, also allow Input Monitoring. Grant access to the copy shown in the UI. Replacing the app may require re-adding its permission entry and restarting.
 5. Open Settings from the menu bar icon's menu. Press **Option+H** for hints; the mouse pointer remains visible.

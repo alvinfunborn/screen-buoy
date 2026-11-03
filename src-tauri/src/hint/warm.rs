@@ -123,22 +123,20 @@ pub fn setup_visibility_cache(app: tauri::AppHandle) {
         let mut windows = Vec::new();
         let mut layout = Arc::new(HintLayout::new(&[]));
         let mut queue = WorkQueue::default();
-        let mut activation = 0;
+        #[cfg(target_os = "macos")]
+        let mut hit_cache = super::occlusion_macos::HitCache::default();
         // Visibility must never skip a point just because the current UI uses it.
         let excluded = HashSet::new();
         loop {
             updates.borrow_and_update();
             let current = super::current_activation();
-            if current != activation && current % 2 == 1 {
-                seen.clear();
-                queue.clear();
-            }
-            activation = current;
             let Some((next_windows, sources)) = element::snapshots_since(&mut seen, 0) else { continue; };
             let changed_layout = windows.len() != next_windows.len() || windows.iter().zip(&next_windows)
                 .any(|(a, b)| !element::element::same_window(a, b) || a.z_index != b.z_index);
             if changed_layout {
                 queue.clear();
+                #[cfg(target_os = "macos")]
+                hit_cache.clear();
                 layout = Arc::new(HintLayout::new(&next_windows));
                 windows = next_windows;
             }
@@ -151,7 +149,7 @@ pub fn setup_visibility_cache(app: tauri::AppHandle) {
             }
             if changed { notify(); }
             for source in sources { queue.update(source, foreground, &layout, &excluded); }
-            let Some((source, elements)) = queue.next(&excluded) else {
+            let Some((source, elements)) = queue.next_prioritizing(&excluded, foreground) else {
                 if updates.changed().await.is_err() { break; }
                 continue;
             };
@@ -161,7 +159,7 @@ pub fn setup_visibility_cache(app: tauri::AppHandle) {
             let generator = HintsGenerator::new(layout.clone(),
                 HashMap::from([(source.window.clone(), elements.clone())]));
             #[cfg(target_os = "macos")]
-            let generator = generator.prepare_visibility(&app).await;
+            let generator = generator.prepare_visibility(&app, &mut hit_cache).await;
             let visible = generator.visible_elements(&source.window);
             let accepted = visible.len();
             let changed = CACHE.lock().unwrap().apply(&source, &elements, visible);
@@ -169,7 +167,7 @@ pub fn setup_visibility_cache(app: tauri::AppHandle) {
             log::debug!("[visibility_cache] epoch={} background={} window={} checked={} accepted={} changed={}",
                 current, current % 2 == 0, source.window.window_handle, elements.len(), accepted, changed);
             #[cfg(target_os = "macos")]
-            generator.log_performance(current, accepted, started.elapsed());
+            generator.log_performance(current, source.window.window_handle, accepted, started.elapsed());
             // One worker and one native task at a time. Closed hints still warm
             // the cache, with breathing room between batches for the desktop.
             tokio::time::sleep(Duration::from_millis(if super::current_activation() % 2 == 1 { 1 } else { 20 })).await;

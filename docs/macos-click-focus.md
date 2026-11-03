@@ -22,6 +22,14 @@ alone does not authorize a click.
 - Before posting input, the code checks the original pointer position, window
   ID/PID/bounds, AX element identity/bounds, and confirmed window focus again.
   It cancels on a missing target, changed geometry, lost focus or timeout.
+- Some custom-drawn content (observed in WeChat chat images) does not implement
+  AX point hit testing. Only `kAXErrorNotImplemented` (-25208) and
+  `kAXErrorNoValue` (-25212) may use a window target instead: `AXWindows` must
+  contain exactly one matching frame, the exact AX window must gain focus,
+  and its identity/frame plus the native receiver ID/PID/frame are rechecked
+  before posting. This validates the coordinate and window, not a semantic
+  control inside the window. IPC failure, disabled AX, ambiguous matches and
+  missing window geometry still cancel; there is no application-name exception.
 - Menu items, Dock items and desktop surfaces retain a direct click path with
   live window/coordinate validation. A positive window layer alone is not an
   exemption: floating app windows still require focus confirmation.
@@ -37,6 +45,10 @@ alone does not authorize a click.
 
 `[click_focus macos]` logs completion time or a cancellation reason. A completion
 log means input was posted, not that the target application accepted the action.
+Failed AX hits also log their numeric status, PID, window ID and coordinates.
+Apple documents the distinction between a missing/unsupported AX element and
+communication errors in
+[AXUIElementCopyElementAtPosition](https://developer.apple.com/documentation/applicationservices/1462077-axuielementcopyelementatposition).
 
 ## Validation
 
@@ -44,6 +56,7 @@ Run `cargo test --locked --lib` and `cargo check --locked` in `src-tauri`.
 Regression tests exercise immediate focus, delayed focus, unconfirmed activation,
 changed targets, cancellation during polling, focus loss during revalidation,
 negative coordinates and floating-window versus menu/Dock classification.
+They also cover missing-AX fallback eligibility and unique window matching.
 
 Manual acceptance with a disposable button-counter page:
 
@@ -54,5 +67,11 @@ Manual acceptance with a disposable button-counter page:
 4. While focus is pending, press Escape or move/resize/close the target window;
    verify no stale click or unexpected increment.
 5. Check menu/Dock, right/middle click, explicit double click, move-only and drag.
+6. Run `docs/fixtures/macos-no-ax-hit.swift` as a disposable native app. Its
+   application intentionally returns nil from AX hit testing (macOS reports
+   -25208), while window/focus attributes remain available. Use a grid hint or
+   Space-at-pointer and Enter: each command must add two mouse downs and one
+   double click. Repeat with the window initially in the background, and cancel
+   while focus is pending. Then verify a WeChat chat image opens as expected.
 
 No desktop success or Windows runtime result is inferred from the Rust tests.

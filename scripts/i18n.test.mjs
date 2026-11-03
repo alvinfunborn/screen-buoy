@@ -50,7 +50,8 @@ for (const folder of ['src/locales', 'website/locales']) {
         assert.ok(!value.includes('```') && !value.includes('**'), `${label}: unexpected Markdown formatting`);
         assert.ok(!/ZXQ\d|<\|?\/?(?:end_of_turn|start_of_turn)/.test(value), `${label}: translation artifact`);
         assert.deepEqual(placeholders(value), placeholders(base[key]), label);
-        if (base[key].includes('Screen Buoy')) assert.ok(value.includes('Screen Buoy'), `${label}: product name`);
+        const productName = folder === 'src/locales' ? 'ScreenBuoy' : 'Screen Buoy';
+        if (base[key].includes(productName)) assert.ok(value.includes(productName), `${label}: product name`);
         if (folder === 'src/locales') assert.ok(!/<[^>]+>/.test(value), `${label}: unexpected HTML`);
         // Translations must not change markup, link targets, code or shortcut keys.
         if (folder === 'website/locales') {

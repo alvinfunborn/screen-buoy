@@ -128,6 +128,8 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
             if let Err(e) = GetClientRect(hwnd, &mut client_rect) {
                 error!("[enum_window_proc] GetClientRect failed: {:?}", e);
             }
+            let mut owner_pid = 0;
+            windows::Win32::UI::WindowsAndMessaging::GetWindowThreadProcessId(hwnd, Some(&mut owner_pid));
             let window_element = WindowElement {
                 x: rect.left,
                 y: rect.top,
@@ -139,7 +141,7 @@ unsafe extern "system" fn enum_window_proc(hwnd: HWND, lparam: LPARAM) -> BOOL {
                 window_handle: hwnd.0 as i64,
                 visible: !is_iconic,
                 is_task_bar: is_task_bar,
-                owner_pid: 0,
+                owner_pid: owner_pid as i32,
             };
 
             (*elements).push(window_element);

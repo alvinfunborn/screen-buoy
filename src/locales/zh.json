@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "权限排障详情",
-    "keyboardRecovery": "辅助功能已授权，但键盘监听尚未连接。请先重启 Screen Buoy；如果仍无法连接，再尝试允许输入监视。",
+    "keyboardRecovery": "辅助功能已授权，但键盘监听尚未连接。请先重启 ScreenBuoy；如果仍无法连接，再尝试允许输入监视。",
     "keyboardUnavailable": "快捷键暂不可用",
     "title": "允许辅助功能权限",
-    "ready": "Screen Buoy 已就绪",
-    "description": "在系统设置 → 隐私与安全 → 辅助功能中允许 Screen Buoy，用于识别控件和执行点击。",
+    "ready": "ScreenBuoy 已就绪",
+    "description": "在系统设置 → 隐私与安全 → 辅助功能中允许 ScreenBuoy，用于识别控件和执行点击。",
     "accessibility": "辅助功能",
     "inputMonitoring": "输入监视",
     "keyboardHook": "键盘监听",
@@ -17,8 +17,8 @@
     "openAccessibility": "打开辅助功能设置",
     "openInputMonitoring": "打开输入监视设置",
     "refresh": "重新检查",
-    "restart": "重启 Screen Buoy",
-    "recovery": "请在系统设置中允许下方路径对应的 App。替换 App 后，可能需要移除旧权限项、重新添加，再重启 Screen Buoy。",
+    "restart": "重启 ScreenBuoy",
+    "recovery": "请在系统设置中允许下方路径对应的 App。替换 App 后，可能需要移除旧权限项、重新添加，再重启 ScreenBuoy。",
     "checkFailed": "无法检查权限"
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hint字符集",
-    "charsetsTooltip": "每一行对应 hint 的一位：第一行是首位，第二行是跟随位。每行把熟悉、好按的字符放前面；先用靠前字符的组合，再逐步加入后面的字符，同一档内交错首字母。",
+    "charsetsTooltip": "每一行对应 hint 的一位：第一行是首位，第二行是跟随位。每行把熟悉、好按的字符放前面；先用靠前字符的组合，再逐步加入后面的字符，同一档内交错首字母。 直接连续输入，无需分隔；逗号和空格也算一个字符。",
     "charsetExtra": "Hint额外字符集",
     "charsetExtraTooltip": "仅在主字符集的所有组合用完后，才增加一位前缀。把熟悉、好按的前缀放前面；前缀和后续字符按配置顺序逐步扩展，同一档内交错前缀。",
     "charsetPrefixConflict": "三位前缀不能与首位字符集重复，冲突字符：{{characters}}。",
@@ -148,8 +148,8 @@
     "addCharset": "添加字符集",
     "addHintType": "添加Hint类型",
     "remove": "移除",
-    "placeholderCharset": "用逗号分隔输入字符集",
-    "placeholderCharsetExtra": "用逗号分隔输入额外字符集",
+    "placeholderCharset": "连续输入字符，例如 FJDK,.;",
+    "placeholderCharsetExtra": "连续输入额外字符",
     "placeholderRows": "选择行",
     "placeholderColumns": "选择列",
     "placeholderStyle": "输入默认样式",
@@ -216,7 +216,7 @@
       "keybinding": "让操作更顺手，为定位、点击和移动设置熟悉的按键。",
       "mouse": "按修饰键组合，调整移动、滚动和拖拽的步长。",
       "hint": "调整屏幕提示的字符、网格布局与外观。",
-      "uiAutomation": "设置 Screen Buoy 扫描界面元素的频率和缓存时间。",
+      "uiAutomation": "设置 ScreenBuoy 扫描界面元素的频率和缓存时间。",
       "keyboard": "管理修饰键、键码，以及按键之间的左右关系。",
       "system": "管理启动方式、应用更新、托盘显示和诊断。"
     },
@@ -240,25 +240,37 @@
       "scrollDescription": "滚动光标所在位置的内容，光标保持原位。"
     },
     "help": {
-      "startAtLogin": "登录系统时自动启动 Screen Buoy。",
+      "startAtLogin": "登录系统时自动启动 ScreenBuoy。",
       "startInTray": "启动时不显示设置窗口。",
-      "showTrayIcon": "在菜单栏或系统托盘中保留 Screen Buoy 入口。"
+      "showTrayIcon": "在菜单栏或系统托盘中保留 ScreenBuoy 入口。"
     },
     "save": {
       "idle": "修改后自动保存",
       "saving": "正在保存…",
-      "saved": "修改已提交",
+      "saved": "已保存",
       "error": "保存失败"
     },
     "loading": "正在加载设置…",
     "loadError": "无法加载设置",
     "retry": "重试",
-    "saveError": "设置保存失败，请重新修改后再试。",
+    "saveError": "设置保存失败，请重试。",
     "removeItem": "移除 {{name}}",
     "languageAuto": "跟随系统",
-    "windowTitle": "Screen Buoy — 设置",
+    "windowTitle": "ScreenBuoy — 设置",
     "panicError": "应用发生错误，请查看日志了解详情。",
-    "runtimeError": "发生错误：{{error}}"
+    "runtimeError": "发生错误：{{error}}",
+    "navigation": {
+      "interaction": "操控设置",
+      "preferences": "应用偏好"
+    },
+    "search": {
+      "placeholder": "搜索设置…",
+      "empty": "未找到相关设置"
+    },
+    "bindingScope": {
+      "global": "输入提示时",
+      "atHint": "按住提示键时"
+    }
   },
   "updates": {
     "title": "应用更新",

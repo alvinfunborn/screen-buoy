@@ -1,11 +1,11 @@
 {
   "permissions": {
     "troubleshooting": "Risoluzione problemi di autorizzazione",
-    "keyboardRecovery": "L’accessibilità è autorizzata, ma l’acquisizione della tastiera non è connessa. Riavvia prima Screen Buoy. Se il problema persiste, autorizza anche il monitoraggio input.",
+    "keyboardRecovery": "L’accessibilità è autorizzata, ma l’acquisizione della tastiera non è connessa. Riavvia prima ScreenBuoy. Se il problema persiste, autorizza anche il monitoraggio input.",
     "keyboardUnavailable": "Le scorciatoie da tastiera non sono disponibili.",
     "title": "Consenti l’accesso ad Accessibilità",
-    "ready": "Screen Buoy è pronto",
-    "description": "Autorizza Screen Buoy in Impostazioni di Sistema → Privacy e sicurezza → Accessibilità per rilevare i controlli e fare clic su di essi.",
+    "ready": "ScreenBuoy è pronto",
+    "description": "Autorizza ScreenBuoy in Impostazioni di Sistema → Privacy e sicurezza → Accessibilità per rilevare i controlli e fare clic su di essi.",
     "accessibility": "Accessibilità",
     "inputMonitoring": "Monitoraggio Input",
     "keyboardHook": "Acquisizione tastiera",
@@ -17,8 +17,8 @@
     "openAccessibility": "Apri Accessibilità",
     "openInputMonitoring": "Apri Monitoraggio input",
     "refresh": "Verifica di nuovo",
-    "restart": "Riavvia Screen Buoy",
-    "recovery": "Autorizza in Impostazioni di Sistema la copia dell’app nel percorso indicato qui sotto. Dopo aver sostituito l’app, potrebbe essere necessario rimuovere la vecchia autorizzazione, aggiungerla di nuovo e riavviare Screen Buoy.",
+    "restart": "Riavvia ScreenBuoy",
+    "recovery": "Autorizza in Impostazioni di Sistema la copia dell’app nel percorso indicato qui sotto. Dopo aver sostituito l’app, potrebbe essere necessario rimuovere la vecchia autorizzazione, aggiungerla di nuovo e riavviare ScreenBuoy.",
     "checkFailed": "Impossibile controllare i permessi."
   },
   "keyboard": {
@@ -120,7 +120,7 @@
   },
   "hint": {
     "charsets": "Hint: Caratteri",
-    "charsetsTooltip": "Ogni riga corrisponde a una posizione dell’etichetta: la prima fornisce il primo carattere, la seconda il successivo. Metti prima i caratteri familiari e facili da premere. Le loro combinazioni vengono usate per prime; i caratteri successivi vengono introdotti gradualmente, alternando le iniziali in ciascun gruppo.",
+    "charsetsTooltip": "Ogni riga corrisponde a una posizione dell’etichetta: la prima fornisce il primo carattere, la seconda il successivo. Metti prima i caratteri familiari e facili da premere. Le loro combinazioni vengono usate per prime; i caratteri successivi vengono introdotti gradualmente, alternando le iniziali in ciascun gruppo. Inserisci senza separatori; anche virgole e spazi contano come caratteri.",
     "charsetExtra": "Hint Caratteri Esteso",
     "charsetExtraTooltip": "Un prefisso viene aggiunto solo dopo aver esaurito tutte le combinazioni principali. Metti prima i prefissi familiari e facili da premere. Prefissi e caratteri successivi vengono introdotti gradualmente nell’ordine configurato, alternando i prefissi in ciascun gruppo.",
     "charsetPrefixConflict": "I prefissi aggiuntivi non possono coincidere con i caratteri della prima posizione. Caratteri in conflitto: {{characters}}.",
@@ -148,8 +148,8 @@
     "addCharset": "Aggiungi Charset",
     "addHintType": "Aggiungi Tipo Suggerimento",
     "remove": "Rimuovi",
-    "placeholderCharset": "Inserisci la codifica dei caratteri, separata da virgole.",
-    "placeholderCharsetExtra": "Inserisci i caratteri speciali aggiuntivi, separati da virgola",
+    "placeholderCharset": "Inserisci i caratteri di seguito, es. FJDK,.;",
+    "placeholderCharsetExtra": "Inserisci i caratteri aggiuntivi di seguito",
     "placeholderRows": "Seleziona righe",
     "placeholderColumns": "Seleziona le colonne",
     "placeholderStyle": "Inserisci lo stile predefinito",
@@ -216,7 +216,7 @@
       "keybinding": "Rendete ogni azione naturale. Impostate i tasti che utilizzate per navigare e cliccare.",
       "mouse": "Ottimizza il movimento, lo scorrimento e il trascinamento per ogni combinazione di modificatori.",
       "hint": "Seleziona i personaggi, la griglia e l'aspetto dei tuoi suggerimenti sullo schermo.",
-      "uiAutomation": "Controlla la frequenza con cui Screen Buoy rileva e aggiorna gli elementi dell’interfaccia.",
+      "uiAutomation": "Controlla la frequenza con cui ScreenBuoy rileva e aggiorna gli elementi dell’interfaccia.",
       "keyboard": "Gestisci i tasti modificatori, i codici dei tasti e le relazioni tra i tasti adiacenti.",
       "system": "Gestisci l'avvio, gli aggiornamenti dell'app, la visibilità nella barra delle applicazioni e le diagnostiche."
     },
@@ -240,9 +240,9 @@
       "scrollDescription": "Scorre il contenuto sotto il puntatore senza spostarlo."
     },
     "help": {
-      "startAtLogin": "Avvia Screen Buoy all’accesso.",
+      "startAtLogin": "Avvia ScreenBuoy all’accesso.",
       "startInTray": "Nascondi la finestra delle impostazioni all'avvio.",
-      "showTrayIcon": "Mantieni Screen Buoy accessibile dalla barra dei menu o dall’area di notifica."
+      "showTrayIcon": "Mantieni ScreenBuoy accessibile dalla barra dei menu o dall’area di notifica."
     },
     "save": {
       "idle": "Le modifiche vengono salvate automaticamente",
@@ -253,12 +253,24 @@
     "loading": "Caricamento delle impostazioni…",
     "loadError": "Impossibile caricare le impostazioni.",
     "retry": "Riprova",
-    "saveError": "Impossibile salvare le impostazioni. Si prega di riprovare.",
+    "saveError": "Impossibile salvare le impostazioni. Riprova.",
     "removeItem": "Rimuovi {{name}}",
     "languageAuto": "Segui il sistema",
-    "windowTitle": "Screen Buoy — Impostazioni",
+    "windowTitle": "ScreenBuoy — Impostazioni",
     "panicError": "L'app ha riscontrato un errore. Controlla i log per maggiori dettagli.",
-    "runtimeError": "Errore: {{error}}"
+    "runtimeError": "Errore: {{error}}",
+    "navigation": {
+      "interaction": "Interazione",
+      "preferences": "Preferenze"
+    },
+    "search": {
+      "placeholder": "Cerca impostazioni…",
+      "empty": "Nessuna impostazione corrispondente"
+    },
+    "bindingScope": {
+      "global": "Durante la digitazione di un indizio",
+      "atHint": "Tenendo premuto il tasto dell’indizio"
+    }
   },
   "updates": {
     "title": "Aggiornamenti app",
